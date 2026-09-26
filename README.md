@@ -55,6 +55,8 @@ make dev-backend
 
 The UI is then available at http://<host>:8000.
 
+To run it as a service, see [deploy/dartscore.service](deploy/dartscore.service). It conflicts with Autodarts, so starting one stops the other.
+
 ## UI languages
 
 The web UI is available in English and German; the language follows the browser and can be switched in the header. Strings live in `frontend/src/i18n/locales/` (`en.ts` is the source of truth, other locales are type-checked against it). To add a language, create a new locale file and register it in `frontend/src/i18n/index.ts`.

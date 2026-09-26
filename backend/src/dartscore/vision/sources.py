@@ -160,6 +160,10 @@ class SyntheticSource:
             width=cfg.width, height=cfg.height, fps=cfg.fps, fourcc="SYNT", backend="synthetic"
         )
 
+    def board_homography(self) -> NDArray[np.float64]:
+        """Ground truth: board plane (mm) -> image (px). Used by tests to simulate clicks."""
+        return np.asarray(self._view_homography(900) @ board.mm_to_px(900), dtype=np.float64)
+
     def _view_homography(self, size: int) -> NDArray[np.float64]:
         """Map the top-down view to a squashed, rotated view (shallow, from the side)."""
         cfg = self._config

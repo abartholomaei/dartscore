@@ -9,6 +9,7 @@ export default function Layout() {
   const links = [
     { to: '/', label: t('nav.home') },
     { to: '/cameras', label: t('nav.cameras') },
+    { to: '/calibration', label: t('nav.calibration') },
   ]
 
   return (

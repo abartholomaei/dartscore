@@ -40,6 +40,7 @@ class CameraStatusResponse(BaseModel):
     info: CameraInfo | None
     last_error: str | None
     lens_calibrated: bool
+    board_calibrated: bool
 
 
 class DeviceResponse(BaseModel):
@@ -96,7 +97,7 @@ def _renderer(request: Request) -> JpegRenderer:
     return renderer
 
 
-def _worker(request: Request, camera_id: str) -> CameraWorker:
+def worker_or_404(request: Request, camera_id: str) -> CameraWorker:
     worker = _manager(request).get(camera_id)
     if worker is None:
         raise HTTPException(status_code=404, detail=f"Unknown camera: {camera_id}")
@@ -131,6 +132,7 @@ def list_cameras(request: Request) -> list[CameraStatusResponse]:
                 info=CameraInfo(**status.info.__dict__) if status.info else None,
                 last_error=status.last_error,
                 lens_calibrated=renderer.has_lens(status.id),
+                board_calibrated=request.app.state.calibrations.get(status.id) is not None,
             )
         )
     return result
@@ -140,7 +142,7 @@ def list_cameras(request: Request) -> list[CameraStatusResponse]:
 async def snapshot(
     request: Request, camera_id: str, width: Width = None, undistort: bool = False
 ) -> Response:
-    worker = _worker(request, camera_id)
+    worker = worker_or_404(request, camera_id)
     frame = worker.latest() or await run_in_threadpool(worker.wait_for_frame, 0, 3.0)
     if frame is None:
         raise HTTPException(status_code=503, detail=f"Camera {camera_id} is not delivering frames")
@@ -160,7 +162,7 @@ async def stream(
     limit: Annotated[int | None, Query(ge=1)] = None,
 ) -> StreamingResponse:
     """MJPEG stream, usable directly as <img src> in the browser. ``limit`` = number of frames."""
-    worker = _worker(request, camera_id)
+    worker = worker_or_404(request, camera_id)
     settings: Settings = request.app.state.settings
     max_fps = min(fps or settings.stream.max_fps, settings.stream.max_fps)
     renderer = _renderer(request)

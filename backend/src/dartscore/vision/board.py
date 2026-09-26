@@ -5,6 +5,7 @@ The 20 is at the top (90°).
 """
 
 import math
+from dataclasses import dataclass
 
 import cv2
 import numpy as np
@@ -98,3 +99,81 @@ def render_board(size_px: int = 900) -> NDArray[np.uint8]:
             img, text, org, cv2.FONT_HERSHEY_SIMPLEX, font_scale, (240, 240, 240), 2, cv2.LINE_AA
         )
     return img
+
+
+@dataclass(frozen=True)
+class Score:
+    """A single dart. segment 0 = miss, 25 = bull; multiplier 1-3 (bull: 1 = 25, 2 = 50)."""
+
+    segment: int
+    multiplier: int
+
+    @property
+    def points(self) -> int:
+        return self.segment * self.multiplier
+
+    @property
+    def label(self) -> str:
+        if self.segment == 0:
+            return "MISS"
+        if self.segment == 25:
+            return "BULL" if self.multiplier == 2 else "25"
+        return f"{'SDT'[self.multiplier - 1]}{self.segment}"
+
+
+def segment_at_angle(angle_deg: float) -> int:
+    """Segment number for a board angle (0° = right, counterclockwise, like atan2)."""
+    # clockwise angle from the top, shifted by half a segment so the 20 spans -9°..9°
+    from_top = (90.0 - angle_deg + SEGMENT_ANGLE_DEG / 2) % 360.0
+    return SEGMENTS[int(from_top // SEGMENT_ANGLE_DEG) % len(SEGMENTS)]
+
+
+def score_at(x_mm: float, y_mm: float) -> Score:
+    r = math.hypot(x_mm, y_mm)
+    if r <= R_BULL:
+        return Score(25, 2)
+    if r <= R_OUTER_BULL:
+        return Score(25, 1)
+    if r > R_DOUBLE_OUTER:
+        return Score(0, 0)
+    segment = segment_at_angle(math.degrees(math.atan2(y_mm, x_mm)))
+    if R_TRIPLE_INNER < r <= R_TRIPLE_OUTER:
+        return Score(segment, 3)
+    if r > R_DOUBLE_INNER:
+        return Score(segment, 2)
+    return Score(segment, 1)
+
+
+@dataclass(frozen=True)
+class CalibrationPoint:
+    """A well-defined point on the board plane that users click in each camera image."""
+
+    id: str
+    x_mm: float
+    y_mm: float
+
+
+def _boundary_point(left: int, right: int) -> CalibrationPoint:
+    """Where the outer edge of the double ring meets the wire between two segments."""
+    i = SEGMENTS.index(left)
+    assert SEGMENTS[(i + 1) % len(SEGMENTS)] == right, (left, right)
+    angle = math.radians(90.0 - (i + 0.5) * SEGMENT_ANGLE_DEG)
+    return CalibrationPoint(
+        f"{left}/{right}", R_DOUBLE_OUTER * math.cos(angle), R_DOUBLE_OUTER * math.sin(angle)
+    )
+
+
+# Clicked in this order. The first four are 90° apart and required; the rest improve accuracy.
+CALIBRATION_POINTS = (
+    _boundary_point(20, 1),
+    _boundary_point(6, 10),
+    _boundary_point(3, 19),
+    _boundary_point(11, 14),
+    CalibrationPoint("bull", 0.0, 0.0),
+    _boundary_point(4, 13),
+    _boundary_point(15, 2),
+    _boundary_point(7, 16),
+    _boundary_point(9, 12),
+)
+REQUIRED_POINTS = 4
+CALIBRATION_POINTS_BY_ID = {p.id: p for p in CALIBRATION_POINTS}

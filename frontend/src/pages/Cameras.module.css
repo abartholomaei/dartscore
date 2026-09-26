@@ -2,8 +2,11 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  justify-content: space-between;
-  gap: 12px;
+  gap: 12px 20px;
+}
+
+.toolbar h1 {
+  margin-right: auto;
 }
 
 .title {
@@ -50,6 +53,7 @@
 }
 
 .imageBox {
+  position: relative;
   aspect-ratio: 16 / 9;
   background: #000;
   display: grid;

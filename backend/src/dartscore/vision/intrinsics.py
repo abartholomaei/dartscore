@@ -144,15 +144,22 @@ class Undistorter:
         self.alpha = alpha
         self._maps: dict[tuple[int, int], tuple[NDArray[np.float32], NDArray[np.float32]]] = {}
 
+    def _matrices_for(
+        self, size: tuple[int, int]
+    ) -> tuple[NDArray[np.float64], NDArray[np.float64]]:
+        """(camera matrix, matrix of the undistorted image), scaled to the given resolution."""
+        cal = self.calibration
+        sx, sy = size[0] / cal.image_size[0], size[1] / cal.image_size[1]
+        matrix = cal.camera_matrix * np.array([[sx], [sy], [1.0]])
+        new_matrix, _ = cv2.getOptimalNewCameraMatrix(
+            matrix, cal.dist_coeffs, size, self.alpha, size
+        )
+        return matrix, np.asarray(new_matrix, dtype=np.float64)
+
     def _maps_for(self, size: tuple[int, int]) -> tuple[NDArray[np.float32], NDArray[np.float32]]:
         if size not in self._maps:
             cal = self.calibration
-            # scale the camera matrix to a different resolution
-            sx, sy = size[0] / cal.image_size[0], size[1] / cal.image_size[1]
-            matrix = cal.camera_matrix * np.array([[sx], [sy], [1.0]])
-            new_matrix, _ = cv2.getOptimalNewCameraMatrix(
-                matrix, cal.dist_coeffs, size, self.alpha, size
-            )
+            matrix, new_matrix = self._matrices_for(size)
             map1, map2 = cv2.initUndistortRectifyMap(
                 matrix, cal.dist_coeffs, None, new_matrix, size, cv2.CV_32FC1
             )
@@ -163,3 +170,12 @@ class Undistorter:
         h, w = image.shape[:2]
         map1, map2 = self._maps_for((w, h))
         return np.asarray(cv2.remap(image, map1, map2, cv2.INTER_LINEAR), dtype=np.uint8)
+
+    def undistort_points(
+        self, points: NDArray[np.float64], size: tuple[int, int]
+    ) -> NDArray[np.float64]:
+        """Maps pixel coordinates of the raw image to the undistorted image (Nx2)."""
+        matrix, new_matrix = self._matrices_for(size)
+        pts = np.asarray(points, dtype=np.float64).reshape(-1, 1, 2)
+        out = cv2.undistortPoints(pts, matrix, self.calibration.dist_coeffs, P=new_matrix)
+        return np.asarray(out, dtype=np.float64).reshape(-1, 2)

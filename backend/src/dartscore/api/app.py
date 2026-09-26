@@ -10,7 +10,7 @@ from starlette.responses import Response
 from starlette.types import Scope
 
 from dartscore import __version__
-from dartscore.api import cameras
+from dartscore.api import calibration, cameras
 from dartscore.config import Settings
 from dartscore.vision.camera import CameraManager
 from dartscore.vision.intrinsics import Undistorter, load_lens
@@ -61,8 +61,14 @@ def create_app(settings: Settings, camera_manager: CameraManager | None = None) 
     app = FastAPI(title="dartscore", version=__version__, lifespan=lifespan)
     app.state.settings = settings
     app.state.cameras = manager
-    app.state.jpeg = cameras.JpegRenderer(settings.stream, load_undistorters(settings))
+    # shared by the stream renderer and the calibration endpoints
+    app.state.undistorters = load_undistorters(settings)
+    app.state.jpeg = cameras.JpegRenderer(settings.stream, app.state.undistorters)
+    app.state.calibrations = calibration.CalibrationStore(
+        settings.calibration_dir, [c.id for c in settings.cameras]
+    )
     app.include_router(cameras.router)
+    app.include_router(calibration.router)
 
     @app.get("/api/health")
     def health() -> HealthResponse:

@@ -1,0 +1,21 @@
+# systemd unit for dartscore.
+# Install: cp deploy/dartscore.service /etc/systemd/system/ && systemctl daemon-reload
+# Adjust WorkingDirectory and the uv path to your installation.
+#
+# Conflicts= makes dartscore and Autodarts mutually exclusive (both need the cameras):
+# `systemctl start dartscore` stops Autodarts, `systemctl start autodarts` stops dartscore.
+[Unit]
+Description=dartscore - local auto-scoring for steel-tip darts
+After=network-online.target
+Wants=network-online.target
+Conflicts=autodarts.service
+
+[Service]
+WorkingDirectory=/opt/dartscore
+ExecStart=/root/.local/bin/uv run --project backend --no-dev dartscore
+Environment=DARTSCORE_LOGGING__JSON_OUTPUT=true
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

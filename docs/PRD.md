@@ -324,15 +324,17 @@ Aggregierte Statistiken können als Cache-Tabelle (z. B. `player_stats`) gehalte
 - [ ] Linsenkalibrierung für alle 3 Kameras durchführen
 - [x] Simulierte Kameras für die Entwicklung ohne Hardware
 
-### Epic 2 – Kalibrierung
-- [ ] Board-Geometrie als Modell (Radien in mm, Segmentreihenfolge 20-1-18-4-…)
-- [ ] UI: Referenzpunkte je Kamera im Bild anklicken
-- [ ] Homographie je Kamera berechnen (Bild ↔ Scheibenebene)
-- [ ] Board-Overlay (Ringe + Segmentlinien) auf Kamerabild rendern
-- [ ] Kalibrierung speichern/laden (DB oder Datei), Versionierung
-- [ ] Test-Modus: gesteckten Dart erkennen und Feld anzeigen
-- [ ] Drift-Erkennung: Board/Kamera verschoben → Warnung
-- [ ] Auto-Kalibrierung per Linien-/Ellipsenerkennung (später)
+### Epic 2 – Kalibrierung (Software erledigt 2026-09-26)
+- [x] Board-Geometrie als Modell (Radien in mm, Segmentreihenfolge 20-1-18-4-…) inkl. Punktwertung (Koordinate → Feld)
+- [x] UI: Referenzpunkte je Kamera im Bild setzen (4 Pflicht- + 5 Zusatzpunkte, Lupe, Verschieben per Finger)
+- [x] Homographie je Kamera berechnen (Scheibenebene mm ↔ Bild px), Reprojektionsfehler je Punkt
+- [x] Board-Overlay (Ringe + Segmentlinien + Zahlen) auf Kamerabild – Kalibrierseite und Kameraseite
+- [x] Kalibrierung speichern/laden, Versionierung (vorherige Stände unter `history/`)
+- [x] Test-Modus: Klick ins Bild → erkanntes Feld (mit echten Darts ab Epic 3)
+- [x] Drift-Erkennung: Verschiebung ggü. Referenzbild (Phasenkorrelation) → Warnung
+- [x] Board-Rotation: ergibt sich aus den benannten Kalibrierpunkten, keine eigene Einstellung nötig
+- [ ] Alle 3 Kameras auf dem Mac mini kalibrieren
+- [ ] Auto-Kalibrierung per Linien-/Ellipsenerkennung bzw. Kalibrierpunkt-Modell (Epic 3b)
 
 ### Epic 3 – Wurferkennung (Vision)
 - [ ] Referenzbild-Management je Kamera (Hintergrund vor jedem Wurf)
@@ -465,7 +467,7 @@ Aggregierte Statistiken können als Cache-Tabelle (z. B. `player_stats`) gehalte
 - [ ] Docker-Image multi-arch (amd64/arm64) mit Kamera-Durchreichung
 - [ ] Alternativ native Installation (Installskript) mit Autostart als systemd-Dienst
 - [ ] Plattformtests: Debian x86 (Referenz), Raspberry Pi OS, macOS, Windows (nativ)
-- [ ] Umschalten zwischen Autodarts und dartscore auf dem Referenzrechner (systemd, Kamerafreigabe)
+- [x] Umschalten zwischen Autodarts und dartscore auf dem Referenzrechner (systemd-Unit mit `Conflicts=autodarts.service`, `deploy/dartscore.service`)
 - [ ] Zugriff im Heimnetz (feste IP / mDNS, z. B. `darts.local`)
 - [ ] Update-Prozess (git pull + Migration)
 - [ ] Log-Rotation

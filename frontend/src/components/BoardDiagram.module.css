@@ -1,0 +1,38 @@
+.svg {
+  width: 100%;
+  max-width: 240px;
+  display: block;
+  margin: 0 auto;
+}
+
+.face {
+  fill: var(--bg);
+}
+
+.wire {
+  fill: none;
+  stroke: var(--text-muted);
+  stroke-width: 1.5;
+}
+
+.number {
+  fill: var(--text);
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.open {
+  fill: var(--surface);
+  stroke: var(--text-muted);
+  stroke-width: 2;
+}
+
+.placed {
+  fill: var(--ok);
+}
+
+.active {
+  fill: var(--accent);
+  stroke: var(--surface);
+  stroke-width: 3;
+}

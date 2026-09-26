@@ -15,6 +15,7 @@ from dartscore import __version__
 from dartscore.api import calibration, cameras, detection, games, players, stats, ws
 from dartscore.config import Settings
 from dartscore.game import GameError
+from dartscore.services.bot import BotService
 from dartscore.services.calibration_monitor import CalibrationMonitor
 from dartscore.services.detection import DetectionService
 from dartscore.services.export import ExportService
@@ -88,9 +89,11 @@ def create_app(settings: Settings, camera_manager: CameraManager | None = None) 
         detection_service.start()
         backups.start()
         monitor.start()
+        bots.start()
         try:
             yield
         finally:
+            bots.stop()
             monitor.stop()
             backups.stop()
             detection_service.stop()
@@ -109,6 +112,7 @@ def create_app(settings: Settings, camera_manager: CameraManager | None = None) 
     app.state.sessions = sessions
     app.state.players = PlayerService(sessions)
     app.state.games = GameService(sessions, hub)
+    bots = app.state.bots = BotService(app.state.games)
     app.state.stats = StatsService(sessions)
     app.state.exports = ExportService(sessions)
     detection_service = DetectionService(

@@ -16,11 +16,14 @@ GameState = dict[str, Any]
 class Participant(BaseModel):
     player_id: int | None = None
     guest_name: str | None = Field(default=None, max_length=40)
+    # a computer opponent with this target 3-dart average
+    bot_level: int | None = Field(default=None, ge=20, le=120)
 
     @model_validator(mode="after")
     def exactly_one(self) -> "Participant":
-        if (self.player_id is None) == (self.guest_name is None):
-            raise ValueError("Give either player_id or guest_name")
+        given = [self.player_id, self.guest_name, self.bot_level]
+        if sum(value is not None for value in given) != 1:
+            raise ValueError("Give one of player_id, guest_name or bot_level")
         return self
 
 
@@ -86,7 +89,7 @@ def history(request: Request, limit: int = 20, player_id: int | None = None) -> 
 
 @router.post("", status_code=201)
 def create_game(request: Request, body: GameCreate) -> GameState:
-    refs = [PlayerRef(p.player_id, p.guest_name) for p in body.players]
+    refs = [PlayerRef(p.player_id, p.guest_name, p.bot_level) for p in body.players]
     return _service(request).create(body.mode, body.settings, refs, body.abort_active)
 
 

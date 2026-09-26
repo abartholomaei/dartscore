@@ -62,6 +62,8 @@ class GamePlayer(Base):
     # None for guests
     player_id: Mapped[int | None] = mapped_column(ForeignKey("players.id"), index=True)
     guest_name: Mapped[str | None] = mapped_column(String(40))
+    # computer opponent: its target 3-dart average (guest_name holds its display name)
+    bot_level: Mapped[int | None] = mapped_column(default=None)
     # statistics of this player in this game (see game.stats), updated on every change
     stats: Mapped[dict[str, Any] | None] = mapped_column(default=None)
 

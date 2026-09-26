@@ -393,7 +393,7 @@ Aggregierte Statistiken können als Cache-Tabelle (z. B. `player_stats`) gehalte
 - [x] Doubles-Training
 - [x] Score-Training
 - [x] Killer, Halve-It, Gotcha (Party)
-- [ ] Bot-Gegner mit einstellbarem Niveau (Streuungsmodell)
+- [x] Bot-Gegner mit einstellbarem Niveau (Streuungsmodell)
 - [x] Undo/Redo, Wurf korrigieren, Wurf manuell eingeben
 - [x] Pausieren/Fortsetzen (laufende Spiele überstehen Neustarts, „Spiel fortsetzen“ auf der Startseite), Rematch
 - [x] Bull-Out zur Reihenfolgebestimmung (Ausbullen, danach startet das vorbereitete Spiel mit dem Gewinner)

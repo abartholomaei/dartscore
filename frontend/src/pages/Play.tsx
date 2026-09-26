@@ -257,7 +257,10 @@ function PlayerHeader({ game, player }: { game: GameState; player: GamePlayer })
   return (
     <div className={styles.playerHeader}>
       <span className={styles.dot} style={{ background: player.color }} />
-      <span className={styles.playerName}>{player.name}</span>
+      <span className={styles.playerName}>
+        {player.bot_level ? '🤖 ' : ''}
+        {player.name}
+      </span>
       {legs && (
         <span className={styles.legs}>
           {sets && `${game.sets_won[player.position]} · `}

@@ -29,6 +29,8 @@ from dartscore.storage.models import GameEventRecord, GamePlayer, GameRecord, Pl
 
 log = structlog.get_logger(__name__)
 
+BOT_MODES = ("x01", "cricket")
+
 
 @dataclass(frozen=True)
 class PlayerRef:
@@ -36,6 +38,7 @@ class PlayerRef:
 
     player_id: int | None = None
     guest_name: str | None = None
+    bot_level: int | None = None
 
 
 @dataclass
@@ -71,6 +74,7 @@ def _player_info(gp: GamePlayer) -> dict[str, Any]:
             "name": gp.player.name,
             "color": gp.player.color,
             "guest": False,
+            "bot_level": None,
         }
     return {
         "position": gp.position,
@@ -78,6 +82,7 @@ def _player_info(gp: GamePlayer) -> dict[str, Any]:
         "name": gp.guest_name or f"Guest {gp.position + 1}",
         "color": "#9e9e9e",
         "guest": True,
+        "bot_level": gp.bot_level,
     }
 
 
@@ -91,7 +96,8 @@ class GameService:
         self._load_active()
 
     def add_listener(self, listener: Callable[[str], None]) -> None:
-        """Called with "next" or "new_game" after the change (e.g. to sync the detector)."""
+        """Called with "next" or "new_game" after the change (e.g. to sync the detector) and
+        "change" after every published state."""
         self._listeners.append(listener)
 
     def _notify(self, event: str) -> None:
@@ -163,6 +169,8 @@ class GameService:
                         player = session.get(Player, ref.player_id) if ref.player_id else None
                         favourites.append(player.favorite_double if player else None)
                     settings = {**settings, "preferred_doubles": favourites}
+            if any(ref.bot_level for ref in players) and mode not in BOT_MODES:
+                raise GameError("bot_mode", f"Bots can only play {', '.join(BOT_MODES)}")
             game = create_game(mode, len(players), settings)
             with self._sessions() as session:
                 record = GameRecord(mode=mode, settings=game.settings_dict())
@@ -172,6 +180,12 @@ class GameService:
                         if player is None or player.archived_at is not None:
                             raise GameError("player_not_found", f"Player {ref.player_id} not found")
                         gp = GamePlayer(position=position, player_id=ref.player_id)
+                    elif ref.bot_level:
+                        gp = GamePlayer(
+                            position=position,
+                            guest_name=f"Bot {ref.bot_level}",
+                            bot_level=ref.bot_level,
+                        )
                     else:
                         name = " ".join((ref.guest_name or "").split())[:40] or None
                         gp = GamePlayer(position=position, guest_name=name)
@@ -199,6 +213,7 @@ class GameService:
     ) -> dict[str, Any]:
         with self._lock:
             active = self._require_active()
+            self._check_bot(active, source)
             active.game.throw(dart)
             active.meta.append(EventMeta(source, x_mm, y_mm, confidence))
             self._append_event(active)
@@ -207,6 +222,7 @@ class GameService:
     def next_turn(self, source: str = "manual") -> dict[str, Any]:
         with self._lock:
             active = self._require_active()
+            self._check_bot(active, source)
             active.game.next_turn()
             active.meta.append(EventMeta(source))
             self._append_event(active)
@@ -271,12 +287,42 @@ class GameService:
                 ).first()
                 if last is None:
                     raise GameError("no_game", "No previous game")
-                refs = [PlayerRef(gp.player_id, gp.guest_name) for gp in last.players]
+                refs = [
+                    PlayerRef(gp.player_id, None if gp.bot_level else gp.guest_name, gp.bot_level)
+                    for gp in last.players
+                ]
                 mode, settings = last.mode, dict(last.settings)
             refs = refs[1:] + refs[:1]
             return self.create(mode, settings, refs, abort_active=True)
 
+    def bot_turn(self) -> tuple[int, Game, int] | None:
+        """(game id, game, bot level) while a bot is in control of the board, else None."""
+        with self._lock:
+            active = self._active
+            if active is None:
+                return None
+            owner = self._turn_owner(active)
+            level = active.players[owner].get("bot_level") if owner is not None else None
+            return (active.id, active.game, level) if level else None
+
     # --- internals ----------------------------------------------------------------------
+
+    @staticmethod
+    def _turn_owner(active: ActiveGame) -> int | None:
+        """Who has to act next: the thrower, or whoever has to pull their darts."""
+        game = active.game
+        if game.finished:
+            return None
+        state = game.state()
+        if state["leg_winner"] is not None:
+            return int(state["leg_winner"])
+        return game.current_player
+
+    def _check_bot(self, active: ActiveGame, source: str) -> None:
+        # the camera must not score a bot's turn (e.g. the player pulling their darts)
+        owner = self._turn_owner(active)
+        if source == "auto" and owner is not None and active.players[owner].get("bot_level"):
+            raise GameError("bot_turn", "A bot is throwing")
 
     def _require_active(self) -> ActiveGame:
         if self._active is None:
@@ -366,6 +412,7 @@ class GameService:
     def _publish(self) -> dict[str, Any]:
         state = self._state(self._active) if self._active else None
         self._hub.publish("game", state)
+        self._notify("change")
         return state or {}
 
     def _turn_meta(self, active: ActiveGame) -> list[EventMeta]:

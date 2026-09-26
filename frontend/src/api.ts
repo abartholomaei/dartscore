@@ -184,6 +184,7 @@ export type GamePlayer = {
   name: string
   color: string
   guest: boolean
+  bot_level: number | null
   stats: PlayerGameStats
 }
 
@@ -216,6 +217,7 @@ export const TRAINING_MODES: GameMode[] = [
   'doubles_training',
   'score_training',
 ]
+export const BOT_MODES: GameMode[] = ['x01', 'cricket']
 export const PARTY_MODES: GameMode[] = ['killer', 'halve_it', 'gotcha']
 export type InOutRule = 'single' | 'double' | 'master'
 export type CricketVariant = 'standard' | 'cut_throat' | 'no_score'
@@ -223,7 +225,7 @@ export type CricketVariant = 'standard' | 'cut_throat' | 'no_score'
 export type GameState = {
   id: number
   event_count: number
-  turn_sources: ('manual' | 'auto' | 'corrected' | 'bounce')[]
+  turn_sources: ('manual' | 'auto' | 'corrected' | 'bounce' | 'bot')[]
   turn_confidence: (number | null)[]
   mode: GameMode
   settings: Record<string, string | number>

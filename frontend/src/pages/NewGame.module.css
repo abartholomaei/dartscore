@@ -105,7 +105,8 @@
   gap: 8px;
 }
 
-.guest input {
+.guest input,
+.guest select {
   flex: 1;
   min-width: 0;
   font: inherit;

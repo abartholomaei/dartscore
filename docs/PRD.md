@@ -379,11 +379,11 @@ Aggregierte Statistiken können als Cache-Tabelle (z. B. `player_stats`) gehalte
 - [ ] Vergleichsbenchmark Modell vs. klassische CV auf gleichem Testdatensatz
 
 ### Epic 4 – Game Engine
-- [ ] Einheitliches Interface für Spielmodi (`start`, `apply_throw`, `undo`, `is_finished`, `state`)
-- [ ] Event-Sourcing-Ansatz: Spielzustand aus Wurfliste rekonstruierbar
-- [ ] X01: Startwerte, In/Out-Varianten, Bust, Legs/Sets, Anwurf-Rotation
-- [ ] Checkout-Tabelle / Checkout-Rechner (inkl. bevorzugtem Doppel)
-- [ ] Cricket: Standard, Cut-Throat, No-Score
+- [x] Einheitliches Interface für Spielmodi (`start`, `apply_throw`, `undo`, `is_finished`, `state`)
+- [x] Event-Sourcing-Ansatz: Spielzustand aus Wurfliste rekonstruierbar
+- [x] X01: Startwerte, In/Out-Varianten, Bust, Legs/Sets, Anwurf-Rotation
+- [x] Checkout-Tabelle / Checkout-Rechner (inkl. bevorzugtem Doppel)
+- [x] Cricket: Standard, Cut-Throat, No-Score
 - [ ] Around the Clock
 - [ ] Shanghai
 - [ ] Bob’s 27
@@ -392,71 +392,71 @@ Aggregierte Statistiken können als Cache-Tabelle (z. B. `player_stats`) gehalte
 - [ ] Score-Training
 - [ ] Killer, Halve-It, Gotcha (Party)
 - [ ] Bot-Gegner mit einstellbarem Niveau (Streuungsmodell)
-- [ ] Undo/Redo, Wurf korrigieren, Wurf manuell eingeben
+- [x] Undo/Redo, Wurf korrigieren, Wurf manuell eingeben
 - [ ] Pausieren/Fortsetzen, Rematch
 - [ ] Bull-Out zur Reihenfolgebestimmung
-- [ ] Unit-Tests für alle Modi inkl. Randfälle (Bust auf 1, Double-Out auf Bull …)
+- [x] Unit-Tests für alle Modi inkl. Randfälle (Bust auf 1, Double-Out auf Bull …)
 
 ### Epic 5 – Backend & API
-- [ ] FastAPI-App, Router-Struktur
-- [ ] WebSocket-Kanal für Live-Events (Wurf, Zugwechsel, Spielstand)
-- [ ] REST-Endpunkte: Profile, Spiele, Statistiken, Einstellungen, Kalibrierung
+- [x] FastAPI-App, Router-Struktur
+- [x] WebSocket-Kanal für Live-Events (Wurf, Zugwechsel, Spielstand)
+- [x] REST-Endpunkte: Profile, Spiele, Statistiken, Einstellungen, Kalibrierung
 - [ ] Anbindung Vision-Service → Game Engine (Event-Bus/Queue)
-- [ ] Persistenz jedes Wurfs sofort (Crash-Sicherheit)
-- [ ] Wiederaufnahme laufender Spiele nach Neustart
-- [ ] Healthcheck/Status-Endpunkt (Kameras ok, fps, Erkennung aktiv)
-- [ ] API-Tests
+- [x] Persistenz jedes Wurfs sofort (Crash-Sicherheit)
+- [x] Wiederaufnahme laufender Spiele nach Neustart
+- [x] Healthcheck/Status-Endpunkt (Kameras ok, fps; Erkennung folgt)
+- [x] API-Tests
 
 ### Epic 6 – Datenbank
-- [ ] Schema gemäß Datenmodell (Player, Game, GamePlayer, Leg, Turn, Throw, Calibration, Camera, Setting)
-- [ ] Migrationen (Alembic)
+- [x] Schema (players, games, game_players, game_events – Legs/Turns werden per Event-Sourcing aus den Events berechnet; Kalibrierung liegt als JSON im Datenordner)
+- [x] Migrationen (Alembic)
 - [ ] Indizes für Statistik-Abfragen
 - [ ] Automatisches tägliches Backup, Rotation
 - [ ] Restore-Funktion
 - [ ] Seed-Daten für Entwicklung
 
 ### Epic 7 – Profile
-- [ ] Profile anlegen/bearbeiten/archivieren/löschen
-- [ ] Avatar/Farbe wählen
-- [ ] Gastspieler
+- [x] Profile anlegen/bearbeiten/archivieren/löschen
+- [x] Avatar/Farbe wählen
+- [x] Gastspieler
 - [ ] Profil-Einstellungen (Lieblingsdoppel, Standardmodus)
 - [ ] Optional PIN-Schutz
 
 ### Epic 8 – Statistiken
-- [ ] Berechnungsmodul: Average, First-9, Checkout-Quote, Darts/Leg, Highscores
-- [ ] 60+/100+/140+/180-Zähler
-- [ ] Siege/Niederlagen, Head-to-Head
-- [ ] Cricket MPR
+- [x] Berechnungsmodul: Average, First-9, Checkout-Quote, Darts/Leg, Highscores
+- [x] 60+/100+/140+/180-Zähler
+- [x] Siege/Niederlagen, Head-to-Head
+- [x] Cricket MPR
 - [ ] Trefferquote pro Segment/Doppel
 - [ ] Heatmap aus Wurfkoordinaten
-- [ ] Zeitverlauf (Charts)
+- [x] Zeitverlauf (Charts)
 - [ ] Trainingsstatistiken und persönliche Bestwerte
 - [ ] Filter (Zeitraum, Modus, Gegner)
-- [ ] Stats-Cache, Neuberechnung nach Korrekturen
+- [x] Stats-Cache, Neuberechnung nach Korrekturen
 - [ ] Export CSV/JSON
 - [ ] Achievements
 
 ### Epic 9 – Frontend / UI
-- [ ] Responsives Layout (Mobile-first) mit Breakpoints Handy / Tablet / Desktop / TV
-- [ ] Design-System (Farben, Typo, Dark Mode, große TV-Ansicht)
-- [ ] Startseite / Navigation
-- [ ] Spiel-Setup-Assistent (Modus, Optionen, Spieler, Reihenfolge)
-- [ ] Spielansicht X01 (Score, Rest, Aufnahme, Checkout-Weg, Leg/Set-Stand)
-- [ ] Spielansicht Cricket (Marks-Tabelle)
+- [x] Responsives Layout (Mobile-first) mit Breakpoints Handy / Tablet / Desktop / TV
+- [x] Design-System (Farben, Typo, Dark Mode, große TV-Ansicht)
+- [x] Startseite / Navigation
+- [x] Spiel-Setup-Assistent (Modus, Optionen, Spieler, Reihenfolge)
+- [x] Spielansicht X01 (Score, Rest, Aufnahme, Checkout-Weg, Leg/Set-Stand)
+- [x] Spielansicht Cricket (Marks-Tabelle)
 - [ ] Ansichten für Trainings- und Party-Modi
-- [ ] Interaktive Scheiben-Grafik (Treffer anzeigen, Tippen zum Korrigieren)
-- [ ] Manuelle Eingabe (Ziffernfeld + S/D/T)
-- [ ] Spielende-Screen mit Match-Statistik
-- [ ] Profilverwaltung
-- [ ] Statistik-Dashboard mit Charts und Heatmap
-- [ ] Einstellungen: Kameras (Live-Bild), Kalibrierung, Erkennung, Sound
-- [ ] Multi-Device: TV-Anzeige + Handy-Steuerung synchron
+- [x] Interaktive Scheiben-Grafik (Treffer anzeigen, Tippen zum Korrigieren)
+- [x] Manuelle Eingabe (Ziffernfeld + S/D/T)
+- [x] Spielende-Screen mit Match-Statistik
+- [x] Profilverwaltung
+- [x] Statistik-Seite mit Kennzahlen und Verlaufskurve (Heatmap folgt mit Wurfkoordinaten aus der Erkennung)
+- [x] Einstellungen: Kameras (Live-Bild), Kalibrierung, Sprache (Erkennung und Sound folgen)
+- [x] Multi-Device: TV-Anzeige + Handy-Steuerung synchron
 - [ ] PWA (installierbar, Vollbild)
-- [ ] i18n Deutsch/Englisch
+- [x] i18n Deutsch/Englisch
 - [ ] Sound/Caller-Ansagen, Animationen (180, Checkout)
 
 ### Epic 10 – Qualität & Tests
-- [ ] Unit-Tests Game Engine (≥ 90 % Abdeckung)
+- [x] Unit-Tests Game Engine (≥ 90 % Abdeckung)
 - [ ] Replay-basierte Regressionstests der Erkennung
 - [ ] End-to-End-Tests UI (Playwright)
 - [ ] Performance-Messung Latenz Einschlag → Anzeige

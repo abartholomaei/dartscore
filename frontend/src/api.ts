@@ -98,7 +98,11 @@ export class ApiError extends Error {
   }
 }
 
-export async function sendJson<T>(method: 'POST' | 'PUT' | 'DELETE', path: string, body?: unknown): Promise<T> {
+export async function sendJson<T>(
+  method: 'POST' | 'PUT' | 'PATCH' | 'DELETE',
+  path: string,
+  body?: unknown,
+): Promise<T> {
   const res = await fetch(path, {
     method,
     headers: body === undefined ? undefined : { 'Content-Type': 'application/json' },
@@ -135,4 +139,135 @@ export function snapshotUrl(cameraId: string, opts: { width?: number; undistort?
   if (opts.width) params.set('width', String(opts.width))
   if (opts.undistort) params.set('undistort', 'true')
   return `/api/cameras/${encodeURIComponent(cameraId)}/snapshot.jpg?${params.toString()}`
+}
+
+// --- players, games, stats ------------------------------------------------------------
+
+export type Player = {
+  id: number
+  name: string
+  color: string
+  created_at: string
+  archived: boolean
+}
+
+export type PlayerGameStats = {
+  darts: number
+  turns: number
+  legs_played: number
+  legs_won: number
+  won: boolean
+  points: number
+  highest_finish: number
+  highest_turn: number
+  best_leg_darts: number | null
+  checkouts: number
+  checkout_attempts: number
+  busts: number
+  tons: Record<'60' | '100' | '140' | '180', number>
+  marks: number
+  average: number | null
+  first9_average: number | null
+  checkout_rate: number | null
+  mpr: number | null
+}
+
+export type GamePlayer = {
+  position: number
+  player_id: number | null
+  name: string
+  color: string
+  guest: boolean
+  stats: PlayerGameStats
+}
+
+export type TurnSummary = {
+  player: number
+  darts: string[]
+  total: number
+  bust: boolean
+  checkout: boolean
+}
+
+export type GameMode = 'x01' | 'cricket'
+export type InOutRule = 'single' | 'double' | 'master'
+export type CricketVariant = 'standard' | 'cut_throat' | 'no_score'
+
+export type GameState = {
+  id: number
+  mode: GameMode
+  settings: Record<string, string | number>
+  created_at: string
+  players: GamePlayer[]
+  history: TurnSummary[]
+  player_count: number
+  current_player: number
+  leg: number
+  set: number
+  legs_won: number[]
+  sets_won: number[]
+  turn: {
+    player: number
+    darts: string[]
+    values: number[]
+    bust: boolean
+    checkout: boolean
+    closed: boolean
+  } | null
+  awaiting_next: boolean
+  leg_winner: number | null
+  finished: boolean
+  winner: number | null
+  // x01
+  remaining?: number[]
+  opened?: boolean[]
+  checkout?: string[] | null
+  // cricket
+  targets?: number[]
+  marks?: number[][]
+  points?: number[]
+}
+
+export type HistoryEntry = {
+  id: number
+  mode: GameMode
+  settings: Record<string, string | number>
+  status: 'finished' | 'aborted'
+  created_at: string
+  finished_at: string | null
+  winner: number | null
+  players: (Omit<GamePlayer, 'stats'> & { stats: PlayerGameStats | null })[]
+}
+
+export type AggregateStats = {
+  games: number
+  wins: number
+  win_rate: number | null
+  darts: number
+  legs_played: number
+  legs_won: number
+  average: number | null
+  first9_average: number | null
+  checkout_rate: number | null
+  checkouts: number
+  checkout_attempts: number
+  highest_finish: number
+  highest_turn: number
+  best_leg_darts: number | null
+  darts_per_leg: number | null
+  tons: Record<'60' | '100' | '140' | '180', number>
+  mpr: number | null
+  marks: number
+  trend: { game_id: number; date: string; average: number | null; mpr: number | null; won: boolean }[]
+}
+
+export type PlayerStats = {
+  player: { id: number; name: string; color: string }
+  modes: Partial<Record<GameMode, AggregateStats>>
+}
+
+export type HeadToHead = {
+  games: number
+  wins: Record<string, number>
+  stats: Record<string, AggregateStats>
 }

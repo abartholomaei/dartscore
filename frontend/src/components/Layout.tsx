@@ -7,9 +7,10 @@ export default function Layout() {
   const { t, i18n } = useTranslation()
 
   const links = [
-    { to: '/', label: t('nav.home') },
-    { to: '/cameras', label: t('nav.cameras') },
-    { to: '/calibration', label: t('nav.calibration') },
+    { to: '/', label: t('nav.home'), end: true },
+    { to: '/play', label: t('nav.play'), end: false },
+    { to: '/players', label: t('nav.players'), end: false },
+    { to: '/settings', label: t('nav.settings'), end: false },
   ]
 
   return (
@@ -21,7 +22,7 @@ export default function Layout() {
             <NavLink
               key={link.to}
               to={link.to}
-              end
+              end={link.end}
               className={({ isActive }) => (isActive ? `${styles.link} ${styles.active}` : styles.link)}
             >
               {link.label}

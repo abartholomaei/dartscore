@@ -1,0 +1,70 @@
+.board {
+  width: 100%;
+  height: auto;
+  display: block;
+  touch-action: manipulation;
+  user-select: none;
+}
+
+.interactive {
+  cursor: pointer;
+}
+
+.interactive path:hover {
+  filter: brightness(1.25);
+}
+
+.surround {
+  fill: #111;
+}
+
+.dark {
+  fill: #1b1b1b;
+  stroke: #9e9e9e;
+  stroke-width: 0.6;
+}
+
+.light {
+  fill: #efe3c5;
+  stroke: #9e9e9e;
+  stroke-width: 0.6;
+}
+
+.red {
+  fill: #d32f2f;
+  stroke: #9e9e9e;
+  stroke-width: 0.6;
+}
+
+.green {
+  fill: #2e7d32;
+  stroke: #9e9e9e;
+  stroke-width: 0.6;
+}
+
+.number {
+  fill: #fff;
+  font-size: 24px;
+  font-weight: 700;
+  pointer-events: none;
+}
+
+.hit circle,
+.hitSelected circle {
+  fill: #00e5ff;
+  stroke: #000;
+  stroke-width: 2;
+}
+
+.hitSelected circle {
+  fill: #ffea00;
+  r: 12;
+}
+
+.hit text,
+.hitSelected text {
+  font-size: 12px;
+  font-weight: 800;
+  fill: #000;
+  pointer-events: none;
+}

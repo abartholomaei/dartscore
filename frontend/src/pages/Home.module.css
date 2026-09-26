@@ -3,18 +3,88 @@
   letter-spacing: -0.02em;
 }
 
-.stats {
+.hero {
   display: grid;
-  grid-template-columns: max-content 1fr;
+  gap: 12px;
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 700px) {
+  .hero {
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  }
+}
+
+.resume {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: 6px;
+  color: var(--text);
+  text-decoration: none;
+  border: 2px solid var(--accent);
+}
+
+.resumeLabel {
+  color: var(--accent);
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 0.8125rem;
+  letter-spacing: 0.05em;
+}
+
+.resumeTitle {
+  font-size: 1.5rem;
+  font-weight: 800;
+}
+
+.resumePlayers {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 18px;
+}
+
+.dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-right: 6px;
+}
+
+.recent {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.recent li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
   gap: 4px 16px;
-  margin: 0;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
 }
 
-.stats dt {
-  color: var(--text-muted);
+.recent li:last-child {
+  border-bottom: 0;
+  padding-bottom: 0;
 }
 
-.stats dd {
-  margin: 0;
-  font-variant-numeric: tabular-nums;
+.recentTitle {
+  font-weight: 700;
+  min-width: 4em;
+}
+
+.recentPlayers {
+  flex: 1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+}
+
+.winner {
+  font-weight: 700;
 }

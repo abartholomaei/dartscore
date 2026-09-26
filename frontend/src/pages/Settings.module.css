@@ -1,0 +1,28 @@
+.title {
+  font-size: clamp(1.5rem, 3vw, 2.25rem);
+  letter-spacing: -0.02em;
+}
+
+.grid {
+  display: grid;
+  gap: var(--gutter);
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+}
+
+.link {
+  display: grid;
+  gap: 8px;
+  align-content: start;
+  color: var(--text);
+  text-decoration: none;
+}
+
+a.link:hover {
+  border-color: var(--text-muted);
+}
+
+.languages {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}

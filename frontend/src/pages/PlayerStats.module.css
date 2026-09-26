@@ -1,0 +1,100 @@
+.header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  font-weight: 800;
+  font-size: 1.5rem;
+  flex: none;
+}
+
+.title {
+  flex: 1;
+  font-size: clamp(1.5rem, 3vw, 2.25rem);
+  letter-spacing: -0.02em;
+  overflow-wrap: anywhere;
+}
+
+.tiles {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+}
+
+.tile {
+  display: grid;
+  gap: 2px;
+  padding: 12px;
+  border-radius: 10px;
+  background: var(--bg);
+}
+
+.big {
+  grid-column: span 2;
+}
+
+.tileValue {
+  font-size: 1.5rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.big .tileValue {
+  font-size: 2.5rem;
+}
+
+.tileLabel {
+  color: var(--text-muted);
+  font-size: 0.875rem;
+}
+
+.trend {
+  margin: 16px 0 0;
+}
+
+.trend svg {
+  width: 100%;
+  height: 120px;
+  display: block;
+}
+
+.trend polyline {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 2;
+  vector-effect: non-scaling-stroke;
+}
+
+.trend circle {
+  fill: var(--accent);
+}
+
+.select {
+  font: inherit;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--text);
+}
+
+.h2h {
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+  margin-top: 12px;
+}
+
+.h2hScore {
+  font-size: 2.5rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}

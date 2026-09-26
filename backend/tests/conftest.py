@@ -1,6 +1,14 @@
+from pathlib import Path
+
 import pytest
 
 from dartscore.config import CameraConfig
+
+
+@pytest.fixture(autouse=True)
+def _isolated_cwd(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    # relative defaults (data dir, database) must never touch the repository
+    monkeypatch.chdir(tmp_path)
 
 
 @pytest.fixture

@@ -1,8 +1,10 @@
+import asyncio
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
 import structlog
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from starlette.exceptions import HTTPException
@@ -10,8 +12,14 @@ from starlette.responses import Response
 from starlette.types import Scope
 
 from dartscore import __version__
-from dartscore.api import calibration, cameras
+from dartscore.api import calibration, cameras, games, players, stats, ws
 from dartscore.config import Settings
+from dartscore.game import GameError
+from dartscore.services.games import GameService
+from dartscore.services.hub import EventHub
+from dartscore.services.players import PlayerService
+from dartscore.services.stats import StatsService
+from dartscore.storage.db import create_db_engine, database_url, migrate, session_factory
 from dartscore.vision.camera import CameraManager
 from dartscore.vision.intrinsics import Undistorter, load_lens
 
@@ -29,6 +37,19 @@ class SPAStaticFiles(StaticFiles):
             if exc.status_code != 404 or path.startswith("api/"):
                 raise
             return await super().get_response("index.html", scope)
+
+
+# error codes that mean "does not exist" or "conflicts with the current state"
+_NOT_FOUND = {"player_not_found", "game_not_found", "no_active_game", "no_game"}
+_CONFLICT = {"game_active", "name_taken"}
+
+
+def _game_error_status(code: str) -> int:
+    if code in _NOT_FOUND:
+        return 404
+    if code in _CONFLICT:
+        return 409
+    return 422
 
 
 class HealthResponse(BaseModel):
@@ -49,9 +70,15 @@ def load_undistorters(settings: Settings) -> dict[str, Undistorter]:
 
 def create_app(settings: Settings, camera_manager: CameraManager | None = None) -> FastAPI:
     manager = camera_manager or CameraManager(settings.cameras)
+    settings.data_dir.mkdir(parents=True, exist_ok=True)
+    engine = create_db_engine(database_url(settings.data_dir))
+    migrate(engine)
+    sessions = session_factory(engine)
+    hub = EventHub()
 
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:
+        hub.bind(asyncio.get_running_loop())
         manager.start()
         try:
             yield
@@ -67,8 +94,19 @@ def create_app(settings: Settings, camera_manager: CameraManager | None = None) 
     app.state.calibrations = calibration.CalibrationStore(
         settings.calibration_dir, [c.id for c in settings.cameras]
     )
-    app.include_router(cameras.router)
-    app.include_router(calibration.router)
+    app.state.hub = hub
+    app.state.players = PlayerService(sessions)
+    app.state.games = GameService(sessions, hub)
+    app.state.stats = StatsService(sessions)
+    for module in (cameras, calibration, players, games, stats, ws):
+        app.include_router(module.router)
+
+    @app.exception_handler(GameError)
+    async def game_error(_request: Request, exc: GameError) -> JSONResponse:
+        return JSONResponse(
+            status_code=_game_error_status(exc.code),
+            content={"detail": {"code": exc.code, "message": str(exc)}},
+        )
 
     @app.get("/api/health")
     def health() -> HealthResponse:

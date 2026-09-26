@@ -102,8 +102,9 @@ class OpenCVSource:
         cap.set(cv2.CAP_PROP_FRAME_WIDTH, cfg.width)
         cap.set(cv2.CAP_PROP_FRAME_HEIGHT, cfg.height)
         cap.set(cv2.CAP_PROP_FPS, cfg.fps)
-        # kleiner Puffer = geringe Latenz
-        cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)
+        # Puffergröße bewusst nicht auf 1 setzen: dann verwirft der Treiber jedes zweite Bild,
+        # während das vorige dekodiert wird (gemessen: 15 statt 30 fps). Der Lese-Thread holt
+        # ohnehin fortlaufend ab, daher staut sich nichts im Puffer.
         if isinstance(target, str):
             apply_v4l2_controls(target, cfg.v4l2_controls)
 

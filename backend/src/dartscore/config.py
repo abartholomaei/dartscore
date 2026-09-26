@@ -70,6 +70,8 @@ class Settings(BaseSettings):
     )
 
     data_dir: Path = Path("data")
+    # gebautes Frontend (npm run build); wird vom Backend mit ausgeliefert, falls vorhanden
+    frontend_dir: Path = Path("frontend/dist")
     server: ServerConfig = ServerConfig()
     logging: LoggingConfig = LoggingConfig()
     stream: StreamConfig = StreamConfig()

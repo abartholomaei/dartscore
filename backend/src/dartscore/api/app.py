@@ -3,7 +3,11 @@ from contextlib import asynccontextmanager
 
 import structlog
 from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
+from starlette.exceptions import HTTPException
+from starlette.responses import Response
+from starlette.types import Scope
 
 from dartscore import __version__
 from dartscore.api import cameras
@@ -12,6 +16,19 @@ from dartscore.vision.camera import CameraManager
 from dartscore.vision.intrinsics import Undistorter, load_lens
 
 log = structlog.get_logger(__name__)
+
+
+class SPAStaticFiles(StaticFiles):
+    """Liefert das Frontend aus; unbekannte Pfade (z. B. /cameras) bekommen index.html,
+    damit das Routing im Browser funktioniert."""
+
+    async def get_response(self, path: str, scope: Scope) -> Response:
+        try:
+            return await super().get_response(path, scope)
+        except HTTPException as exc:
+            if exc.status_code != 404 or path.startswith("api/"):
+                raise
+            return await super().get_response("index.html", scope)
 
 
 class HealthResponse(BaseModel):
@@ -54,5 +71,10 @@ def create_app(settings: Settings, camera_manager: CameraManager | None = None) 
             version=__version__,
             cameras_configured=len(settings.cameras),
         )
+
+    # zuletzt einhängen, damit /api/... Vorrang hat
+    if (settings.frontend_dir / "index.html").is_file():
+        app.mount("/", SPAStaticFiles(directory=settings.frontend_dir, html=True), name="frontend")
+        log.info("serving_frontend", path=str(settings.frontend_dir))
 
     return app

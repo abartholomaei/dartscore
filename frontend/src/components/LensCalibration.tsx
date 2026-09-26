@@ -167,7 +167,7 @@ export default function LensCalibration({ camera, onChanged }: { camera: CameraS
         <ol className={styles.steps}>
           <li>
             {t('lens.step1')}{' '}
-            <a href="/chessboard.svg" target="_blank" rel="noreferrer">
+            <a href="/chessboard.html" target="_blank" rel="noreferrer">
               {t('lens.printLink')}
             </a>
           </li>

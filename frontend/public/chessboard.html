@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>dartscore chessboard</title>
+<style>
+  @page { size: A4 portrait; margin: 10mm; }
+  html, body { margin: 0; background: #fff; color: #555; font: 11px sans-serif; }
+  main { display: grid; justify-items: center; gap: 4mm; padding-top: 4mm; }
+  svg { width: 175mm; height: 250mm; display: block; }
+  .check { width: 50mm; border-top: 1px solid #000; text-align: center; padding-top: 1mm; }
+  @media screen { body { background: #ddd; } main { background: #fff; width: 210mm; margin: 10px auto; padding: 10mm 0; } }
+</style>
+</head>
+<body>
+<main>
+  <svg viewBox="0 0 175 250" xmlns="http://www.w3.org/2000/svg" aria-label="chessboard"><g fill="#000"><rect x="0" y="0" width="25" height="25"/><rect x="50" y="0" width="25" height="25"/><rect x="100" y="0" width="25" height="25"/><rect x="150" y="0" width="25" height="25"/><rect x="25" y="25" width="25" height="25"/><rect x="75" y="25" width="25" height="25"/><rect x="125" y="25" width="25" height="25"/><rect x="0" y="50" width="25" height="25"/><rect x="50" y="50" width="25" height="25"/><rect x="100" y="50" width="25" height="25"/><rect x="150" y="50" width="25" height="25"/><rect x="25" y="75" width="25" height="25"/><rect x="75" y="75" width="25" height="25"/><rect x="125" y="75" width="25" height="25"/><rect x="0" y="100" width="25" height="25"/><rect x="50" y="100" width="25" height="25"/><rect x="100" y="100" width="25" height="25"/><rect x="150" y="100" width="25" height="25"/><rect x="25" y="125" width="25" height="25"/><rect x="75" y="125" width="25" height="25"/><rect x="125" y="125" width="25" height="25"/><rect x="0" y="150" width="25" height="25"/><rect x="50" y="150" width="25" height="25"/><rect x="100" y="150" width="25" height="25"/><rect x="150" y="150" width="25" height="25"/><rect x="25" y="175" width="25" height="25"/><rect x="75" y="175" width="25" height="25"/><rect x="125" y="175" width="25" height="25"/><rect x="0" y="200" width="25" height="25"/><rect x="50" y="200" width="25" height="25"/><rect x="100" y="200" width="25" height="25"/><rect x="150" y="200" width="25" height="25"/><rect x="25" y="225" width="25" height="25"/><rect x="75" y="225" width="25" height="25"/><rect x="125" y="225" width="25" height="25"/></g></svg>
+  <div class="check">50 mm (two squares)</div>
+  <div>Print at 100 % / actual size, portrait. Glue flat onto cardboard. dartscore lens calibration: 9x6 inner corners, 25 mm squares.</div>
+</main>
+</body>
+</html>

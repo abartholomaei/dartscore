@@ -7,7 +7,7 @@ from fastapi import APIRouter, Query, Request, Response
 
 from dartscore.services.achievements import AchievementService
 from dartscore.services.export import ExportService
-from dartscore.services.stats import StatsService, player_positions
+from dartscore.services.stats import StatsService, player_grouping, player_positions
 
 router = APIRouter(prefix="/api/stats", tags=["stats"])
 
@@ -36,6 +36,11 @@ def double_rates(request: Request, player_id: int, days: Days = None) -> dict[st
 def achievements(request: Request, player_id: int) -> list[dict[str, Any]]:
     service: AchievementService = request.app.state.achievements
     return service.for_player(player_id)
+
+
+@router.get("/players/{player_id}/grouping")
+def grouping(request: Request, player_id: int) -> dict[str, Any]:
+    return player_grouping(request.app.state.sessions, player_id)
 
 
 @router.get("/head-to-head")

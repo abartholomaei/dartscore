@@ -16,6 +16,8 @@ import DartBoard from '../components/DartBoard'
 import { useErrorText } from '../helpers'
 import styles from './PlayerStats.module.css'
 
+type Grouping = { turns: number; average_mm: number | null; recent_mm: number | null; best_mm: number | null }
+
 const pct = (v: number | null) => (v === null ? '–' : `${Math.round(v * 1000) / 10} %`)
 const num = (v: number | null | undefined, digits = 1) => (v === null || v === undefined ? '–' : v.toFixed(digits))
 
@@ -30,6 +32,7 @@ export default function PlayerStats() {
   const [error, setError] = useState<string | null>(null)
   const [positions, setPositions] = useState<[number, number][]>([])
   const [days, setDays] = useState<number | null>(null)
+  const [grouping, setGrouping] = useState<Grouping | null>(null)
   const [achievements, setAchievements] = useState<Achievement[]>([])
   const [doubles, setDoubles] = useState<Record<string, { attempts: number; hits: number }>>({})
 
@@ -43,6 +46,9 @@ export default function PlayerStats() {
       .catch(() => undefined)
     getJson<[number, number, string][]>(`/api/stats/players/${id}/positions`)
       .then((list) => setPositions(list.map(([x, y]) => [x, y])))
+      .catch(() => undefined)
+    getJson<Grouping>(`/api/stats/players/${id}/grouping`)
+      .then(setGrouping)
       .catch(() => undefined)
     getJson<Achievement[]>(`/api/stats/players/${id}/achievements`)
       .then(setAchievements)
@@ -172,6 +178,17 @@ export default function PlayerStats() {
       {positions.length > 0 && (
         <section className="card">
           <h2 className="cardTitle">{t('stats.heatmap', { count: positions.length })}</h2>
+          {grouping && grouping.turns > 0 && (
+            <>
+              <div className={styles.tiles}>
+                <Tile label={t('stats.grouping')} value={`${num(grouping.average_mm, 0)} mm`} />
+                <Tile label={t('stats.groupingRecent')} value={`${num(grouping.recent_mm, 0)} mm`} />
+                <Tile label={t('stats.groupingBest')} value={`${num(grouping.best_mm, 0)} mm`} />
+                <Tile label={t('stats.groupingTurns')} value={grouping.turns} />
+              </div>
+              <p className="muted">{t('stats.groupingHint')}</p>
+            </>
+          )}
           <div className={styles.heatmap}>
             <DartBoard points={positions} />
           </div>

@@ -304,3 +304,18 @@ def test_achievements(client: TestClient) -> None:
     assert got["big_fish"]["game_id"] != got["nine_darter"]["game_id"]
     others = client.get(f"/api/stats/players/{b}/achievements").json()
     assert {i["id"] for i in others if i["achieved_at"]} == {"first_game"}
+
+
+def test_grouping_uses_detected_positions(client: TestClient) -> None:
+    (a,) = make_players(client, "A")
+    client.post("/api/games", json={"mode": "score_training", "settings": {"rounds": 5},
+                                    "players": [{"player_id": a}]})  # fmt: skip
+    games = client.app.state.games  # type: ignore[attr-defined]
+    from dartscore.game import Dart
+
+    for x in (0.0, 6.0, 3.0):
+        games.throw(Dart(20, 1), source="auto", x_mm=x, y_mm=130.0, confidence=0.9)
+    client.post("/api/games/active/abort")
+    result = client.get(f"/api/stats/players/{a}/grouping").json()
+    assert result["turns"] == 1
+    assert result["best_mm"] == 2.0  # distances 3, 3, 0 from the centre

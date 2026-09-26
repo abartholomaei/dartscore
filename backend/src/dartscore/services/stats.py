@@ -1,5 +1,6 @@
 """Statistics across games: per player (by mode) and head-to-head."""
 
+import math
 from datetime import datetime
 from typing import Any
 
@@ -173,3 +174,48 @@ def player_positions(
                 else:
                     game.next_turn()
     return result
+
+
+def player_grouping(sessions: sessionmaker[Session], player_id: int) -> dict[str, Any]:
+    """How tight the player's turns are: the mean distance (mm) of the darts of a turn from their
+    centre, for turns whose three darts were all detected. Newest turns first in ``recent``."""
+    from dartscore.game import replay_game
+    from dartscore.game.base import DartEvent
+    from dartscore.services.games import _event_from_record
+
+    spreads: list[float] = []
+    with sessions() as session:
+        games = session.execute(
+            select(GameRecord, GamePlayer)
+            .join(GamePlayer, GamePlayer.game_id == GameRecord.id)
+            .where(GamePlayer.player_id == player_id, GameRecord.status != "active")
+            .order_by(GameRecord.id)
+        ).all()
+        for record, gp in games:
+            events = list(record.events)
+            if not any(e.x_mm is not None for e in events):
+                continue
+            game = replay_game(record.mode, len(record.players), record.settings, [])
+            turn: list[tuple[float, float]] = []
+            for event in events:
+                parsed = _event_from_record(event)
+                if not isinstance(parsed, DartEvent):
+                    game.next_turn()
+                    continue
+                if game.current_turn is None:
+                    turn = []  # a new turn begins
+                if game.current_player == gp.position:
+                    if event.x_mm is not None and event.y_mm is not None:
+                        turn.append((event.x_mm, event.y_mm))
+                    if len(turn) == 3:
+                        cx = sum(x for x, _ in turn) / 3
+                        cy = sum(y for _, y in turn) / 3
+                        spreads.append(sum(math.hypot(x - cx, y - cy) for x, y in turn) / 3)
+                game.throw(parsed.dart)
+    recent = spreads[-50:]
+    return {
+        "turns": len(spreads),
+        "average_mm": round(sum(spreads) / len(spreads), 1) if spreads else None,
+        "recent_mm": round(sum(recent) / len(recent), 1) if recent else None,
+        "best_mm": round(min(spreads), 1) if spreads else None,
+    }

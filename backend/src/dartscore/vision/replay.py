@@ -18,7 +18,15 @@ from dartscore.config import DetectionConfig
 from dartscore.game.dart import Dart
 from dartscore.vision import board
 from dartscore.vision.calibration import BoardCalibration
-from dartscore.vision.detection import CameraHit, _roi_mask, find_dart_tip, fuse, local_resolution
+from dartscore.vision.detection import (
+    CameraHit,
+    _roi_mask,
+    find_dart_tip,
+    fuse,
+    local_resolution,
+    refine_with_model,
+)
+from dartscore.vision.model import TipModel
 
 
 @dataclass(frozen=True)
@@ -34,9 +42,13 @@ def replay_recording(
     folder: Path,
     config: DetectionConfig,
     homographies: dict[str, NDArray[np.float64]] | None = None,
+    model: TipModel | None = None,
 ) -> tuple[str | None, tuple[CameraHit, ...]]:
-    """``homographies`` replaces the recorded calibrations (to compare calibrations)."""
+    """``homographies`` replaces the recorded calibrations (to compare calibrations),
+    ``model`` refines the tips like in live detection."""
     meta = json.loads((folder / "meta.json").read_text())
+    # darts that were in the board before this throw
+    known = [tuple(p) for p in (meta.get("board_darts") or [])[:-1]]
     hits: list[CameraHit] = []
     for cid, cal_info in meta.get("calibrations", {}).items():
         before = cv2.imread(str(folder / f"{cid}_before.jpg"))
@@ -64,6 +76,8 @@ def replay_recording(
             config.pixel_threshold,
             min_px,
         )
+        if model is not None:
+            found = refine_with_model(model, calibration, after, found, known)
         if found is None:
             continue
         (tx, ty), area = found
@@ -102,6 +116,7 @@ def replay_all(
     database: Path | None,
     config: DetectionConfig,
     homographies: dict[str, NDArray[np.float64]] | None = None,
+    model: TipModel | None = None,
 ) -> list[ReplayResult]:
     db = (
         sqlite3.connect(f"file:{database}?mode=ro", uri=True)
@@ -114,7 +129,7 @@ def replay_all(
             meta = json.loads(meta_path.read_text())
             if "calibrations" not in meta:
                 continue
-            replayed, hits = replay_recording(meta_path.parent, config, homographies)
+            replayed, hits = replay_recording(meta_path.parent, config, homographies, model)
             results.append(
                 ReplayResult(
                     folder=f"{meta_path.parent.parent.name}/{meta_path.parent.name}",

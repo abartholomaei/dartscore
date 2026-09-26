@@ -95,12 +95,16 @@ def export_dataset(
 ) -> ExportStats:
     stats = ExportStats()
     metas = sorted(recordings_dir.rglob("meta.json"))
-    # split by recording day so validation images come from other sessions than training ones
+    # split by recording day so validation images come from other sessions than training ones;
+    # with a single day, the most recent recordings are used for validation
     days = sorted({m.parent.parent.name for m in metas})
     rng = random.Random(seed)
-    val_days = (
-        set(rng.sample(days, max(1, round(len(days) * val_share)))) if len(days) > 1 else set()
-    )
+    if len(days) > 1:
+        val_days = set(rng.sample(days, max(1, round(len(days) * val_share))))
+        val_folders = {m.parent for m in metas if m.parent.parent.name in val_days}
+    else:
+        cut = len(metas) - round(len(metas) * val_share)
+        val_folders = {m.parent for m in metas[cut:]}
 
     if out_dir.exists():
         shutil.rmtree(out_dir)
@@ -123,7 +127,7 @@ def export_dataset(
         ):
             stats.skipped_low_confidence += 1
             continue
-        split = "val" if meta_path.parent.parent.name in val_days else "train"
+        split = "val" if meta_path.parent in val_folders else "train"
         for image_path in sorted(meta_path.parent.glob("*_after.jpg")):
             camera_id = image_path.name.removesuffix("_after.jpg")
             if camera_id not in meta["calibrations"]:

@@ -209,6 +209,38 @@ def fuse(
     return float(x), float(y), round(confidence, 3), marked
 
 
+def refine_with_model(
+    model: TipModel,
+    calibration: BoardCalibration,
+    image: Image,
+    classic: tuple[tuple[float, float], int] | None,
+    known_darts: list[tuple[float, float]],
+) -> tuple[tuple[float, float], int] | None:
+    """Prefers the model's tip for the new dart: model tips that are not one of the darts
+    already in the board are candidates; the one nearest to the classic tip wins."""
+    tips = model.tips(image)
+    if not tips:
+        return classic
+    pixels = np.array([[k.x, k.y] for k in tips])
+    board_pts = calibration.image_to_board(pixels)
+    new = [
+        (k, pt)
+        for k, pt in zip(tips, board_pts, strict=True)
+        if all(math.hypot(pt[0] - x, pt[1] - y) > 10.0 for x, y in known_darts)
+    ]
+    area = classic[1] if classic else 0
+    if classic is not None:
+        (cx, cy), _ = classic
+        near = [(k, pt) for k, pt in new if math.hypot(k.x - cx, k.y - cy) < 40]
+        if near:
+            best = min(near, key=lambda item: math.hypot(item[0].x - cx, item[0].y - cy))[0]
+            return (best.x, best.y), area
+        return classic
+    if len(new) == 1:
+        return (new[0][0].x, new[0][0].y), area
+    return None
+
+
 class DartDetector:
     def __init__(
         self,
@@ -442,38 +474,6 @@ class DartDetector:
             if cam.last_color is not None and cam.prev_small is not None:
                 self._set_reference(cam, cam.last_color, cam.prev_small, empty=empty)
 
-    def _refine_with_model(
-        self,
-        cam: _Camera,
-        image: Image,
-        classic: tuple[tuple[float, float], int] | None,
-    ) -> tuple[tuple[float, float], int] | None:
-        """Prefers the model's tip for the new dart: model tips that are not one of the darts
-        already in the board are candidates; the one nearest to the classic tip wins."""
-        assert self.model is not None
-        tips = self.model.tips(image)
-        if not tips:
-            return classic
-        known = self.board_darts or []
-        pixels = np.array([[k.x, k.y] for k in tips])
-        board_pts = cam.calibration.image_to_board(pixels)
-        new = [
-            (k, pt)
-            for k, pt in zip(tips, board_pts, strict=True)
-            if all(math.hypot(pt[0] - x, pt[1] - y) > 10.0 for x, y in known)
-        ]
-        area = classic[1] if classic else 0
-        if classic is not None:
-            (cx, cy), _ = classic
-            near = [(k, pt) for k, pt in new if math.hypot(k.x - cx, k.y - cy) < 40]
-            if near:
-                best = min(near, key=lambda item: math.hypot(item[0].x - cx, item[0].y - cy))[0]
-                return (best.x, best.y), area
-            return classic
-        if len(new) == 1:
-            return (new[0][0].x, new[0][0].y), area
-        return None
-
     def _locate(self, camera_ids: list[str]) -> DartDetection | None:
         cfg = self.config
         hits: list[CameraHit] = []
@@ -487,7 +487,9 @@ class DartDetector:
                 cam.ref_full, current, cam.mask_full, cfg.pixel_threshold, max(20, min_px)
             )
             if self.model is not None:
-                found = self._refine_with_model(cam, current, found)
+                found = refine_with_model(
+                    self.model, cam.calibration, current, found, self.board_darts or []
+                )
             if found is None:
                 continue
             (tx, ty), area = found

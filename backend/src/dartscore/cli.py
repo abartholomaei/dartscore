@@ -228,7 +228,10 @@ def cmd_replay(settings: Settings, args: argparse.Namespace) -> None:
 
     recordings = Path(args.recordings) if args.recordings else settings.recordings_dir
     database = Path(args.db) if args.db else settings.data_dir / "dartscore.db"
-    results = replay_all(recordings, database, settings.detection)
+    from dartscore.vision.model import load_model
+
+    model = load_model(Path(args.model)) if args.model else None
+    results = replay_all(recordings, database, settings.detection, model=model)
     judged = [r for r in results if r.truth is not None]
     for r in results:
         cams = " ".join(
@@ -276,6 +279,7 @@ def build_parser() -> argparse.ArgumentParser:
     replay = sub.add_parser("replay", help="re-run the detection on recordings and compare")
     replay.add_argument("--recordings", help="recordings folder (default: data dir)")
     replay.add_argument("--db", help="database with the true results (default: data dir)")
+    replay.add_argument("--model", help="ONNX tip model to use (default: classic detection only)")
 
     backup = sub.add_parser("backup", help="create, list or restore database backups")
     backup.add_argument("action", choices=["create", "list", "restore"])

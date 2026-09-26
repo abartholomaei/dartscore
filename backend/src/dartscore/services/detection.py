@@ -208,6 +208,10 @@ class DetectionService:
                 "detection": info,
                 "game_id": game_state.get("id") if game_state else None,
                 "event_seq": game_state.get("event_count", 0) - 1 if game_state else None,
+                # all darts in the board after this throw (None if unknown) and the
+                # calibrations the images were taken with; see dartscore.training
+                "board_darts": detector.board_darts,
+                "calibrations": detector.calibration_info(),
             }
             (folder / "meta.json").write_text(json.dumps(meta, indent=2, default=str))
         except OSError as exc:

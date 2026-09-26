@@ -199,6 +199,9 @@ class DartDetector:
         self._last_motion = 0.0
         # the board differed from the empty reference since the last takeout
         self._board_dirty = False
+        # positions (mm) of all darts believed to be in the board; None when unknown
+        # (e.g. some darts were pulled) - used to label recorded images for training
+        self.board_darts: list[tuple[float, float]] | None = []
 
     @property
     def camera_ids(self) -> list[str]:
@@ -211,6 +214,7 @@ class DartDetector:
         self.state = DetectorState.IDLE
         self.darts_in_turn = 0
         self._board_dirty = False
+        self.board_darts = []
 
     def new_turn(self) -> None:
         """The game moved on manually. The empty reference is kept: darts still in the board
@@ -219,6 +223,17 @@ class DartDetector:
 
     def reference_images(self) -> dict[str, Image]:
         return {cid: c.ref_color for cid, c in self._cameras.items() if c.ref_color is not None}
+
+    def calibration_info(self) -> dict[str, dict[str, object]]:
+        """Calibrations in use, stored with recordings so images can be labeled later."""
+        return {
+            cid: {
+                "homography": c.calibration.homography.tolist(),
+                "undistorted": c.calibration.undistorted,
+                "created_at": c.calibration.created_at,
+            }
+            for cid, c in self._cameras.items()
+        }
 
     def previous_reference_images(self) -> dict[str, Image]:
         """The references before the last change (i.e. the board before the last dart)."""
@@ -330,6 +345,7 @@ class DartDetector:
             self._absorb_current(empty=True)
             self._board_dirty = False
             self.darts_in_turn = 0
+            self.board_darts = []
             self.state = DetectorState.IDLE
             self.last_evaluation = Evaluation(areas, "takeout" if was_dirty else "nothing")
             return [Takeout()] if was_dirty else []
@@ -356,6 +372,7 @@ class DartDetector:
         ratios = [removal[c] for c in dart_sized if c in removal]
         if ratios and float(np.median(ratios)) > 0.6:
             self._absorb_current(empty=False)
+            self.board_darts = None
             self.state = DetectorState.BLOCKED
             self.last_evaluation = Evaluation(areas, "removal")
             return []
@@ -372,8 +389,12 @@ class DartDetector:
         self.state = DetectorState.IDLE
         self.last_evaluation = Evaluation(areas, "dart" if detection else "unlocated")
         if detection is None:
+            # something dart-sized appeared that could not be located: positions are unknown
+            self.board_darts = None
             return []
         self.darts_in_turn += 1
+        if self.board_darts is not None:
+            self.board_darts.append((detection.x_mm, detection.y_mm))
         return [detection]
 
     def _absorb_current(self, empty: bool) -> None:

@@ -333,48 +333,48 @@ Aggregierte Statistiken können als Cache-Tabelle (z. B. `player_stats`) gehalte
 - [x] Test-Modus: Klick ins Bild → erkanntes Feld (mit echten Darts ab Epic 3)
 - [x] Drift-Erkennung: Verschiebung ggü. Referenzbild (Phasenkorrelation) → Warnung
 - [x] Board-Rotation: ergibt sich aus den benannten Kalibrierpunkten, keine eigene Einstellung nötig
-- [ ] Alle 3 Kameras auf dem Mac mini kalibrieren
+- [x] Alle 3 Kameras auf dem Mac mini kalibrieren (erst 4 Punkte je Kamera – 9 Punkte + Linsenkalibrierung empfohlen)
 - [ ] Auto-Kalibrierung per Linien-/Ellipsenerkennung bzw. Kalibrierpunkt-Modell (Epic 3b)
 
 ### Epic 3 – Wurferkennung (Vision)
-- [ ] Referenzbild-Management je Kamera (Hintergrund vor jedem Wurf)
-- [ ] Bewegungserkennung per Frame-Differenz mit Schwellwert und Rauschfilter
-- [ ] Zustandsautomat: Warten → Bewegung → Stabil → Auswerten → Warten
-- [ ] Dart-Segmentierung im Differenzbild (Threshold, Morphologie, Konturen)
-- [ ] Spitzenerkennung (Kontaktpunkt) je Kamera, z. B. über Konturhauptachse/Linienfit
-- [ ] Mehrere Darts trennen: nur Differenz zum Zustand nach dem letzten Dart auswerten
+- [x] Referenzbild-Management je Kamera (Hintergrund vor jedem Wurf, leere Scheibe pro Aufnahme, folgt langsamen Lichtänderungen)
+- [x] Bewegungserkennung per Frame-Differenz (farbbasiert) mit Schwellwert und Rauschfilter
+- [x] Zustandsautomat: Warten → Bewegung → Stabil → Auswerten → Warten (plus „blockiert“ bei Hand im Bild)
+- [x] Dart-Segmentierung im Differenzbild (Threshold, Morphologie, Zusammenfügen von Bruchstücken)
+- [x] Spitzenerkennung je Kamera: tiefster Punkt des Darts im Bild (Linienfit wurde vom Flight verzogen)
+- [x] Mehrere Darts trennen: nur Differenz zum Zustand nach dem letzten Dart auswerten
 - [ ] Umgang mit Verdeckung durch vorherige Darts
-- [ ] Transformation Spitze → Scheibenkoordinate je Kamera
-- [ ] Fusion der 3 Kameras (Schnittpunkt der Sichtlinien / gewichteter Mittelwert, Ausreißerfilter)
-- [ ] Koordinate → Segment + Multiplikator (inkl. Grenzfälle an Drähten)
-- [ ] Konfidenzberechnung pro Wurf
-- [ ] Miss-Erkennung (außerhalb Doppelring / Bewegung ohne Treffer)
-- [ ] Bouncer-Erkennung bzw. Fallback manuelle Eingabe
-- [ ] Hand-/Zieh-Erkennung (große Bewegung, danach leere Scheibe) → Zugwechsel
-- [ ] Rohbilder und Debug-Bilder pro Wurf speichern
-- [ ] Replay-Tool: aufgezeichnete Würfe erneut durch Pipeline laufen lassen
+- [x] Transformation Spitze → Scheibenkoordinate je Kamera
+- [x] Fusion der 3 Kameras: Gewichtung nach lokaler Auflösung (mm/px), größte übereinstimmende Gruppe, Ausreißerfilter
+- [x] Koordinate → Segment + Multiplikator
+- [x] Konfidenzberechnung pro Wurf
+- [x] Miss-Erkennung (außerhalb Doppelring; fehlende Darts beim Ziehen zählen als Miss)
+- [x] Bouncer: Bewegung ohne bleibende Änderung wird ignoriert; manuelle Eingabe jederzeit möglich
+- [x] Hand-/Zieh-Erkennung (große Änderung, danach leere Scheibe) → Zugwechsel; einzeln gezogene Darts werden erkannt
+- [x] Vorher-/Nachher-Bilder pro Wurf speichern (inkl. Kalibrierung und Darts in der Scheibe)
+- [x] Replay-Tool: `dartscore replay` vergleicht mit den (korrigierten) Spielereignissen
 - [ ] Testdatensatz aufbauen (≥ 500 gelabelte Würfe, alle Segmente)
-- [ ] Genauigkeits-Benchmark-Skript (Precision je Segment, Konfusionsmatrix)
+- [x] Genauigkeits-Messung per Replay (Stand 2026-09-26: 26/27 = 96 % auf echten Würfen, vorher 70 %)
 - [ ] Parameter-Tuning über UI (Schwellwerte, Wartezeiten)
 - [ ] Degradierter Modus mit 2 Kameras
 
 ### Epic 3b – Erkennungsmodell (ML)
 - [ ] DeepDarts-Datensatz von IEEE Dataport laden, Lizenz prüfen, ins YOLO-Pose-Format umwandeln
-- [ ] Trainings-Pipeline aufsetzen (Ultralytics YOLO-Pose, PyTorch), Vorlage: deeper_darts
+- [x] Trainings-Pipeline (Ultralytics YOLO, Keypoints als kleine Boxen wie DeepDarts) – `training/train.py`
 - [ ] Baseline-Modell auf DeepDarts vortrainieren
-- [ ] Aufnahme-Tool: bei jedem Wurf alle 3 Kamerabilder + bestätigtes Ergebnis speichern
-- [ ] Labeling-Workflow (Label Studio/CVAT lokal): Dart-Spitze als Keypoint, optional Kalibrierpunkte
+- [x] Aufnahme: bei jedem Wurf alle 3 Kamerabilder + Kalibrierung + Darts in der Scheibe; Wahrheit aus den Spielereignissen
+- [x] Automatisches Labeling über die Kalibrierung (`dartscore export-dataset`), inkl. 4 Kalibrierpunkte für spätere Auto-Kalibrierung
 - [ ] Vorlabeln mit klassischer CV bzw. aktuellem Modell, nur noch korrigieren
 - [ ] Eigenen Datensatz aufbauen: alle Segmente, Grenzfälle an Drähten, Verdeckung, verschiedene Lichtverhältnisse
 - [ ] Train/Val/Test-Split nach Session (nicht nach Bild), damit der Test ehrlich bleibt
 - [ ] Data Augmentation (Helligkeit, Unschärfe, leichte Perspektive)
 - [ ] Fine-Tuning auf eigenen Daten, Modellgröße abwägen (n/s/m) nach Latenz
-- [ ] Export nach ONNX, zusätzlich OpenVINO-IR (INT8) für Intel
-- [ ] Inferenz-Abstraktion mit automatischer Backend-Wahl (OpenVINO, CUDA/TensorRT, CoreML, CPU)
+- [x] Export nach ONNX (OpenVINO nicht nötig: ONNX Runtime ist auf dem Referenzrechner schneller)
+- [x] Inferenz mit ONNX Runtime (CPU), klassische und End-to-End-YOLO-Ausgaben; Modell optional, klassische Erkennung als Fallback
 - [x] Inferenz-Benchmark auf dem Mac mini: YOLO26n-pose mit ONNX Runtime 41 ms (320 px) / 100 ms (480 px) pro Bild – Ergebnisse in [hardware-setup.md](hardware-setup.md)
 - [ ] Trainingsumgebung festlegen (eigener GPU-Rechner oder Colab), Trainings-Notebook
 - [ ] Modell-Versionierung, Umschalten zwischen Modellen in den Einstellungen
-- [ ] Automatische Trainingsdaten aus Spielen (bestätigte/korrigierte Würfe) sammeln
+- [x] Automatische Trainingsdaten aus Spielen (bestätigte/korrigierte Würfe) sammeln
 - [ ] Nachtrainings-Skript (z. B. monatlich oder per Knopfdruck)
 - [ ] Vergleichsbenchmark Modell vs. klassische CV auf gleichem Testdatensatz
 
@@ -411,8 +411,8 @@ Aggregierte Statistiken können als Cache-Tabelle (z. B. `player_stats`) gehalte
 - [x] Schema (players, games, game_players, game_events – Legs/Turns werden per Event-Sourcing aus den Events berechnet; Kalibrierung liegt als JSON im Datenordner)
 - [x] Migrationen (Alembic)
 - [ ] Indizes für Statistik-Abfragen
-- [ ] Automatisches tägliches Backup, Rotation
-- [ ] Restore-Funktion
+- [x] Automatisches tägliches Backup, Rotation (14 Stände)
+- [x] Restore-Funktion (`dartscore backup restore`)
 - [ ] Seed-Daten für Entwicklung
 
 ### Epic 7 – Profile
@@ -428,7 +428,7 @@ Aggregierte Statistiken können als Cache-Tabelle (z. B. `player_stats`) gehalte
 - [x] Siege/Niederlagen, Head-to-Head
 - [x] Cricket MPR
 - [ ] Trefferquote pro Segment/Doppel
-- [ ] Heatmap aus Wurfkoordinaten
+- [x] Heatmap aus Wurfkoordinaten
 - [x] Zeitverlauf (Charts)
 - [ ] Trainingsstatistiken und persönliche Bestwerte
 - [ ] Filter (Zeitraum, Modus, Gegner)

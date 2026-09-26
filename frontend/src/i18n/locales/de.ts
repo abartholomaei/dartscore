@@ -47,6 +47,7 @@ const de: Translations = {
     overlay: 'Board-Raster anzeigen',
   },
   calibration: {
+    onlyRequiredSaved: 'Nur die 4 Pflichtpunkte sind gesetzt. Die 5 Zusatzpunkte ergänzen (Punkte bearbeiten) – das macht die Erkennung spürbar genauer, besonders am Rand.',
     outlier: 'diese Kamera wurde als Ausreißer ignoriert',
     title: 'Board-Kalibrierung',
     placeInstruction: 'Im Bild antippen: {{point}}',

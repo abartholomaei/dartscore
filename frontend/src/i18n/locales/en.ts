@@ -46,6 +46,7 @@ const en = {
     overlay: 'Show board overlay',
   },
   calibration: {
+    onlyRequiredSaved: 'Only the 4 required points are set. Add the 5 extra points (Edit points) - it makes the detection noticeably more accurate, especially near the board edge.',
     outlier: 'this camera was ignored as an outlier',
     title: 'Board calibration',
     placeInstruction: 'Tap in the image: {{point}}',

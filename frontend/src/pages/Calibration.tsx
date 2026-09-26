@@ -407,6 +407,9 @@ function CameraCalibration({ camera, catalog }: { camera: CameraStatus; catalog:
         {placedIds.length === catalog.required && mode === 'edit' && (
           <p className="muted">{t('calibration.morePointsHint')}</p>
         )}
+        {mode === 'test' && saved && Object.keys(saved.points).length <= catalog.required && (
+          <p className={styles.ok}>{t('calibration.onlyRequiredSaved')}</p>
+        )}
         {mode === 'test' && lastDart && (
           <p>
             {t('detection.last', { label: lastDart.label, confidence: Math.round(lastDart.confidence * 100) })}

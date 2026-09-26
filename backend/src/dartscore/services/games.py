@@ -155,6 +155,14 @@ class GameService:
                     self._set_status(self._active.id, "aborted")
                 # a finished game keeps its status and just makes room for the new one
                 self._active = None
+            with self._sessions() as session:
+                if mode == "x01" and "preferred_doubles" not in settings:
+                    # checkout suggestions use each profile's favourite double
+                    favourites = []
+                    for ref in players:
+                        player = session.get(Player, ref.player_id) if ref.player_id else None
+                        favourites.append(player.favorite_double if player else None)
+                    settings = {**settings, "preferred_doubles": favourites}
             game = create_game(mode, len(players), settings)
             with self._sessions() as session:
                 record = GameRecord(mode=mode, settings=game.settings_dict())

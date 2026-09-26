@@ -111,6 +111,12 @@ const de: Translations = {
     unknown_mode: 'Unbekannter Spielmodus.',
   },
   players: {
+    favoriteDouble: 'Lieblingsdoppel',
+    hand: 'Wurfhand',
+    right: 'Rechts',
+    left: 'Links',
+    defaultMode: 'Standard-Spielmodus',
+    none: '–',
     title: 'Spieler',
     showArchived: 'Archivierte anzeigen',
     add: 'Spieler hinzufügen',

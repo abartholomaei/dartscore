@@ -56,14 +56,17 @@ def _setup_rank(dart: Dart) -> int:
 
 @cache
 def suggest_checkout(
-    remaining: int, darts_left: int = 3, rule: InOutRule = "double"
+    remaining: int, darts_left: int = 3, rule: InOutRule = "double", preferred: int | None = None
 ) -> tuple[Dart, ...] | None:
-    """Best route to finish `remaining` with at most `darts_left` darts, or None."""
+    """Best route to finish `remaining` with at most `darts_left` darts, or None.
+    ``preferred``: the player's favourite finishing double (segment), chosen when it needs no
+    more darts than the best route."""
     if remaining <= 0 or darts_left <= 0:
         return None
     finishers = [d for d in SCORING_DARTS if is_valid_finisher(d, rule)]
     for count in range(1, darts_left + 1):
         best: tuple[int, tuple[Dart, ...]] | None = None
+        best_preferred: tuple[int, tuple[Dart, ...]] | None = None
         for setup in combinations_with_replacement(SCORING_DARTS, count - 1):
             rest = remaining - sum(d.points for d in setup)
             for finisher in finishers:
@@ -72,8 +75,18 @@ def suggest_checkout(
                 # throw the biggest setup dart first
                 ordered = tuple(sorted(setup, key=lambda d: (-d.points, _setup_rank(d))))
                 rank = _finish_rank(finisher) * 3 + sum(_setup_rank(d) for d in setup)
+                route = (rank, (*ordered, finisher))
                 if best is None or rank < best[0]:
-                    best = (rank, (*ordered, finisher))
+                    best = route
+                if (
+                    finisher.segment == preferred
+                    and finisher.is_double
+                    and (best_preferred is None or rank < best_preferred[0])
+                ):
+                    best_preferred = route
+        # the favourite double wins if it needs no more darts than the best route
+        if best_preferred is not None:
+            return best_preferred[1]
         if best is not None:
             return best[1]
     return None

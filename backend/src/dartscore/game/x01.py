@@ -15,8 +15,11 @@ class X01Settings:
     start_score: int = 501
     in_rule: InOutRule = "single"
     out_rule: InOutRule = "double"
+    # favourite finishing double per player (segment or None), taken from the profiles
+    preferred_doubles: tuple[int | None, ...] = ()
 
     def __post_init__(self) -> None:
+        object.__setattr__(self, "preferred_doubles", tuple(self.preferred_doubles))
         if self.start_score not in START_SCORES:
             raise GameError("invalid_settings", f"start_score must be one of {START_SCORES}")
 
@@ -61,7 +64,13 @@ class X01Game(Game):
         darts_left = 3 - (len(turn.darts) if turn else 0)
         if not self.opened[p] or self.finished:
             return None
-        route = suggest_checkout(self.remaining[p], darts_left, self.settings.out_rule)
+        preferred = self.settings.preferred_doubles
+        route = suggest_checkout(
+            self.remaining[p],
+            darts_left,
+            self.settings.out_rule,
+            preferred[p] if p < len(preferred) else None,
+        )
         return [d.label for d in route] if route else None
 
     def _leg_state(self) -> dict[str, Any]:
@@ -76,6 +85,7 @@ class X01Game(Game):
             "start_score": self.settings.start_score,
             "in_rule": self.settings.in_rule,
             "out_rule": self.settings.out_rule,
+            "preferred_doubles": list(self.settings.preferred_doubles),
             "legs_to_win": self.match.legs_to_win,
             "sets_to_win": self.match.sets_to_win,
         }

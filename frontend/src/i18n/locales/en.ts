@@ -110,6 +110,12 @@ const en = {
     unknown_mode: 'Unknown game mode.',
   },
   players: {
+    favoriteDouble: 'Favourite double',
+    hand: 'Throwing hand',
+    right: 'Right',
+    left: 'Left',
+    defaultMode: 'Default game mode',
+    none: '–',
     title: 'Players',
     showArchived: 'Show archived',
     add: 'Add player',

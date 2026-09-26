@@ -1,9 +1,10 @@
 """Player profile endpoints."""
 
 from datetime import datetime
+from typing import Annotated, Literal
 
 from fastapi import APIRouter, Request, Response
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 from dartscore.services.players import PlayerService
 from dartscore.storage.models import Player
@@ -13,12 +14,27 @@ router = APIRouter(prefix="/api/players", tags=["players"])
 COLOR = r"^#[0-9a-fA-F]{6}$"
 
 
+Mode = Literal[
+    "x01",
+    "cricket",
+    "around_the_clock",
+    "shanghai",
+    "bobs_27",
+    "checkout_training",
+    "doubles_training",
+]
+FavoriteDouble = Annotated[int, Field(ge=1, le=25)]
+
+
 class PlayerResponse(BaseModel):
     id: int
     name: str
     color: str
     created_at: datetime
     archived: bool
+    favorite_double: int | None
+    throwing_hand: Literal["right", "left"] | None
+    default_mode: Mode | None
 
 
 class PlayerCreate(BaseModel):
@@ -29,6 +45,16 @@ class PlayerCreate(BaseModel):
 class PlayerUpdate(BaseModel):
     name: str | None = Field(default=None, min_length=1, max_length=40)
     color: str | None = Field(default=None, pattern=COLOR)
+    favorite_double: FavoriteDouble | None = None
+    throwing_hand: Literal["right", "left"] | None = None
+    default_mode: Mode | None = None
+
+    @field_validator("favorite_double")
+    @classmethod
+    def valid_double(cls, value: int | None) -> int | None:
+        if value is not None and not (1 <= value <= 20 or value == 25):
+            raise ValueError("favorite_double must be 1-20 or 25 (bull)")
+        return value
 
 
 def _service(request: Request) -> PlayerService:
@@ -43,6 +69,9 @@ def _response(player: Player) -> PlayerResponse:
         color=player.color,
         created_at=player.created_at,
         archived=player.archived_at is not None,
+        favorite_double=player.favorite_double,
+        throwing_hand=player.throwing_hand,
+        default_mode=player.default_mode,
     )
 
 
@@ -63,7 +92,13 @@ def get_player(request: Request, player_id: int) -> PlayerResponse:
 
 @router.patch("/{player_id}")
 def update_player(request: Request, player_id: int, body: PlayerUpdate) -> PlayerResponse:
-    return _response(_service(request).update(player_id, body.name, body.color))
+    # only the preferences actually sent are changed (null clears one)
+    preferences: dict[str, object] = {
+        key: getattr(body, key)
+        for key in ("favorite_double", "throwing_hand", "default_mode")
+        if key in body.model_fields_set
+    }
+    return _response(_service(request).update(player_id, body.name, body.color, preferences))
 
 
 @router.delete("/{player_id}")

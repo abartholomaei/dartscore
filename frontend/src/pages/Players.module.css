@@ -71,7 +71,8 @@
   font-weight: 600;
 }
 
-.field input {
+.field input,
+.field select {
   font: inherit;
   font-weight: 400;
   padding: 10px 12px;
@@ -103,4 +104,10 @@
   display: flex;
   justify-content: flex-end;
   gap: 8px;
+}
+
+.row {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
 }

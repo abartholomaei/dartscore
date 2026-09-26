@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
-import { getJson, sendJson, type Player } from '../api'
+import { getJson, sendJson, TRAINING_MODES, type GameMode, type Player } from '../api'
 import { PLAYER_COLORS, useErrorText } from '../helpers'
 import styles from './Players.module.css'
 
@@ -100,14 +100,22 @@ export function PlayerForm({ player, onDone }: { player: Player | null; onDone: 
   const [color, setColor] = useState(
     () => player?.color ?? PLAYER_COLORS[Math.floor(Math.random() * PLAYER_COLORS.length)],
   )
+  const [favoriteDouble, setFavoriteDouble] = useState<number | null>(player?.favorite_double ?? null)
+  const [hand, setHand] = useState<Player['throwing_hand']>(player?.throwing_hand ?? null)
+  const [defaultMode, setDefaultMode] = useState<GameMode | null>(player?.default_mode ?? null)
   const [error, setError] = useState<string | null>(null)
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault()
     try {
-      const saved = player
+      let saved = player
         ? await sendJson<Player>('PATCH', `/api/players/${player.id}`, { name, color })
         : await sendJson<Player>('POST', '/api/players', { name, color })
+      saved = await sendJson<Player>('PATCH', `/api/players/${saved.id}`, {
+        favorite_double: favoriteDouble,
+        throwing_hand: hand,
+        default_mode: defaultMode,
+      })
       onDone(saved)
     } catch (err) {
       setError(errorText(err))
@@ -135,6 +143,41 @@ export function PlayerForm({ player, onDone }: { player: Player | null; onDone: 
             />
           ))}
         </div>
+      </div>
+      <div className={styles.row}>
+        <label className={styles.field}>
+          {t('players.favoriteDouble')}
+          <select
+            value={favoriteDouble ?? ''}
+            onChange={(e) => setFavoriteDouble(e.target.value ? Number(e.target.value) : null)}
+          >
+            <option value="">{t('players.none')}</option>
+            {[...Array.from({ length: 20 }, (_, i) => i + 1), 25].map((n) => (
+              <option key={n} value={n}>
+                {n === 25 ? 'Bull' : `D${n}`}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className={styles.field}>
+          {t('players.hand')}
+          <select value={hand ?? ''} onChange={(e) => setHand((e.target.value || null) as Player['throwing_hand'])}>
+            <option value="">{t('players.none')}</option>
+            <option value="right">{t('players.right')}</option>
+            <option value="left">{t('players.left')}</option>
+          </select>
+        </label>
+        <label className={styles.field}>
+          {t('players.defaultMode')}
+          <select value={defaultMode ?? ''} onChange={(e) => setDefaultMode((e.target.value || null) as GameMode | null)}>
+            <option value="">{t('players.none')}</option>
+            {(['x01', 'cricket', ...TRAINING_MODES] as GameMode[]).map((m) => (
+              <option key={m} value={m}>
+                {t(`modes.${m}`)}
+              </option>
+            ))}
+          </select>
+        </label>
       </div>
       {error && <p className="error">{error}</p>}
       <div className={styles.formActions}>

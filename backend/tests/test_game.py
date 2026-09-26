@@ -291,3 +291,10 @@ def test_identical_turns_are_distinguished() -> None:
     game.replace_dart(-1, 0, Dart.parse("S20"))
     assert [d.label for d in game.legs[0].turns[0].darts] == ["S1", "S1", "S1"]
     assert [d.label for d in game.legs[0].turns[2].darts] == ["S20", "S1", "S1"]
+
+
+def test_checkout_prefers_favourite_double_with_same_dart_count() -> None:
+    assert [d.label for d in suggest_checkout(64) or ()] == ["T16", "D8"]
+    assert (suggest_checkout(64, preferred=16) or ())[-1].label == "D16"
+    # one dart is better than two: 40 stays D20 even with D16 as favourite
+    assert [d.label for d in suggest_checkout(40, preferred=16) or ()] == ["D20"]

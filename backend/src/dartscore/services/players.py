@@ -60,7 +60,14 @@ class PlayerService:
             session.commit()
             return player
 
-    def update(self, player_id: int, name: str | None = None, color: str | None = None) -> Player:
+    def update(
+        self,
+        player_id: int,
+        name: str | None = None,
+        color: str | None = None,
+        preferences: dict[str, object] | None = None,
+    ) -> Player:
+        """``preferences``: favorite_double, throwing_hand, default_mode (None clears one)."""
         with self._sessions() as session:
             player = session.get(Player, player_id)
             if player is None:
@@ -69,6 +76,10 @@ class PlayerService:
                 player.name = self._check_name(session, name, exclude_id=player_id)
             if color is not None:
                 player.color = color
+            for key, value in (preferences or {}).items():
+                if key not in ("favorite_double", "throwing_hand", "default_mode"):
+                    raise GameError("invalid_settings", f"Unknown preference {key}")
+                setattr(player, key, value)
             session.commit()
             return player
 

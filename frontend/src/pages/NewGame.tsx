@@ -109,6 +109,8 @@ export default function NewGame() {
   }, [errorText])
 
   const toggle = (player: Player) => {
+    // the first selected player's preferred mode is preselected
+    if (participants.length === 0 && player.default_mode) setMode(player.default_mode)
     setParticipants((list) =>
       list.some((p) => p.playerId === player.id)
         ? list.filter((p) => p.playerId !== player.id)

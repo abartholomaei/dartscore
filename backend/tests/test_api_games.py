@@ -215,3 +215,23 @@ def test_training_modes_via_api(client: TestClient, mode: str) -> None:
     state = throw(client, "D1", "MISS", "MISS")
     assert state["mode"] == mode
     assert "score" in state["players"][0]["stats"]
+
+
+def test_favorite_double_drives_checkout_suggestion(client: TestClient) -> None:
+    (pid,) = make_players(client, "Dora")
+    updated = client.patch(
+        f"/api/players/{pid}", json={"favorite_double": 16, "throwing_hand": "left"}
+    ).json()
+    assert updated["favorite_double"] == 16
+    assert updated["throwing_hand"] == "left"
+    assert client.patch(f"/api/players/{pid}", json={"favorite_double": 21}).status_code == 422
+
+    client.post(
+        "/api/games",
+        json={"mode": "x01", "settings": {"start_score": 101}, "players": [{"player_id": pid}]},
+    )
+    # 64 left: normally T16 D8, with the favourite double a route ending on D16
+    state = throw(client, "T12", "S1", "MISS", "NEXT")
+    assert state["remaining"] == [64]
+    assert state["checkout"][-1] == "D16"
+    assert state["settings"]["preferred_doubles"] == [16]

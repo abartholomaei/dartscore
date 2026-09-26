@@ -24,6 +24,11 @@ class Player(Base):
     created_at: Mapped[datetime] = mapped_column(default=utcnow)
     # archived players keep their statistics but are hidden from selection
     archived_at: Mapped[datetime | None] = mapped_column(default=None)
+    # preferences: finishing double for checkout suggestions (1-20, 25 = bull), throwing hand,
+    # game mode preselected when this player starts a game
+    favorite_double: Mapped[int | None] = mapped_column(default=None)
+    throwing_hand: Mapped[str | None] = mapped_column(String(5), default=None)
+    default_mode: Mapped[str | None] = mapped_column(String(20), default=None)
 
 
 class GameRecord(Base):

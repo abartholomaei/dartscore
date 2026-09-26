@@ -149,6 +149,9 @@ export type Player = {
   color: string
   created_at: string
   archived: boolean
+  favorite_double: number | null
+  throwing_hand: 'right' | 'left' | null
+  default_mode: GameMode | null
 }
 
 export type PlayerGameStats = {

@@ -102,10 +102,11 @@ export async function sendJson<T>(
   method: 'POST' | 'PUT' | 'PATCH' | 'DELETE',
   path: string,
   body?: unknown,
+  headers?: Record<string, string>,
 ): Promise<T> {
   const res = await fetch(path, {
     method,
-    headers: body === undefined ? undefined : { 'Content-Type': 'application/json' },
+    headers: { ...(body === undefined ? {} : { 'Content-Type': 'application/json' }), ...headers },
     body: body === undefined ? undefined : JSON.stringify(body),
   })
   if (!res.ok) {
@@ -152,6 +153,7 @@ export type Player = {
   favorite_double: number | null
   throwing_hand: 'right' | 'left' | null
   default_mode: GameMode | null
+  has_pin: boolean
 }
 
 export type PlayerGameStats = {

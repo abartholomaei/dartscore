@@ -129,6 +129,8 @@ const en = {
     require: '{{name}}, you require {{score}}',
   },
   errors: {
+    pin_required: 'This profile is protected by a PIN.',
+    wrong_pin: 'Wrong PIN.',
     player_not_found: 'Player not found.',
     game_not_found: 'Game not found.',
     no_active_game: 'No game is running.',
@@ -147,6 +149,12 @@ const en = {
     unknown_mode: 'Unknown game mode.',
   },
   players: {
+    pin: 'PIN (optional)',
+    changePin: 'New PIN',
+    pinPlaceholder: '4-8 digits',
+    removePin: 'Remove PIN',
+    pinHint: 'A PIN only prevents accidental changes to this profile - it is not a password.',
+    enterPin: 'This profile is protected. Enter its PIN:',
     favoriteDouble: 'Favourite double',
     hand: 'Throwing hand',
     right: 'Right',

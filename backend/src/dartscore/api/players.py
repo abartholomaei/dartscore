@@ -3,7 +3,7 @@
 from datetime import datetime
 from typing import Annotated, Literal
 
-from fastapi import APIRouter, Request, Response
+from fastapi import APIRouter, Header, Request, Response
 from pydantic import BaseModel, Field, field_validator
 
 from dartscore.services.players import PlayerService
@@ -27,6 +27,8 @@ Mode = Literal[
     "gotcha",
     "score_training",
 ]
+# the current PIN of a protected profile, sent with changes
+PinHeader = Annotated[str | None, Header()]
 FavoriteDouble = Annotated[int, Field(ge=1, le=25)]
 
 
@@ -39,6 +41,7 @@ class PlayerResponse(BaseModel):
     favorite_double: int | None
     throwing_hand: Literal["right", "left"] | None
     default_mode: Mode | None
+    has_pin: bool
 
 
 class PlayerCreate(BaseModel):
@@ -52,6 +55,8 @@ class PlayerUpdate(BaseModel):
     favorite_double: FavoriteDouble | None = None
     throwing_hand: Literal["right", "left"] | None = None
     default_mode: Mode | None = None
+    # set a PIN (4-8 digits) or remove it with null
+    new_pin: str | None = Field(default=None, pattern=r"^\d{4,8}$")
 
     @field_validator("favorite_double")
     @classmethod
@@ -76,6 +81,7 @@ def _response(player: Player) -> PlayerResponse:
         favorite_double=player.favorite_double,
         throwing_hand=player.throwing_hand,
         default_mode=player.default_mode,
+        has_pin=player.pin_hash is not None,
     )
 
 
@@ -95,21 +101,28 @@ def get_player(request: Request, player_id: int) -> PlayerResponse:
 
 
 @router.patch("/{player_id}")
-def update_player(request: Request, player_id: int, body: PlayerUpdate) -> PlayerResponse:
+def update_player(
+    request: Request, player_id: int, body: PlayerUpdate, x_player_pin: PinHeader = None
+) -> PlayerResponse:
     # only the preferences actually sent are changed (null clears one)
     preferences: dict[str, object] = {
         key: getattr(body, key)
         for key in ("favorite_double", "throwing_hand", "default_mode")
         if key in body.model_fields_set
     }
-    return _response(_service(request).update(player_id, body.name, body.color, preferences))
+    new_pin = body.new_pin if "new_pin" in body.model_fields_set else False
+    return _response(
+        _service(request).update(
+            player_id, body.name, body.color, preferences, x_player_pin, new_pin
+        )
+    )
 
 
 @router.delete("/{player_id}")
-def delete_player(request: Request, player_id: int) -> Response:
+def delete_player(request: Request, player_id: int, x_player_pin: PinHeader = None) -> Response:
     """204 if deleted; 200 with the archived player if it has games (statistics are kept)."""
     service = _service(request)
-    if service.delete(player_id):
+    if service.delete(player_id, x_player_pin):
         return Response(status_code=204)
     return Response(
         content=_response(service.get(player_id)).model_dump_json(),

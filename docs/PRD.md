@@ -422,7 +422,7 @@ Aggregierte Statistiken können als Cache-Tabelle (z. B. `player_stats`) gehalte
 - [x] Avatar/Farbe wählen
 - [x] Gastspieler
 - [x] Profil-Einstellungen (Lieblingsdoppel für Checkout-Vorschläge, Wurfhand, Standardmodus)
-- [ ] Optional PIN-Schutz
+- [x] Optional PIN-Schutz
 
 ### Epic 8 – Statistiken
 - [x] Berechnungsmodul: Average, First-9, Checkout-Quote, Darts/Leg, Highscores

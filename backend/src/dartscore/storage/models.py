@@ -29,6 +29,8 @@ class Player(Base):
     favorite_double: Mapped[int | None] = mapped_column(default=None)
     throwing_hand: Mapped[str | None] = mapped_column(String(5), default=None)
     default_mode: Mapped[str | None] = mapped_column(String(20), default=None)
+    # optional PIN against accidental edits (not a security feature): "salt$scrypt-hash"
+    pin_hash: Mapped[str | None] = mapped_column(String(128), default=None)
 
 
 class GameRecord(Base):

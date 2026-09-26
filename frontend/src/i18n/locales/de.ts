@@ -130,6 +130,8 @@ const de: Translations = {
     require: '{{name}}, du brauchst {{score}}',
   },
   errors: {
+    pin_required: 'Dieses Profil ist mit einer PIN geschützt.',
+    wrong_pin: 'Falsche PIN.',
     player_not_found: 'Spieler nicht gefunden.',
     game_not_found: 'Spiel nicht gefunden.',
     no_active_game: 'Es läuft kein Spiel.',
@@ -148,6 +150,12 @@ const de: Translations = {
     unknown_mode: 'Unbekannter Spielmodus.',
   },
   players: {
+    pin: 'PIN (optional)',
+    changePin: 'Neue PIN',
+    pinPlaceholder: '4-8 Ziffern',
+    removePin: 'PIN entfernen',
+    pinHint: 'Eine PIN verhindert nur versehentliche Änderungen an diesem Profil - sie ist kein Passwort.',
+    enterPin: 'Dieses Profil ist geschützt. PIN eingeben:',
     favoriteDouble: 'Lieblingsdoppel',
     hand: 'Wurfhand',
     right: 'Rechts',

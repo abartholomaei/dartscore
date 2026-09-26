@@ -319,3 +319,28 @@ def test_grouping_uses_detected_positions(client: TestClient) -> None:
     result = client.get(f"/api/stats/players/{a}/grouping").json()
     assert result["turns"] == 1
     assert result["best_mm"] == 2.0  # distances 3, 3, 0 from the centre
+
+
+def test_pin_protects_profile(client: TestClient) -> None:
+    (a,) = make_players(client, "A")
+    set_pin = client.patch(f"/api/players/{a}", json={"new_pin": "1234"})
+    assert set_pin.json()["has_pin"] is True
+    blocked = client.patch(f"/api/players/{a}", json={"name": "B"})
+    assert blocked.status_code == 403
+    assert blocked.json()["detail"]["code"] == "pin_required"
+    wrong = client.patch(f"/api/players/{a}", json={"name": "B"}, headers={"X-Player-Pin": "0000"})
+    assert wrong.json()["detail"]["code"] == "wrong_pin"
+    assert client.delete(f"/api/players/{a}").status_code == 403
+    ok = client.patch(f"/api/players/{a}", json={"name": "B"}, headers={"X-Player-Pin": "1234"})
+    assert ok.json()["name"] == "B"
+    assert (
+        client.patch(
+            f"/api/players/{a}", json={"new_pin": "12"}, headers={"X-Player-Pin": "1234"}
+        ).status_code
+        == 422
+    )
+    cleared = client.patch(
+        f"/api/players/{a}", json={"new_pin": None}, headers={"X-Player-Pin": "1234"}
+    )
+    assert cleared.json()["has_pin"] is False
+    assert client.delete(f"/api/players/{a}").status_code == 204

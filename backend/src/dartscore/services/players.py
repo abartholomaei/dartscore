@@ -1,5 +1,9 @@
 """Local player profiles."""
 
+import hashlib
+import hmac
+import secrets
+
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session, sessionmaker
 
@@ -16,6 +20,23 @@ DEFAULT_COLORS = (
     "#fdd835",
     "#6d4c41",
 )
+
+
+def _hash_pin(pin: str, salt: bytes | None = None) -> str:
+    salt = salt or secrets.token_bytes(16)
+    digest = hashlib.scrypt(pin.encode(), salt=salt, n=2**14, r=8, p=1, dklen=32)
+    return f"{salt.hex()}${digest.hex()}"
+
+
+def check_pin(player: Player, pin: str | None) -> None:
+    """Raises unless the player has no PIN or ``pin`` matches it."""
+    if player.pin_hash is None:
+        return
+    if pin is None:
+        raise GameError("pin_required", "This profile is protected by a PIN")
+    salt, _ = player.pin_hash.split("$", 1)
+    if not hmac.compare_digest(_hash_pin(pin, bytes.fromhex(salt)), player.pin_hash):
+        raise GameError("wrong_pin", "Wrong PIN")
 
 
 class PlayerService:
@@ -66,12 +87,19 @@ class PlayerService:
         name: str | None = None,
         color: str | None = None,
         preferences: dict[str, object] | None = None,
+        pin: str | None = None,
+        new_pin: str | bool | None = False,
     ) -> Player:
-        """``preferences``: favorite_double, throwing_hand, default_mode (None clears one)."""
+        """``preferences``: favorite_double, throwing_hand, default_mode (None clears one).
+        ``pin``: the current PIN, if the profile has one. ``new_pin``: a PIN to set, None to
+        remove it, False to leave it."""
         with self._sessions() as session:
             player = session.get(Player, player_id)
             if player is None:
                 raise GameError("player_not_found", f"Player {player_id} not found")
+            check_pin(player, pin)
+            if new_pin is not False:
+                player.pin_hash = _hash_pin(new_pin) if isinstance(new_pin, str) else None
             if name is not None:
                 player.name = self._check_name(session, name, exclude_id=player_id)
             if color is not None:
@@ -83,13 +111,14 @@ class PlayerService:
             session.commit()
             return player
 
-    def delete(self, player_id: int) -> bool:
+    def delete(self, player_id: int, pin: str | None = None) -> bool:
         """Deletes a player without games; players with games are archived so their
         statistics survive. Returns True if the player was deleted, False if archived."""
         with self._sessions() as session:
             player = session.get(Player, player_id)
             if player is None:
                 raise GameError("player_not_found", f"Player {player_id} not found")
+            check_pin(player, pin)
             played = session.scalar(
                 select(func.count(GamePlayer.id)).where(GamePlayer.player_id == player_id)
             )

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
-import { getJson, sendJson, PARTY_MODES, TRAINING_MODES, type GameMode, type Player } from '../api'
+import { ApiError, getJson, sendJson, PARTY_MODES, TRAINING_MODES, type GameMode, type Player } from '../api'
 import { PLAYER_COLORS, useErrorText } from '../helpers'
 import styles from './Players.module.css'
 
@@ -24,7 +24,7 @@ export default function Players() {
   const remove = async (player: Player) => {
     if (!window.confirm(t('players.confirmDelete', { name: player.name }))) return
     try {
-      await sendJson('DELETE', `/api/players/${player.id}`)
+      await withPin(t('players.enterPin'), (headers) => sendJson('DELETE', `/api/players/${player.id}`, undefined, headers))
       reload()
     } catch (err) {
       setError(errorText(err))
@@ -103,19 +103,27 @@ export function PlayerForm({ player, onDone }: { player: Player | null; onDone: 
   const [favoriteDouble, setFavoriteDouble] = useState<number | null>(player?.favorite_double ?? null)
   const [hand, setHand] = useState<Player['throwing_hand']>(player?.throwing_hand ?? null)
   const [defaultMode, setDefaultMode] = useState<GameMode | null>(player?.default_mode ?? null)
+  const [newPin, setNewPin] = useState('')
+  const [removePin, setRemovePin] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault()
     try {
-      let saved = player
-        ? await sendJson<Player>('PATCH', `/api/players/${player.id}`, { name, color })
-        : await sendJson<Player>('POST', '/api/players', { name, color })
-      saved = await sendJson<Player>('PATCH', `/api/players/${saved.id}`, {
+      const changes: Record<string, unknown> = {
         favorite_double: favoriteDouble,
         throwing_hand: hand,
         default_mode: defaultMode,
-      })
+      }
+      if (newPin) changes.new_pin = newPin
+      else if (removePin) changes.new_pin = null
+      const saved = player
+        ? await withPin(t('players.enterPin'), (headers) =>
+            sendJson<Player>('PATCH', `/api/players/${player.id}`, { name, color, ...changes }, headers),
+          )
+        : await sendJson<Player>('POST', '/api/players', { name, color }).then((created) =>
+            sendJson<Player>('PATCH', `/api/players/${created.id}`, changes),
+          )
       onDone(saved)
     } catch (err) {
       setError(errorText(err))
@@ -179,6 +187,28 @@ export function PlayerForm({ player, onDone }: { player: Player | null; onDone: 
           </select>
         </label>
       </div>
+      <div className={styles.row}>
+        <label className={styles.field}>
+          {player?.has_pin ? t('players.changePin') : t('players.pin')}
+          <input
+            type="password"
+            inputMode="numeric"
+            autoComplete="off"
+            pattern="[0-9]{4,8}"
+            maxLength={8}
+            value={newPin}
+            placeholder={t('players.pinPlaceholder')}
+            onChange={(e) => setNewPin(e.target.value.replace(/[^0-9]/g, ''))}
+          />
+        </label>
+        {player?.has_pin && (
+          <label className={styles.toggle}>
+            <input type="checkbox" checked={removePin} onChange={(e) => setRemovePin(e.target.checked)} />
+            {t('players.removePin')}
+          </label>
+        )}
+      </div>
+      <p className="muted">{t('players.pinHint')}</p>
       {error && <p className="error">{error}</p>}
       <div className={styles.formActions}>
         <button type="button" className="button" onClick={() => onDone()}>
@@ -190,4 +220,16 @@ export function PlayerForm({ player, onDone }: { player: Player | null; onDone: 
       </div>
     </form>
   )
+}
+
+/** Runs a change; if the profile is PIN-protected, asks for the PIN and tries again. */
+async function withPin<T>(question: string, run: (headers?: Record<string, string>) => Promise<T>): Promise<T> {
+  try {
+    return await run()
+  } catch (err) {
+    if (!(err instanceof ApiError) || err.code !== 'pin_required') throw err
+    const pin = window.prompt(question)
+    if (pin === null) throw err
+    return run({ 'X-Player-Pin': pin })
+  }
 }

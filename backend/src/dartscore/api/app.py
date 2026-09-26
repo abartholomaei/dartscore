@@ -48,6 +48,7 @@ class SPAStaticFiles(StaticFiles):
 # error codes that mean "does not exist" or "conflicts with the current state"
 _NOT_FOUND = {"player_not_found", "game_not_found", "no_active_game", "no_game"}
 _CONFLICT = {"game_active", "name_taken"}
+_FORBIDDEN = {"pin_required", "wrong_pin"}
 
 
 def _game_error_status(code: str) -> int:
@@ -55,6 +56,8 @@ def _game_error_status(code: str) -> int:
         return 404
     if code in _CONFLICT:
         return 409
+    if code in _FORBIDDEN:
+        return 403
     return 422
 
 

@@ -1,0 +1,124 @@
+.layout {
+  display: grid;
+  gap: var(--gutter);
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 1000px) {
+  .layout {
+    grid-template-columns: minmax(0, 2fr) minmax(280px, 1fr);
+    align-items: start;
+  }
+}
+
+.imageColumn {
+  display: grid;
+  gap: 10px;
+}
+
+.imageBox {
+  position: relative;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #000;
+  aspect-ratio: 16 / 9;
+}
+
+.image,
+.overlay {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.image {
+  object-fit: fill;
+}
+
+.corner {
+  fill: #fdd835;
+}
+
+.cornerNew {
+  fill: #43a047;
+}
+
+.flash {
+  position: absolute;
+  inset: 0;
+  border: 6px solid #43a047;
+  border-radius: 12px;
+  pointer-events: none;
+  animation: flash 0.6s ease-out forwards;
+}
+
+@keyframes flash {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+.progress {
+  height: 8px;
+  border-radius: 999px;
+  background: var(--border);
+  overflow: hidden;
+}
+
+.progress span {
+  display: block;
+  height: 100%;
+  background: #43a047;
+  transition: width 0.3s;
+}
+
+.counts {
+  margin: 0;
+}
+
+.found {
+  color: #43a047;
+  font-weight: 600;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.message {
+  margin: 0;
+  font-weight: 600;
+}
+
+.side {
+  display: grid;
+  gap: 12px;
+}
+
+.steps {
+  margin: 0;
+  padding-left: 1.25em;
+  display: grid;
+  gap: 8px;
+}
+
+.good {
+  color: #43a047;
+  font-weight: 600;
+}
+
+.ok {
+  color: #fb8c00;
+  font-weight: 600;
+}
+
+.bad {
+  color: #e53935;
+  font-weight: 600;
+}

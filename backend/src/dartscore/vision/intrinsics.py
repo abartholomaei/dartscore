@@ -118,10 +118,13 @@ class ChessboardCollector:
         self.min_shift_px = min_shift_px
         self.detections: list[NDArray[np.float32]] = []
         self.image_size: tuple[int, int] | None = None
+        # corners found in the last offered image (also when it was not kept)
+        self.last_corners: NDArray[np.float32] | None = None
 
     def offer(self, image: Image) -> bool:
         """True if the image was accepted."""
         corners = find_chessboard(image, self.pattern)
+        self.last_corners = corners
         if corners is None:
             return False
         h, w = image.shape[:2]
@@ -177,5 +180,23 @@ class Undistorter:
         """Maps pixel coordinates of the raw image to the undistorted image (Nx2)."""
         matrix, new_matrix = self._matrices_for(size)
         pts = np.asarray(points, dtype=np.float64).reshape(-1, 1, 2)
-        out = cv2.undistortPoints(pts, matrix, self.calibration.dist_coeffs, P=new_matrix)
+        # the default 5 iterations are too inaccurate at the edges of a wide-angle lens
+        criteria = (cv2.TERM_CRITERIA_COUNT | cv2.TERM_CRITERIA_EPS, 100, 1e-8)
+        out = cv2.undistortPoints(
+            pts, matrix, self.calibration.dist_coeffs, R=None, P=new_matrix, criteria=criteria
+        )
+        return np.asarray(out, dtype=np.float64).reshape(-1, 2)
+
+    def distort_points(
+        self, points: NDArray[np.float64], size: tuple[int, int]
+    ) -> NDArray[np.float64]:
+        """The inverse of ``undistort_points``: undistorted image -> raw image (Nx2)."""
+        matrix, new_matrix = self._matrices_for(size)
+        pts = np.asarray(points, dtype=np.float64).reshape(-1, 2)
+        homogeneous = np.hstack([pts, np.ones((len(pts), 1))])
+        normalized = (np.linalg.inv(new_matrix) @ homogeneous.T).T
+        rays = normalized / normalized[:, 2:3]
+        out, _ = cv2.projectPoints(
+            rays.reshape(-1, 1, 3), np.zeros(3), np.zeros(3), matrix, self.calibration.dist_coeffs
+        )
         return np.asarray(out, dtype=np.float64).reshape(-1, 2)

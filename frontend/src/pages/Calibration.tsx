@@ -18,6 +18,7 @@ import BoardDiagram from '../components/BoardDiagram'
 import BoardOverlay from '../components/BoardOverlay'
 import { useLiveGame } from '../LiveGame'
 import { usePolling } from '../usePolling'
+import LensCalibration from '../components/LensCalibration'
 import styles from './Calibration.module.css'
 
 type Snapshot = { url: string; width: number; height: number }
@@ -42,6 +43,9 @@ export default function Calibration() {
   const cameraList = cameras.kind === 'ok' ? cameras.data : []
   const cameraId = searchParams.get('camera') ?? cameraList[0]?.id ?? null
   const camera = cameraList.find((c) => c.id === cameraId) ?? null
+  const step = searchParams.get('step') === 'lens' ? 'lens' : 'board'
+  const select = (params: { camera?: string; step?: string }) =>
+    setSearchParams({ camera: params.camera ?? cameraId ?? '', step: params.step ?? step })
 
   return (
     <>
@@ -57,7 +61,7 @@ export default function Calibration() {
               role="tab"
               aria-selected={c.id === cameraId}
               className={c.id === cameraId ? `${styles.tab} ${styles.tabActive}` : styles.tab}
-              onClick={() => setSearchParams({ camera: c.id })}
+              onClick={() => select({ camera: c.id })}
             >
               {c.id}
               <span className={c.board_calibrated ? styles.dotOk : styles.dotOpen} aria-hidden="true" />
@@ -65,7 +69,30 @@ export default function Calibration() {
           ))}
         </div>
       )}
-      {camera && catalog && <CameraCalibration key={camera.id} camera={camera} catalog={catalog} />}
+      {camera && (
+        <div className={styles.tabs} role="tablist">
+          {(['board', 'lens'] as const).map((s) => (
+            <button
+              key={s}
+              role="tab"
+              aria-selected={s === step}
+              className={s === step ? `${styles.tab} ${styles.tabActive}` : styles.tab}
+              onClick={() => select({ step: s })}
+            >
+              {t(`lens.step_${s}`)}
+              {s === 'lens' && (
+                <span className={camera.lens_calibrated ? styles.dotOk : styles.dotOpen} aria-hidden="true" />
+              )}
+            </button>
+          ))}
+        </div>
+      )}
+      {camera && step === 'lens' && (
+        <LensCalibration key={`lens-${camera.id}`} camera={camera} onChanged={() => undefined} />
+      )}
+      {camera && catalog && step === 'board' && (
+        <CameraCalibration key={`${camera.id}-${camera.lens_calibrated}`} camera={camera} catalog={catalog} />
+      )}
     </>
   )
 }

@@ -52,11 +52,28 @@ function speak(text: string, language: string) {
 
 let audio: AudioContext | null = null
 
+// Browsers (Firefox in particular) keep audio muted until the page was touched once; the first
+// interaction creates/resumes the audio context so later sounds - e.g. for detected darts - play.
+function unlockAudio() {
+  try {
+    audio ??= new AudioContext()
+    void audio.resume()
+  } catch {
+    // no audio output
+  }
+}
+if (typeof window !== 'undefined') {
+  for (const type of ['pointerdown', 'keydown', 'touchstart'] as const) {
+    window.addEventListener(type, unlockAudio, { capture: true, passive: true })
+  }
+}
+
 /** A short tone; ``kind`` picks the pitch. */
 function beep(kind: 'dart' | 'bust' | 'win') {
   if (!prefs.sounds) return
   try {
     audio ??= new AudioContext()
+    if (audio.state === 'suspended') void audio.resume()
     const osc = audio.createOscillator()
     const gain = audio.createGain()
     const now = audio.currentTime

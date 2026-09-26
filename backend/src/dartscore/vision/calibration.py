@@ -18,6 +18,7 @@ import numpy as np
 from numpy.typing import NDArray
 
 from dartscore.vision import board
+from dartscore.vision.intrinsics import Undistorter
 from dartscore.vision.sources import Image
 
 Point = tuple[float, float]
@@ -260,3 +261,35 @@ def measure_drift(reference: Image, current: Image) -> float:
     (dx, dy), _ = cv2.phaseCorrelate(ref, cur, window)
     scale = reference.shape[1] / _DRIFT_WIDTH
     return float(math.hypot(dx, dy) * scale)
+
+
+def change_lens(
+    calibration: BoardCalibration, old: Undistorter | None, new: Undistorter | None
+) -> BoardCalibration:
+    """Carries the clicked points over to another lens calibration (or none), so a new lens
+    calibration does not require clicking the board again. The homography is fitted anew
+    because (un)distortion is not a projective mapping."""
+    if not calibration.points:
+        raise CalibrationError("no_points", "The calibration has no clicked points to convert")
+    size = calibration.image_size
+    ids = list(calibration.points)
+    points = np.array([calibration.points[i] for i in ids], dtype=np.float64)
+    if calibration.undistorted:
+        if old is None:
+            raise CalibrationError("lens_missing", "The lens calibration used is not available")
+        points = old.distort_points(points, size)
+    if new is not None:
+        points = new.undistort_points(points, size)
+    converted = {
+        i: (round(float(x), 2), round(float(y), 2)) for i, (x, y) in zip(ids, points, strict=True)
+    }
+    fit = fit_homography(converted)
+    return BoardCalibration(
+        camera_id=calibration.camera_id,
+        points=converted,
+        homography=fit.homography,
+        image_size=size,
+        undistorted=new is not None,
+        lens_created_at=new.calibration.created_at if new else None,
+        rms_px=fit.rms_px,
+    )

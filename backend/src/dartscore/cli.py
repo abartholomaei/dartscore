@@ -39,6 +39,8 @@ def cmd_serve(settings: Settings, _args: argparse.Namespace) -> None:
         host=settings.server.host,
         port=settings.server.port,
         log_config=None,
+        # open MJPEG streams would otherwise block shutdown indefinitely
+        timeout_graceful_shutdown=3,
     )
 
 

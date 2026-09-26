@@ -16,6 +16,9 @@ ExecStart=/root/.local/bin/uv run --project backend --no-dev dartscore
 Environment=DARTSCORE_LOGGING__JSON_OUTPUT=true
 Restart=on-failure
 RestartSec=5
+TimeoutStopSec=15
+# uvicorn exits with 128+SIGTERM when stopped; that is a normal stop
+SuccessExitStatus=143
 
 [Install]
 WantedBy=multi-user.target

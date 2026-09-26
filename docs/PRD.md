@@ -308,17 +308,20 @@ Aggregierte Statistiken können als Cache-Tabelle (z. B. `player_stats`) gehalte
 - [x] Logging-Konzept (structlog, Konsole oder JSON)
 - [x] README mit Setup-Anleitung
 
-### Epic 1 – Hardware & Kameras
-- [ ] Kameramodelle, Auflösung und fps dokumentieren
+### Epic 1 – Hardware & Kameras (Software erledigt 2026-09-26, Tests am Mac mini offen)
+- [x] Kameramodelle, Auflösung und fps dokumentieren
 - [ ] Montageposition und Winkel vermessen und dokumentieren
 - [ ] Beleuchtung optimieren (LED-Ring, Flimmer-Test)
-- [ ] Kamera-Abstraktion: Geräte auflisten, öffnen, Frames lesen (OpenCV/V4L2/AVFoundation)
-- [ ] Stabile eindeutige Kamera-Zuordnung (nicht nur Index, sondern Seriennummer/Pfad)
-- [ ] Auto-Exposure/Auto-Focus/Weißabgleich per Software fixieren
-- [ ] Paralleles Auslesen von 3 Streams (Threads/Prozesse), Frame-Zeitstempel synchronisieren
-- [ ] USB-Bandbreite testen (MJPEG vs. YUYV)
-- [ ] MJPEG-/WebSocket-Stream der Kamerabilder an die UI
-- [ ] Linsenverzeichnung kalibrieren (Schachbrett, `cv2.calibrateCamera`) und entzerren
+- [x] Kamera-Abstraktion: Geräte auflisten, öffnen, Frames lesen (OpenCV; V4L2/AVFoundation/DirectShow) – `dartscore devices`
+- [x] Stabile Kamera-Zuordnung über `/dev/v4l/by-path` bzw. `by-id` (Anleitung in [hardware-setup.md](hardware-setup.md))
+- [x] Kamera-Controls (Belichtung usw.) per `v4l2_controls` in der Konfiguration
+- [x] Paralleles Auslesen von 3 Streams (ein Thread pro Kamera), Zeitstempel je Bild, automatische Neuverbindung
+- [x] USB-Bandbreitentest – `dartscore bench` (Ist-fps, verlorene Bilder)
+- [ ] Bandbreitentest auf dem Mac mini mit den echten Kameras durchführen
+- [x] MJPEG-Livestream der Kamerabilder in die UI (Kameraseite, responsiv)
+- [x] Linsenverzeichnung kalibrieren (Schachbrett, `dartscore calibrate-lens`) und entzerren
+- [ ] Linsenkalibrierung für alle 3 Kameras durchführen
+- [x] Simulierte Kameras für die Entwicklung ohne Hardware
 
 ### Epic 2 – Kalibrierung
 - [ ] Board-Geometrie als Modell (Radien in mm, Segmentreihenfolge 20-1-18-4-…)

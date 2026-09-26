@@ -6,6 +6,7 @@
   --border: #dde1e7;
   --accent: #d32f2f;
   --ok: #2e7d32;
+  --warn: #b26a00;
   --error: #c62828;
 
   --radius: 12px;
@@ -26,6 +27,7 @@
     --border: #2a2f38;
     --accent: #ef5350;
     --ok: #66bb6a;
+    --warn: #ffb74d;
     --error: #ef5350;
   }
 }
@@ -60,4 +62,31 @@ h1,
 h2,
 p {
   margin: 0;
+}
+
+/* gemeinsame Bausteine */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: var(--gutter);
+}
+
+.cardTitle {
+  font-size: 1rem;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+
+.muted {
+  color: var(--text-muted);
+}
+
+.ok {
+  color: var(--ok);
+  font-weight: 600;
+}
+
+.error {
+  color: var(--error);
 }

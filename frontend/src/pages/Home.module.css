@@ -1,0 +1,20 @@
+.title {
+  font-size: clamp(1.75rem, 4vw, 3rem);
+  letter-spacing: -0.02em;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 4px 16px;
+  margin: 0;
+}
+
+.stats dt {
+  color: var(--text-muted);
+}
+
+.stats dd {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+}

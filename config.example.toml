@@ -1,6 +1,7 @@
 # dartscore – Beispielkonfiguration
 # Kopieren nach config.toml und anpassen. Jeder Wert lässt sich per Umgebungsvariable
 # überschreiben, z. B. DARTSCORE_SERVER__PORT=9000 oder DARTSCORE_LOGGING__LEVEL=DEBUG.
+# Einrichtung der Kameras: docs/hardware-setup.md
 
 # Datenbank, Kalibrierungen, Aufnahmen
 data_dir = "data"
@@ -13,9 +14,15 @@ port = 8000
 level = "INFO"
 json_output = false
 
+# Vorschau-Streams im Browser
+[stream]
+max_fps = 10
+default_width = 640
+jpeg_quality = 75
+
 # Drei Kameras, ca. 120° versetzt (0 = oben, im Uhrzeigersinn).
-# Unter Linux stabile Pfade aus /dev/v4l/by-id/ bzw. /dev/v4l/by-path/ verwenden,
-# damit die Kameras nach einem Neustart nicht vertauscht sind.
+# device: stabilen Pfad aus `dartscore devices` nehmen (by-path), nicht /dev/videoN.
+# Ohne Hardware: statt device die Zeile source = "synthetic" verwenden.
 [[cameras]]
 id = "cam1"
 device = "/dev/video0"
@@ -24,6 +31,8 @@ height = 720
 fps = 30
 fourcc = "MJPG"
 position_deg = 0
+# Nur Linux, optional: feste Belichtung (Namen siehe `v4l2-ctl -d <gerät> -l`)
+# v4l2_controls = { auto_exposure = 1, exposure_time_absolute = 150 }
 
 [[cameras]]
 id = "cam2"

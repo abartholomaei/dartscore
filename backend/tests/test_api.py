@@ -6,7 +6,7 @@ from dartscore.config import CameraConfig, Settings
 
 
 def test_health() -> None:
-    settings = Settings(cameras=[CameraConfig(id="cam1", device="0")])
+    settings = Settings(cameras=[CameraConfig(id="cam1", source="synthetic")])
     client = TestClient(create_app(settings))
 
     response = client.get("/api/health")

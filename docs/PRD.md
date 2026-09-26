@@ -391,8 +391,8 @@ Aggregierte Statistiken können als Cache-Tabelle (z. B. `player_stats`) gehalte
 - [x] Bob’s 27
 - [x] Checkout-Training
 - [x] Doubles-Training
-- [ ] Score-Training
-- [ ] Killer, Halve-It, Gotcha (Party)
+- [x] Score-Training
+- [x] Killer, Halve-It, Gotcha (Party)
 - [ ] Bot-Gegner mit einstellbarem Niveau (Streuungsmodell)
 - [x] Undo/Redo, Wurf korrigieren, Wurf manuell eingeben
 - [x] Pausieren/Fortsetzen (laufende Spiele überstehen Neustarts, „Spiel fortsetzen“ auf der Startseite), Rematch

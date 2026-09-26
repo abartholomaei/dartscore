@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router'
-import { ApiError, getJson, sendJson, TRAINING_MODES, type GameMode, type GameState, type Player } from '../api'
+import { ApiError, getJson, sendJson, PARTY_MODES, TRAINING_MODES, type GameMode, type GameState, type Player } from '../api'
 import { useLiveGame } from '../LiveGame'
 import { PENDING_KEY, useErrorText } from '../helpers'
 import { PlayerForm } from './Players'
@@ -34,6 +34,9 @@ type TrainingOptions = {
   checkoutRange: string
   dartsPerTarget: number
   doublesOrder: 'sequential' | 'random'
+  killerLives: number
+  gotchaTarget: number
+  scoreRounds: number
 }
 
 const DEFAULT_TRAINING: TrainingOptions = {
@@ -45,6 +48,9 @@ const DEFAULT_TRAINING: TrainingOptions = {
   checkoutRange: '41-100',
   dartsPerTarget: 9,
   doublesOrder: 'sequential',
+  killerLives: 3,
+  gotchaTarget: 301,
+  scoreRounds: 10,
 }
 const CHECKOUT_RANGES = ['2-40', '41-100', '61-120', '101-170']
 
@@ -60,6 +66,12 @@ function trainingSettings(mode: GameMode, o: TrainingOptions): Record<string, un
     }
     case 'doubles_training':
       return { order: o.doublesOrder, include_bull: o.includeBull }
+    case 'killer':
+      return { lives: o.killerLives }
+    case 'gotcha':
+      return { target: o.gotchaTarget }
+    case 'score_training':
+      return { rounds: o.scoreRounds }
     default:
       return {}
   }
@@ -88,7 +100,7 @@ export default function NewGame() {
   const [training, setTraining] = useState<TrainingOptions>({ ...DEFAULT_TRAINING, ...saved.training })
   const setOption = <K extends keyof TrainingOptions>(key: K) => (value: TrainingOptions[K]) =>
     setTraining((o) => ({ ...o, [key]: value }))
-  const isTraining = TRAINING_MODES.includes(mode)
+  const isTraining = TRAINING_MODES.includes(mode) || PARTY_MODES.includes(mode)
   const [legs, setLegs] = useState(saved.legs ?? 1)
   const [sets, setSets] = useState(saved.sets ?? 1)
   const [players, setPlayers] = useState<Player[]>([])
@@ -222,6 +234,10 @@ export default function NewGame() {
           <div className={styles.chips}>
             {TRAINING_MODES.map((m) => choice<GameMode>(m, mode, setMode, t(`modes.${m}`)))}
           </div>
+          <h3 className={styles.label}>{t('newGame.party')}</h3>
+          <div className={styles.chips}>
+            {PARTY_MODES.map((m) => choice<GameMode>(m, mode, setMode, t(`modes.${m}`)))}
+          </div>
 
           {mode === 'x01' && (
             <>
@@ -297,6 +313,35 @@ export default function NewGame() {
             </>
           )}
           {mode === 'bobs_27' && <p className="muted">{t('newGame.bobsHint')}</p>}
+          {mode === 'score_training' && (
+            <>
+              <h3 className={styles.label}>{t('newGame.rounds')}</h3>
+              <div className={styles.chips}>
+                {[5, 10, 20, 33].map((r) => choice(r, training.scoreRounds, setOption('scoreRounds'), String(r)))}
+              </div>
+            </>
+          )}
+          {mode === 'killer' && (
+            <>
+              <div className={styles.numbers}>
+                <label>
+                  {t('newGame.lives')}
+                  <Stepper value={training.killerLives} min={1} max={9} onChange={setOption('killerLives')} />
+                </label>
+              </div>
+              <p className="muted">{t('newGame.killerHint')}</p>
+            </>
+          )}
+          {mode === 'halve_it' && <p className="muted">{t('newGame.halveItHint')}</p>}
+          {mode === 'gotcha' && (
+            <>
+              <h3 className={styles.label}>{t('newGame.goal')}</h3>
+              <div className={styles.chips}>
+                {[101, 201, 301, 501].map((g) => choice(g, training.gotchaTarget, setOption('gotchaTarget'), String(g)))}
+              </div>
+              <p className="muted">{t('newGame.gotchaHint')}</p>
+            </>
+          )}
 
           {!isTraining && (
           <div className={styles.numbers}>

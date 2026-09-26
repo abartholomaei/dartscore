@@ -112,6 +112,10 @@ class Game(ABC):
         per-turn scores here; returning a player index ends the leg with that winner."""
         return None
 
+    def _next_player(self, player: int) -> int:
+        """Who throws after ``player``; modes with eliminated players skip them."""
+        return (player + 1) % self.player_count
+
     def player_result(self, player: int) -> dict[str, int]:
         """Mode specific result of a player for statistics (score, hits); empty by default."""
         return {}
@@ -292,7 +296,7 @@ class Game(ABC):
                     self._finish_leg(leg)
                     return
         self._awaiting_next = False
-        self.current_player = (self.current_player + 1) % self.player_count
+        self.current_player = self._next_player(self.current_player)
 
     def _finish_leg(self, leg: Leg) -> None:
         assert leg.winner is not None

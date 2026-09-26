@@ -359,6 +359,12 @@ function trainingTarget(game: GameState): string | null {
     case 'bobs_27':
     case 'doubles_training':
       return game.target ?? null
+    case 'halve_it':
+      return game.target ?? null
+    case 'killer': {
+      const p = game.current_player
+      return game.killer?.[p] ? null : game.numbers ? `D${game.numbers[p]}` : null
+    }
     default:
       return null
   }
@@ -398,6 +404,21 @@ function TrainingScores({ game }: { game: GameState }) {
             big = game.hits?.[i] ?? 0
             detail = t('play.hits')
             break
+          case 'score_training':
+          case 'halve_it':
+            big = game.scores?.[i] ?? 0
+            detail = t('play.roundOf', { round: game.round ?? 1, total: game.rounds ?? 0 })
+            break
+          case 'gotcha':
+            big = game.scores?.[i] ?? 0
+            detail = t('play.goal', { goal: game.goal ?? 0 })
+            break
+          case 'killer': {
+            const lives = game.lives?.[i] ?? 0
+            big = lives > 0 ? '♥'.repeat(lives) : '✗'
+            detail = `${game.numbers?.[i] ?? ''} · ${game.killer?.[i] ? t('play.killer') : t('play.notKiller')}`
+            break
+          }
           case 'bull_off': {
             const own = game.history.filter((h) => h.player === i)
             big = own.at(-1)?.darts[0] ?? '–'

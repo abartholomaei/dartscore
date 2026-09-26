@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { Link, useParams } from 'react-router'
 import {
   getJson,
+  PARTY_MODES,
   TRAINING_MODES,
   type AggregateStats,
   type HeadToHead,
@@ -119,7 +120,7 @@ export default function PlayerStats() {
         </section>
       )}
 
-      {TRAINING_MODES.filter((m) => stats.modes[m]).map((m) => {
+      {[...TRAINING_MODES, ...PARTY_MODES].filter((m) => stats.modes[m]).map((m) => {
         const ms = stats.modes[m] as AggregateStats
         return (
           <section key={m} className="card">

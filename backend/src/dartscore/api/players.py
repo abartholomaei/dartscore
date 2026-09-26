@@ -22,6 +22,10 @@ Mode = Literal[
     "bobs_27",
     "checkout_training",
     "doubles_training",
+    "killer",
+    "halve_it",
+    "gotcha",
+    "score_training",
 ]
 FavoriteDouble = Annotated[int, Field(ge=1, le=25)]
 

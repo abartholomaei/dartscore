@@ -204,13 +204,19 @@ export type GameMode =
   | 'checkout_training'
   | 'doubles_training'
   | 'bull_off'
+  | 'killer'
+  | 'halve_it'
+  | 'gotcha'
+  | 'score_training'
 export const TRAINING_MODES: GameMode[] = [
   'around_the_clock',
   'shanghai',
   'bobs_27',
   'checkout_training',
   'doubles_training',
+  'score_training',
 ]
+export const PARTY_MODES: GameMode[] = ['killer', 'halve_it', 'gotcha']
 export type InOutRule = 'single' | 'double' | 'master'
 export type CricketVariant = 'standard' | 'cut_throat' | 'no_score'
 
@@ -264,6 +270,11 @@ export type GameState = {
   darts_on_target?: number[]
   hits?: number[]
   hits_by_target?: Record<string, number>[]
+  // party modes
+  numbers?: number[]
+  lives?: number[]
+  killer?: boolean[]
+  goal?: number
   // bull-off
   last_round?: (number | null)[]
 }

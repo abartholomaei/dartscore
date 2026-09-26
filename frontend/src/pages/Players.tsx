@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
-import { getJson, sendJson, TRAINING_MODES, type GameMode, type Player } from '../api'
+import { getJson, sendJson, PARTY_MODES, TRAINING_MODES, type GameMode, type Player } from '../api'
 import { PLAYER_COLORS, useErrorText } from '../helpers'
 import styles from './Players.module.css'
 
@@ -171,7 +171,7 @@ export function PlayerForm({ player, onDone }: { player: Player | null; onDone: 
           {t('players.defaultMode')}
           <select value={defaultMode ?? ''} onChange={(e) => setDefaultMode((e.target.value || null) as GameMode | null)}>
             <option value="">{t('players.none')}</option>
-            {(['x01', 'cricket', ...TRAINING_MODES] as GameMode[]).map((m) => (
+            {(['x01', 'cricket', ...TRAINING_MODES, ...PARTY_MODES] as GameMode[]).map((m) => (
               <option key={m} value={m}>
                 {t(`modes.${m}`)}
               </option>

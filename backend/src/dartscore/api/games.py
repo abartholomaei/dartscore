@@ -34,6 +34,10 @@ class GameCreate(BaseModel):
         "checkout_training",
         "doubles_training",
         "bull_off",
+        "killer",
+        "halve_it",
+        "gotcha",
+        "score_training",
     ]
     settings: dict[str, Any] = {}
     players: list[Participant] = Field(min_length=1, max_length=8)

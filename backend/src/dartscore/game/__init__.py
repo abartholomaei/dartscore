@@ -5,6 +5,16 @@ from typing import Any
 from dartscore.game.base import DartEvent, Event, Game, GameError, MatchSettings, NextEvent
 from dartscore.game.cricket import CricketGame, CricketSettings
 from dartscore.game.dart import Dart
+from dartscore.game.party import (
+    GotchaGame,
+    GotchaSettings,
+    HalveItGame,
+    HalveItSettings,
+    KillerGame,
+    KillerSettings,
+    ScoreTrainingGame,
+    ScoreTrainingSettings,
+)
 from dartscore.game.training import (
     AroundTheClockGame,
     AroundTheClockSettings,
@@ -29,6 +39,10 @@ MODES = (
     "checkout_training",
     "doubles_training",
     "bull_off",
+    "killer",
+    "halve_it",
+    "gotcha",
+    "score_training",
 )
 
 __all__ = [
@@ -65,6 +79,14 @@ def create_game(mode: str, player_count: int, settings: dict[str, Any]) -> Game:
             return BobsGame(player_count, BobsSettings(**options))
         if mode == "checkout_training":
             return CheckoutTrainingGame(player_count, CheckoutTrainingSettings(**options))
+        if mode == "killer":
+            return KillerGame(player_count, KillerSettings(**options))
+        if mode == "halve_it":
+            return HalveItGame(player_count, HalveItSettings(**options))
+        if mode == "gotcha":
+            return GotchaGame(player_count, GotchaSettings(**options))
+        if mode == "score_training":
+            return ScoreTrainingGame(player_count, ScoreTrainingSettings(**options))
         if mode == "bull_off":
             return BullOffGame(player_count)
         if mode == "doubles_training":

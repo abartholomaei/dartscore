@@ -1,4 +1,4 @@
-"""Bildquellen: echte Kameras über OpenCV und eine simulierte Kamera für die Entwicklung."""
+"""Frame sources: real cameras via OpenCV and a simulated camera for development."""
 
 import math
 import shutil
@@ -18,13 +18,13 @@ from dartscore.vision import board
 
 log = structlog.get_logger(__name__)
 
-# Bild im OpenCV-Format (BGR, HxWx3)
+# image in OpenCV format (BGR, HxWx3)
 Image = cv2.typing.MatLike
 
 
 @dataclass(frozen=True)
 class SourceInfo:
-    """Tatsächlich ausgehandelte Werte (können von der Konfiguration abweichen)."""
+    """Actually negotiated values (may differ from the configuration)."""
 
     width: int
     height: int
@@ -58,7 +58,7 @@ def _platform_backend() -> int:
     if sys.platform == "darwin":
         return cv2.CAP_AVFOUNDATION
     if sys.platform == "win32":
-        # DirectShow lässt sich zuverlässiger auf MJPG umstellen als MSMF
+        # DirectShow switches to MJPG more reliably than MSMF
         return cv2.CAP_DSHOW
     return cv2.CAP_ANY
 
@@ -67,11 +67,11 @@ def apply_v4l2_controls(device: str, controls: dict[str, int]) -> None:
     if not controls:
         return
     if not sys.platform.startswith("linux"):
-        log.warning("v4l2_controls_ignored", reason="nur unter Linux", device=device)
+        log.warning("v4l2_controls_ignored", reason="Linux only", device=device)
         return
     exe = shutil.which("v4l2-ctl")
     if exe is None:
-        log.warning("v4l2_controls_ignored", reason="v4l2-ctl nicht installiert", device=device)
+        log.warning("v4l2_controls_ignored", reason="v4l2-ctl not installed", device=device)
         return
     arg = ",".join(f"{k}={v}" for k, v in controls.items())
     result = subprocess.run(
@@ -95,16 +95,16 @@ class OpenCVSource:
         cap = cv2.VideoCapture(target, backend)
         if not cap.isOpened():
             cap.release()
-            raise OSError(f"Kamera {cfg.id} ({cfg.device}) lässt sich nicht öffnen")
+            raise OSError(f"Cannot open camera {cfg.id} ({cfg.device})")
 
-        # Reihenfolge wichtig: erst das Format, dann Auflösung und fps
+        # order matters: format first, then resolution and fps
         cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter.fourcc(*cfg.fourcc))
         cap.set(cv2.CAP_PROP_FRAME_WIDTH, cfg.width)
         cap.set(cv2.CAP_PROP_FRAME_HEIGHT, cfg.height)
         cap.set(cv2.CAP_PROP_FPS, cfg.fps)
-        # Puffergröße bewusst nicht auf 1 setzen: dann verwirft der Treiber jedes zweite Bild,
-        # während das vorige dekodiert wird (gemessen: 15 statt 30 fps). Der Lese-Thread holt
-        # ohnehin fortlaufend ab, daher staut sich nichts im Puffer.
+        # Deliberately don't set the buffer size to 1: the driver then drops every other frame
+        # while the previous one is decoded (measured: 15 instead of 30 fps). The reader thread
+        # fetches continuously anyway, so nothing piles up in the buffer.
         if isinstance(target, str):
             apply_v4l2_controls(target, cfg.v4l2_controls)
 
@@ -138,9 +138,9 @@ class OpenCVSource:
 
 
 class SyntheticSource:
-    """Simulierte Kamera: Scheibe aus seitlicher Perspektive, dazu ein wandernder Marker.
+    """Simulated camera: the board from a side perspective, plus a moving marker.
 
-    Die Perspektive hängt von ``position_deg`` ab, damit sich die drei Bilder unterscheiden.
+    The perspective depends on ``position_deg`` so the three images differ.
     """
 
     def __init__(self, config: CameraConfig) -> None:
@@ -161,12 +161,12 @@ class SyntheticSource:
         )
 
     def _view_homography(self, size: int) -> NDArray[np.float64]:
-        """Bildet die Draufsicht auf eine gestauchte, gedrehte Ansicht ab (flach von der Seite)."""
+        """Map the top-down view to a squashed, rotated view (shallow, from the side)."""
         cfg = self._config
         w, h = cfg.width, cfg.height
         s = size
         src = np.array([[0, 0], [s, 0], [s, s], [0, s]], dtype=np.float32)
-        # Stauchung in der Tiefe + leichte Trapezverzerrung
+        # squash in depth + slight keystone distortion
         cx, cy = w / 2, h / 2
         half_w = min(w, h * 1.6) * 0.45
         half_h = half_w * 0.45
@@ -179,7 +179,7 @@ class SyntheticSource:
             ],
             dtype=np.float32,
         )
-        # Drehung der Scheibe entsprechend der Montageposition
+        # rotate the board according to the mounting position
         angle = cfg.position_deg
         rot = cv2.getRotationMatrix2D((s / 2, s / 2), angle, 1.0)
         rot3 = np.vstack([rot, [0, 0, 1]])
@@ -189,7 +189,7 @@ class SyntheticSource:
     def read(self) -> Image | None:
         if self._base is None:
             return None
-        # Bildrate einhalten wie eine echte Kamera
+        # keep the frame rate like a real camera
         now = time.monotonic()
         if now < self._next_frame_at:
             time.sleep(self._next_frame_at - now)

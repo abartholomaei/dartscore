@@ -6,7 +6,7 @@ export type PollState<T> =
   | { kind: 'ok'; data: T }
   | { kind: 'error'; message: string }
 
-/** Lädt `path` sofort und danach alle `intervalMs` erneut. */
+/** Loads `path` immediately and then again every `intervalMs`. */
 export function usePolling<T>(path: string, intervalMs: number): PollState<T> {
   const [state, setState] = useState<PollState<T>>({ kind: 'loading' })
 

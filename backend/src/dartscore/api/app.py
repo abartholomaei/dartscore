@@ -19,8 +19,8 @@ log = structlog.get_logger(__name__)
 
 
 class SPAStaticFiles(StaticFiles):
-    """Liefert das Frontend aus; unbekannte Pfade (z. B. /cameras) bekommen index.html,
-    damit das Routing im Browser funktioniert."""
+    """Serves the frontend; unknown paths (e.g. /cameras) get index.html
+    so client-side routing works."""
 
     async def get_response(self, path: str, scope: Scope) -> Response:
         try:
@@ -72,7 +72,7 @@ def create_app(settings: Settings, camera_manager: CameraManager | None = None) 
             cameras_configured=len(settings.cameras),
         )
 
-    # zuletzt einhängen, damit /api/... Vorrang hat
+    # mount last so /api/... takes precedence
     if (settings.frontend_dir / "index.html").is_file():
         app.mount("/", SPAStaticFiles(directory=settings.frontend_dir, html=True), name="frontend")
         log.info("serving_frontend", path=str(settings.frontend_dir))

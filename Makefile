@@ -24,7 +24,7 @@ typecheck:
 test:
 	cd backend && uv run pytest
 
-# Lokale "CI": alles, was vor einem Commit grün sein muss
+# Local "CI": everything that must pass before a commit
 check: lint typecheck test
 	cd frontend && npm run build
 

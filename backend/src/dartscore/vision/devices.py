@@ -1,6 +1,6 @@
-"""Erkennt angeschlossene Kameras und ihre Formate.
+"""Detects connected cameras and their formats.
 
-Unter Linux über sysfs und /dev/v4l (stabile Pfade), sonst per Ausprobieren von OpenCV-Indizes.
+On Linux via sysfs and /dev/v4l (stable paths), otherwise by probing OpenCV indices.
 """
 
 import re
@@ -26,10 +26,10 @@ class VideoMode:
 
 @dataclass
 class VideoDevice:
-    # Pfad zum Öffnen (/dev/videoN) oder OpenCV-Index als String
+    # path to open (/dev/videoN) or OpenCV index as a string
     device: str
     name: str
-    # stabile Alternativen: by-id (Seriennummer) und by-path (USB-Anschluss)
+    # stable alternatives: by-id (serial number) and by-path (USB port)
     by_id: list[str] = field(default_factory=list)
     by_path: list[str] = field(default_factory=list)
     formats: dict[str, list[VideoMode]] = field(default_factory=dict)
@@ -41,7 +41,7 @@ _FPS_RE = re.compile(r"\(([\d.]+) fps\)")
 
 
 def parse_v4l2_formats(output: str) -> dict[str, list[VideoMode]]:
-    """Parst die Ausgabe von ``v4l2-ctl --list-formats-ext``."""
+    """Parse the output of ``v4l2-ctl --list-formats-ext``."""
     formats: dict[str, list[VideoMode]] = {}
     fourcc: str | None = None
     size: tuple[int, int] | None = None
@@ -80,7 +80,7 @@ def _query_formats(device: str) -> dict[str, list[VideoMode]]:
 
 
 def _stable_links(link_dir: Path) -> dict[str, list[str]]:
-    """Ordnet /dev/videoN die stabilen Symlinks aus /dev/v4l/by-id bzw. by-path zu."""
+    """Map /dev/videoN to its stable symlinks in /dev/v4l/by-id or by-path."""
     links: dict[str, list[str]] = {}
     if link_dir.is_dir():
         for link in sorted(link_dir.iterdir()):
@@ -98,7 +98,7 @@ def list_linux_devices(
     by_path = _stable_links(v4l_dir / "by-path")
     devices = []
     for node in sorted(sysfs.glob("video*"), key=lambda p: int(p.name.removeprefix("video"))):
-        # UVC-Kameras legen pro Kamera zwei Knoten an; index 0 liefert Bilder, 1 nur Metadaten
+        # UVC cameras create two nodes each; index 0 delivers frames, 1 only metadata
         index_file = node / "index"
         if index_file.exists() and index_file.read_text().strip() != "0":
             continue
@@ -118,7 +118,7 @@ def list_linux_devices(
 
 
 def probe_opencv_indices(max_index: int = 6) -> list[VideoDevice]:
-    """Fallback für macOS/Windows: öffnet nacheinander Index 0..max_index."""
+    """Fallback for macOS/Windows: open indices 0..max_index one by one."""
     devices = []
     for index in range(max_index):
         cap = cv2.VideoCapture(index)
@@ -130,7 +130,7 @@ def probe_opencv_indices(max_index: int = 6) -> list[VideoDevice]:
                     (cap.get(cv2.CAP_PROP_FPS),),
                 )
                 devices.append(
-                    VideoDevice(device=str(index), name=f"Kamera {index}", formats={"?": [mode]})
+                    VideoDevice(device=str(index), name=f"Camera {index}", formats={"?": [mode]})
                 )
         finally:
             cap.release()

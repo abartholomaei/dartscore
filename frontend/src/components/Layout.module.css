@@ -54,3 +54,26 @@
   gap: var(--gutter);
   align-content: start;
 }
+
+.language {
+  margin-left: auto;
+  padding: 6px 8px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+}
+
+/* narrow phones: brand + language on the first row, navigation on its own row */
+@media (max-width: 559px) {
+  .header {
+    flex-wrap: wrap;
+    row-gap: 8px;
+  }
+
+  .nav {
+    order: 3;
+    flex-basis: 100%;
+  }
+}

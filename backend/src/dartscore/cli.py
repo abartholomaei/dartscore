@@ -1,4 +1,4 @@
-"""Kommandozeilen-Einstieg: Server starten, Kameras auflisten, testen und kalibrieren."""
+"""Command-line entry point: start the server, list, test and calibrate cameras."""
 
 import argparse
 import sys
@@ -45,7 +45,7 @@ def cmd_serve(settings: Settings, _args: argparse.Namespace) -> None:
 def cmd_devices(_settings: Settings, _args: argparse.Namespace) -> None:
     found = list_devices()
     if not found:
-        print("Keine Kameras gefunden.")
+        print("No cameras found.")
         return
     for d in found:
         print(f"{d.device}  {d.name}")
@@ -56,22 +56,22 @@ def cmd_devices(_settings: Settings, _args: argparse.Namespace) -> None:
         for fourcc, modes in d.formats.items():
             print(f"    {fourcc}: {', '.join(str(m) for m in modes)}")
     print(
-        "\nTipp: In der config.toml die by-path-Pfade verwenden – sie bleiben gleich, solange "
-        "jede Kamera im selben USB-Anschluss steckt."
+        "\nTip: use the by-path paths in config.toml - they stay the same as long as "
+        "each camera stays in the same USB port."
     )
 
 
 def cmd_bench(settings: Settings, args: argparse.Namespace) -> None:
-    """Liest alle Kameras gleichzeitig und misst die echte Bildrate (USB-Bandbreitentest)."""
+    """Read all cameras at once and measure the actual frame rate (USB bandwidth test)."""
     if not settings.cameras:
-        sys.exit("Keine Kameras in der Konfiguration.")
+        sys.exit("No cameras in the configuration.")
     manager = CameraManager(settings.cameras)
     manager.start()
-    print(f"Lese {len(settings.cameras)} Kameras gleichzeitig für {args.seconds} s …")
+    print(f"Reading {len(settings.cameras)} cameras at once for {args.seconds} s ...")
     start_frames = {}
     statuses = []
     try:
-        time.sleep(2)  # Einschwingen (Belichtung, erste Bilder)
+        time.sleep(2)  # settle (exposure, first frames)
         start_frames = {w.id: w.status().frames for w in manager.workers()}
         time.sleep(args.seconds)
         statuses = [w.status() for w in manager.workers()]
@@ -79,8 +79,8 @@ def cmd_bench(settings: Settings, args: argparse.Namespace) -> None:
         manager.stop()
 
     ok = True
-    header = f"{'Kamera':<10}{'Status':<14}{'Format':<18}{'Ziel-fps':>9}{'Ist-fps':>9}"
-    print(f"\n{header}{'verloren':>10}")
+    header = f"{'Camera':<10}{'Status':<14}{'Format':<18}{'Target':>9}{'Actual':>9}"
+    print(f"\n{header}{'Dropped':>10}")
     for worker, st in zip(manager.workers(), statuses, strict=True):
         cfg = worker.config
         measured = (st.frames - start_frames.get(st.id, 0)) / args.seconds
@@ -89,14 +89,14 @@ def cmd_bench(settings: Settings, args: argparse.Namespace) -> None:
             f"{st.id:<10}{st.state.value:<14}{fmt:<18}{cfg.fps:>9}{measured:>9.1f}{st.dropped:>10}"
         )
         if st.last_error:
-            print(f"    Fehler: {st.last_error}")
+            print(f"    Error: {st.last_error}")
         if measured < 0.9 * cfg.fps:
             ok = False
     if not ok:
         print(
-            "\nMindestens eine Kamera erreicht die Ziel-Bildrate nicht. Mögliche Ursachen: "
-            "Format nicht MJPG (siehe `dartscore devices`), mehrere Kameras an einem "
-            "USB-Controller (`lsusb -t`), zu lange Belichtungszeit bei wenig Licht."
+            "\nAt least one camera misses the target frame rate. Possible causes: "
+            "format is not MJPG (see `dartscore devices`), several cameras on one "
+            "USB controller (`lsusb -t`), exposure time too long in low light."
         )
 
 
@@ -108,7 +108,7 @@ def _parse_pattern(text: str) -> tuple[int, int]:
 def cmd_calibrate_lens(settings: Settings, args: argparse.Namespace) -> None:
     cam = next((c for c in settings.cameras if c.id == args.camera), None)
     if cam is None:
-        sys.exit(f"Kamera {args.camera!r} nicht in der Konfiguration.")
+        sys.exit(f"Camera {args.camera!r} not in the configuration.")
     pattern = _parse_pattern(args.pattern)
     collector = ChessboardCollector(pattern)
     out_dir = lens_file(settings.calibration_dir, cam.id).parent
@@ -121,24 +121,24 @@ def cmd_calibrate_lens(settings: Settings, args: argparse.Namespace) -> None:
         _collect_live(collector, cam, args.frames, image_dir)
 
     if collector.image_size is None:
-        sys.exit("Kein Schachbrett erkannt.")
+        sys.exit("No chessboard detected.")
     result = calibrate(collector.detections, collector.image_size, pattern, args.square_mm)
     path = save_lens(result, settings.calibration_dir, cam.id)
-    print(f"\nKalibrierung gespeichert: {path}")
-    print(f"Reprojektionsfehler: {result.rms_error:.3f} px ", end="")
+    print(f"\nCalibration saved: {path}")
+    print(f"Reprojection error: {result.rms_error:.3f} px ", end="")
     if result.rms_error < 0.5:
-        print("(sehr gut)")
+        print("(very good)")
     elif result.rms_error < 1.0:
-        print("(in Ordnung)")
+        print("(acceptable)")
     else:
-        print("(zu hoch – Schachbrett flach halten, mehr Bildränder abdecken, erneut kalibrieren)")
+        print("(too high - keep the chessboard flat, cover more of the edges, recalibrate)")
 
     sample = next(iter(sorted(image_dir.glob("*.png"))), None)
     image = cv2.imread(str(sample)) if sample is not None else None
     if image is not None:
         preview = Undistorter(result).undistort(image)
         cv2.imwrite(str(out_dir / "lens_preview.png"), preview)
-        print(f"Vorschau entzerrt: {out_dir / 'lens_preview.png'}")
+        print(f"Undistorted preview: {out_dir / 'lens_preview.png'}")
 
 
 def _collect_from_files(collector: ChessboardCollector, folder: Path) -> None:
@@ -146,8 +146,8 @@ def _collect_from_files(collector: ChessboardCollector, folder: Path) -> None:
     for path in files:
         image = cv2.imread(str(path))
         if image is not None and collector.offer(image):
-            print(f"  ✓ {path.name}")
-    print(f"{len(collector.detections)} von {len(files)} Bildern verwendbar.")
+            print(f"  OK {path.name}")
+    print(f"{len(collector.detections)} of {len(files)} images usable.")
 
 
 def _collect_live(
@@ -156,9 +156,9 @@ def _collect_live(
     worker = CameraWorker(cam)
     worker.start()
     print(
-        f"Schachbrett ({collector.pattern[0]}x{collector.pattern[1]} innere Ecken) vor Kamera "
-        f"{cam.id} halten und langsam bewegen: Mitte, alle Ränder und Ecken, leicht gekippt.\n"
-        f"Benötigt: {target} Aufnahmen. Abbrechen mit Strg+C."
+        f"Hold the chessboard ({collector.pattern[0]}x{collector.pattern[1]} inner corners) in "
+        f"front of camera {cam.id} and move it slowly: center, all edges and corners, slightly "
+        f"tilted.\nNeeded: {target} captures. Press Ctrl+C to abort."
     )
     seq = 0
     try:
@@ -166,38 +166,38 @@ def _collect_live(
             frame = worker.wait_for_frame(seq, 2.0)
             if frame is None:
                 status = worker.status()
-                print(f"  warte auf Kamera … ({status.state.value} {status.last_error or ''})")
+                print(f"  waiting for camera ... ({status.state.value} {status.last_error or ''})")
                 continue
             seq = frame.seq
             if collector.offer(frame.image):
                 n = len(collector.detections)
                 cv2.imwrite(str(image_dir / f"{n:02d}.png"), frame.image)
-                print(f"  ✓ Aufnahme {n}/{target}")
+                print(f"  OK capture {n}/{target}")
             time.sleep(0.2)
     except KeyboardInterrupt:
-        print(f"\nAbgebrochen, {len(collector.detections)} Aufnahmen vorhanden.")
+        print(f"\nAborted, {len(collector.detections)} captures collected.")
     finally:
         worker.stop()
 
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="dartscore", description=__doc__)
-    parser.add_argument("-c", "--config", type=Path, help="Pfad zur config.toml")
+    parser.add_argument("-c", "--config", type=Path, help="path to config.toml")
     parser.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
     sub = parser.add_subparsers(dest="command")
 
-    sub.add_parser("serve", help="Server starten (Standard)")
-    sub.add_parser("devices", help="angeschlossene Kameras und Formate anzeigen")
+    sub.add_parser("serve", help="start the server (default)")
+    sub.add_parser("devices", help="show connected cameras and formats")
 
-    bench = sub.add_parser("bench", help="alle Kameras gleichzeitig lesen und fps messen")
+    bench = sub.add_parser("bench", help="read all cameras at once and measure fps")
     bench.add_argument("--seconds", type=int, default=10)
 
-    lens = sub.add_parser("calibrate-lens", help="Linsenverzeichnung per Schachbrett kalibrieren")
-    lens.add_argument("--camera", required=True, help="Kamera-ID aus der Konfiguration")
-    lens.add_argument("--pattern", default="9x6", help="innere Ecken, Spalten x Zeilen")
-    lens.add_argument("--square-mm", type=float, default=25.0, help="Kantenlänge eines Feldes")
-    lens.add_argument("--frames", type=int, default=20, help="Anzahl Aufnahmen")
-    lens.add_argument("--images", help="statt live: Ordner mit vorhandenen Aufnahmen")
+    lens = sub.add_parser("calibrate-lens", help="calibrate lens distortion with a chessboard")
+    lens.add_argument("--camera", required=True, help="camera ID from the configuration")
+    lens.add_argument("--pattern", default="9x6", help="inner corners, columns x rows")
+    lens.add_argument("--square-mm", type=float, default=25.0, help="side length of one square")
+    lens.add_argument("--frames", type=int, default=20, help="number of captures")
+    lens.add_argument("--images", help="instead of live: folder with existing captures")
     return parser
 
 

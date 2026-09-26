@@ -1,7 +1,8 @@
-"""Linsenkalibrierung (Kamera-Intrinsics) mit Schachbrettmuster und Entzerrung.
+"""Lens calibration (camera intrinsics) with a chessboard pattern, and undistortion.
 
-Die 100°-Weitwinkel-Kameras verzerren stark; ohne Entzerrung wären Treffer am Bildrand ungenau.
-Kalibriert wird einmal pro Kamera, das Ergebnis liegt als JSON im Datenordner.
+The 100° wide-angle cameras distort heavily; without undistortion, hits near the image edge
+would be inaccurate. Calibration runs once per camera; the result is stored as JSON in the
+data directory.
 """
 
 import json
@@ -15,7 +16,7 @@ from numpy.typing import NDArray
 
 from dartscore.vision.sources import Image
 
-# Anzahl der inneren Ecken (Spalten x Zeilen), z. B. ein Schachbrett mit 10x7 Feldern
+# number of inner corners (columns x rows), e.g. a chessboard with 10x7 squares
 DEFAULT_PATTERN = (9, 6)
 
 
@@ -92,7 +93,7 @@ def calibrate(
     square_mm: float = 25.0,
 ) -> LensCalibration:
     if len(detections) < 5:
-        raise ValueError(f"Mindestens 5 Schachbrett-Aufnahmen nötig, vorhanden: {len(detections)}")
+        raise ValueError(f"At least 5 chessboard captures required, got: {len(detections)}")
     object_points = [board_points(pattern, square_mm)] * len(detections)
     rms, camera_matrix, dist_coeffs, _, _ = cv2.calibrateCamera(
         object_points, detections, image_size, None, None
@@ -107,9 +108,9 @@ def calibrate(
 
 
 class ChessboardCollector:
-    """Sammelt Schachbrett-Aufnahmen und nimmt nur solche, die sich deutlich unterscheiden.
+    """Collects chessboard captures, keeping only ones that differ clearly.
 
-    So entsteht eine gute Abdeckung des Bildes (Ränder!), ohne 20 fast gleiche Bilder.
+    This gives good coverage of the image (edges!) without 20 nearly identical images.
     """
 
     def __init__(self, pattern: tuple[int, int] = DEFAULT_PATTERN, min_shift_px: float = 40.0):
@@ -119,7 +120,7 @@ class ChessboardCollector:
         self.image_size: tuple[int, int] | None = None
 
     def offer(self, image: Image) -> bool:
-        """True, wenn das Bild aufgenommen wurde."""
+        """True if the image was accepted."""
         corners = find_chessboard(image, self.pattern)
         if corners is None:
             return False
@@ -127,7 +128,7 @@ class ChessboardCollector:
         if self.image_size is None:
             self.image_size = (w, h)
         elif self.image_size != (w, h):
-            raise ValueError("Bildgröße hat sich während der Kalibrierung geändert")
+            raise ValueError("Image size changed during calibration")
         for previous in self.detections:
             if np.mean(np.linalg.norm(previous - corners, axis=-1)) < self.min_shift_px:
                 return False
@@ -136,7 +137,7 @@ class ChessboardCollector:
 
 
 class Undistorter:
-    """Entzerrt Bilder; die Remap-Tabellen werden einmal pro Bildgröße berechnet."""
+    """Undistorts images; the remap tables are computed once per image size."""
 
     def __init__(self, calibration: LensCalibration, alpha: float = 0.0) -> None:
         self.calibration = calibration
@@ -146,7 +147,7 @@ class Undistorter:
     def _maps_for(self, size: tuple[int, int]) -> tuple[NDArray[np.float32], NDArray[np.float32]]:
         if size not in self._maps:
             cal = self.calibration
-            # Kameramatrix auf abweichende Auflösung skalieren
+            # scale the camera matrix to a different resolution
             sx, sy = size[0] / cal.image_size[0], size[1] / cal.image_size[1]
             matrix = cal.camera_matrix * np.array([[sx], [sy], [1.0]])
             new_matrix, _ = cv2.getOptimalNewCameraMatrix(

@@ -1,7 +1,7 @@
-"""Kamera-Threads: jede Kamera liest in einem eigenen Thread und hält das neueste Bild.
+"""Camera threads: each camera reads in its own thread and holds the latest frame.
 
-Ein Thread pro Kamera, damit drei USB-Kameras parallel mit voller Bildrate gelesen werden
-und eine hängende Kamera die anderen nicht blockiert.
+One thread per camera so three USB cameras are read in parallel at full frame rate
+and a hung camera doesn't block the others.
 """
 
 import threading
@@ -17,7 +17,7 @@ from dartscore.vision.sources import FrameSource, Image, SourceInfo, create_sour
 
 log = structlog.get_logger(__name__)
 
-# so viele Lesefehler in Folge, bevor neu verbunden wird
+# consecutive read failures before reconnecting
 MAX_CONSECUTIVE_FAILURES = 10
 RECONNECT_DELAY_MIN = 1.0
 RECONNECT_DELAY_MAX = 10.0
@@ -34,7 +34,7 @@ class CameraState(StrEnum):
 class Frame:
     camera_id: str
     image: Image
-    # time.monotonic() beim Empfang, für die spätere Zuordnung der drei Kameras
+    # time.monotonic() on receipt, for matching frames across the three cameras later
     timestamp: float
     seq: int
 
@@ -94,7 +94,7 @@ class CameraWorker:
         return self._latest
 
     def wait_for_frame(self, after_seq: int, timeout: float = 1.0) -> Frame | None:
-        """Wartet auf ein Bild mit seq > after_seq; None bei Timeout oder Stopp."""
+        """Wait for a frame with seq > after_seq; None on timeout or stop."""
         with self._new_frame:
             self._new_frame.wait_for(
                 lambda: (
@@ -150,18 +150,18 @@ class CameraWorker:
             if image is None:
                 failures += 1
                 if failures >= MAX_CONSECUTIVE_FAILURES:
-                    raise OSError(f"{failures} Lesefehler in Folge")
+                    raise OSError(f"{failures} consecutive read failures")
                 continue
             failures = 0
             now = time.monotonic()
             if last_ts is not None:
                 interval = now - last_ts
                 if interval > 0:
-                    # gleitender Mittelwert, reagiert in ~1 s auf Änderungen
+                    # moving average, reacts to changes within ~1 s
                     self._fps = (
                         0.9 * self._fps + 0.1 * (1 / interval) if self._fps else 1 / interval
                     )
-                # Lücke > 1,5 Bildintervalle = verlorenes Bild (z. B. USB-Bandbreite)
+                # gap > 1.5 frame intervals = dropped frame (e.g. USB bandwidth)
                 if expected_interval and interval > 1.5 * expected_interval:
                     self._dropped += round(interval / expected_interval) - 1
             last_ts = now

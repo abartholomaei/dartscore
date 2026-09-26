@@ -7,7 +7,7 @@ const backend = process.env.DARTSCORE_BACKEND ?? 'http://localhost:8000'
 export default defineConfig({
   plugins: [react()],
   server: {
-    // im Heimnetz erreichbar, damit Handy/Tablet schon während der Entwicklung testen können
+    // reachable on the home network so phones/tablets can test during development
     host: true,
     proxy: {
       '/api': backend,

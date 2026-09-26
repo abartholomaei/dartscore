@@ -1,9 +1,9 @@
-# dartscore – Beispielkonfiguration
-# Kopieren nach config.toml und anpassen. Jeder Wert lässt sich per Umgebungsvariable
-# überschreiben, z. B. DARTSCORE_SERVER__PORT=9000 oder DARTSCORE_LOGGING__LEVEL=DEBUG.
-# Einrichtung der Kameras: docs/hardware-setup.md
+# dartscore - example configuration
+# Copy to config.toml and adjust. Any value can be overridden via an environment variable,
+# e.g. DARTSCORE_SERVER__PORT=9000 or DARTSCORE_LOGGING__LEVEL=DEBUG.
+# Camera setup: docs/hardware-setup.md
 
-# Datenbank, Kalibrierungen, Aufnahmen
+# database, calibrations, captures
 data_dir = "data"
 
 [server]
@@ -14,17 +14,17 @@ port = 8000
 level = "INFO"
 json_output = false
 
-# Vorschau-Streams im Browser
+# preview streams in the browser
 [stream]
 max_fps = 10
 default_width = 640
 jpeg_quality = 75
 
-# Drei Kameras, ca. 120° versetzt (0 = oben, im Uhrzeigersinn).
-# device: stabilen Pfad aus `dartscore devices` nehmen (by-path), nicht /dev/videoN.
-# Die Pfade unten passen zum Referenz-Mac-mini (3 Kameras an einem USB-Hub):
-# Port 1.2 = oben (0°), Port 1.1 = rechts unten (120°), Port 1.3 = links unten (240°).
-# Ohne Hardware: statt device die Zeile source = "synthetic" verwenden.
+# Three cameras, roughly 120° apart (0 = top, clockwise).
+# device: use the stable path from `dartscore devices` (by-path), not /dev/videoN.
+# The paths below match the reference Mac mini (3 cameras on one USB hub):
+# port 1.2 = top (0°), port 1.1 = bottom right (120°), port 1.3 = bottom left (240°).
+# Without hardware: use the line source = "synthetic" instead of device.
 [[cameras]]
 id = "cam1"
 device = "/dev/v4l/by-path/pci-0000:00:14.0-usb-0:1.2:1.0-video-index0"
@@ -33,9 +33,9 @@ height = 720
 fps = 30
 fourcc = "MJPG"
 position_deg = 0
-# Nur Linux (Namen siehe `v4l2-ctl -d <gerät> -l`). exposure_dynamic_framerate = 0 ist wichtig:
-# sonst senkt die OV9732 bei wenig Licht die Bildrate auf ~16 fps. Später mit gutem Licht
-# zusätzlich feste Belichtung: auto_exposure = 1, exposure_time_absolute = <wert>
+# Linux only (names: `v4l2-ctl -d <device> -l`). exposure_dynamic_framerate = 0 is important:
+# otherwise the OV9732 drops to ~16 fps in low light. Later, with good lighting, also set
+# a fixed exposure: auto_exposure = 1, exposure_time_absolute = <value>
 v4l2_controls = { exposure_dynamic_framerate = 0 }
 
 [[cameras]]

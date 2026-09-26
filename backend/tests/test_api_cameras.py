@@ -10,7 +10,7 @@ from dartscore.config import CameraConfig, Settings
 @pytest.fixture
 def client(synthetic_cameras: list[CameraConfig], tmp_path: object) -> Iterator[TestClient]:
     settings = Settings(cameras=synthetic_cameras, data_dir=tmp_path)
-    # Context-Manager startet die Kamera-Threads (lifespan)
+    # the context manager starts the camera threads (lifespan)
     with TestClient(create_app(settings)) as c:
         yield c
 

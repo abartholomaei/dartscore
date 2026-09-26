@@ -22,7 +22,7 @@ def test_serves_frontend_with_spa_fallback(tmp_path: Path) -> None:
     client = TestClient(create_app(Settings(frontend_dir=tmp_path)))
 
     assert "dartscore" in client.get("/").text
-    # Client-Route ohne Datei → index.html
+    # client route without a file → index.html
     assert "dartscore" in client.get("/cameras").text
-    # API-Pfade werden nicht umgeleitet
+    # API paths are not redirected
     assert client.get("/api/unknown").status_code == 404

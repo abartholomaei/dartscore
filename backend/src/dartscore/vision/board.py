@@ -1,7 +1,7 @@
-"""Geometrie einer Standard-Steeldartscheibe (Maße in mm, Ursprung = Bullseye-Mitte).
+"""Geometry of a standard steel-tip dartboard (dimensions in mm, origin = bullseye center).
 
-Koordinaten: x nach rechts, y nach oben, Winkel 0° = rechts, gegen den Uhrzeigersinn.
-Die 20 steht oben (90°).
+Coordinates: x to the right, y up, angle 0° = right, counterclockwise.
+The 20 is at the top (90°).
 """
 
 import math
@@ -10,18 +10,18 @@ import cv2
 import numpy as np
 from numpy.typing import NDArray
 
-# Segmentreihenfolge im Uhrzeigersinn, beginnend oben
+# segment order clockwise, starting at the top
 SEGMENTS = (20, 1, 18, 4, 13, 6, 10, 15, 2, 17, 3, 19, 7, 16, 8, 11, 14, 9, 12, 5)
 SEGMENT_ANGLE_DEG = 360 / len(SEGMENTS)
 
-# Radien (Außenkante) nach WDF-Regeln
+# radii (outer edge) per WDF rules
 R_BULL = 6.35
 R_OUTER_BULL = 15.9
 R_TRIPLE_INNER = 99.0
 R_TRIPLE_OUTER = 107.0
 R_DOUBLE_INNER = 162.0
 R_DOUBLE_OUTER = 170.0
-# Rand der Scheibe inkl. Nummernring (nur für die Darstellung)
+# board edge incl. number ring (for rendering only)
 R_BOARD = 225.0
 
 _BLACK = (30, 30, 30)
@@ -34,7 +34,7 @@ _WIRE = (180, 180, 180)
 def segment_polygon(
     index: int, r_inner: float, r_outer: float, steps: int = 8
 ) -> NDArray[np.float64]:
-    """Eckpunkte (mm) eines Ringsegments; index 0 = die 20 oben."""
+    """Corner points (mm) of a ring segment; index 0 = the 20 at the top."""
     center = 90.0 - index * SEGMENT_ANGLE_DEG
     angles = np.radians(
         np.linspace(center + SEGMENT_ANGLE_DEG / 2, center - SEGMENT_ANGLE_DEG / 2, steps)
@@ -45,14 +45,14 @@ def segment_polygon(
 
 
 def mm_to_px(size_px: int) -> NDArray[np.float64]:
-    """3x3-Matrix: Scheibenkoordinaten (mm) → Pixel eines quadratischen Draufsicht-Bilds."""
+    """3x3 matrix: board coordinates (mm) → pixels of a square top-down image."""
     scale = size_px / (2 * R_BOARD)
     c = size_px / 2
     return np.array([[scale, 0, c], [0, -scale, c], [0, 0, 1]], dtype=np.float64)
 
 
 def render_board(size_px: int = 900) -> NDArray[np.uint8]:
-    """Zeichnet die Scheibe in Draufsicht (BGR), z. B. für die simulierte Kamera."""
+    """Draw the board top-down (BGR), e.g. for the simulated camera."""
     img = np.full((size_px, size_px, 3), 40, dtype=np.uint8)
     m = mm_to_px(size_px)
 

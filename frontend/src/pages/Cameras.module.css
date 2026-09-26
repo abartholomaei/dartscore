@@ -23,7 +23,7 @@
   cursor: not-allowed;
 }
 
-/* Handy: untereinander; ab Tablet 2 Spalten; ab Desktop alle 3 nebeneinander */
+/* phone: stacked; tablet: 2 columns; desktop: all 3 side by side */
 .grid {
   display: grid;
   gap: var(--gutter);

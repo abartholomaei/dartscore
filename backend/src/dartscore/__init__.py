@@ -1,4 +1,4 @@
-"""dartscore – lokales Auto-Scoring-System für Steeldart."""
+"""dartscore - local auto-scoring system for steel-tip darts."""
 
 from importlib.metadata import version
 

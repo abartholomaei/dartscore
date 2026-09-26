@@ -1,1 +1,1 @@
-"""Erkennung: Kameras, Kalibrierung, Wurferkennung und Fusion der drei Kameras."""
+"""Detection: cameras, calibration, dart detection and fusion of the three cameras."""

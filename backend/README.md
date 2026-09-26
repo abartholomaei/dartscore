@@ -1,3 +1,3 @@
-# dartscore (Backend)
+# dartscore (backend)
 
-Python-Paket mit Server, Spiellogik, Erkennung und Persistenz. Einrichtung und Befehle: siehe [README im Hauptordner](../README.md).
+Python package with the server, game logic, detection and persistence. Setup and commands: see the [README in the root folder](../README.md).

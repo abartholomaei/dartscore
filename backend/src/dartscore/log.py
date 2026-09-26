@@ -1,6 +1,6 @@
-"""Strukturiertes Logging mit structlog.
+"""Structured logging with structlog.
 
-stdlib-Logger (z. B. uvicorn) laufen durch dieselben Prozessoren.
+stdlib loggers (e.g. uvicorn) go through the same processors.
 """
 
 import logging
@@ -42,7 +42,7 @@ def configure_logging(config: LoggingConfig) -> None:
     root.handlers = [handler]
     root.setLevel(config.level)
 
-    # uvicorn bringt eigene Handler mit; an den Root-Logger weiterreichen
+    # uvicorn installs its own handlers; propagate to the root logger instead
     for name in ("uvicorn", "uvicorn.error", "uvicorn.access"):
         uvicorn_logger = logging.getLogger(name)
         uvicorn_logger.handlers = []

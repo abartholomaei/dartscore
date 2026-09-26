@@ -35,10 +35,10 @@ def chessboard_texture() -> np.ndarray:
 
 
 def render_view(tex: np.ndarray, rvec: np.ndarray, tvec: np.ndarray) -> np.ndarray:
-    """Projiziert das Schachbrett mit bekannter Kameramatrix K (ohne Verzeichnung)."""
+    """Project the chessboard with a known camera matrix K (no distortion)."""
     rot, _ = cv2.Rodrigues(rvec)
     plane_to_img = K @ np.column_stack([rot[:, 0], rot[:, 1], tvec])
-    # Texturpixel → mm, Ursprung an der ersten inneren Ecke
+    # texture pixels → mm, origin at the first inner corner
     mm_per_px = SQUARE_MM / SQUARE_PX
     offset = BORDER_PX + SQUARE_PX
     tex_to_plane = np.array(
@@ -80,7 +80,7 @@ def test_collector_rejects_near_duplicates(views: list[np.ndarray]) -> None:
 
 
 def test_calibrate_needs_enough_views() -> None:
-    with pytest.raises(ValueError, match="Mindestens 5"):
+    with pytest.raises(ValueError, match="At least 5"):
         calibrate([], IMAGE_SIZE)
 
 
@@ -98,6 +98,6 @@ def test_save_load_roundtrip_and_undistort(tmp_path: Path) -> None:
     np.testing.assert_allclose(loaded.camera_matrix, K)
     assert load_lens(tmp_path, "cam2") is None
 
-    # auch halbe Auflösung wird entzerrt (Kameramatrix wird skaliert)
+    # half resolution is undistorted too (camera matrix is scaled)
     small = np.zeros((360, 640, 3), np.uint8)
     assert Undistorter(loaded).undistort(small).shape == small.shape

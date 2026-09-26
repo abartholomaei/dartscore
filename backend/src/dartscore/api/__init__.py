@@ -1,4 +1,4 @@
-"""HTTP- und WebSocket-API (FastAPI)."""
+"""HTTP and WebSocket API (FastAPI)."""
 
 from dartscore.api.app import create_app
 

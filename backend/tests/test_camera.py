@@ -16,7 +16,7 @@ def wait_until(condition: object, timeout: float = 3.0) -> None:
         if condition():
             return
         time.sleep(0.02)
-    raise AssertionError("Bedingung nicht erfüllt")
+    raise AssertionError("condition not met")
 
 
 def test_board_geometry() -> None:
@@ -24,7 +24,7 @@ def test_board_geometry() -> None:
     assert sorted(board.SEGMENTS) == list(range(1, 21))
     img = board.render_board(400)
     assert img.shape == (400, 400, 3)
-    # Bullseye in der Mitte ist rot (BGR)
+    # bullseye in the center is red (BGR)
     _, g, r = img[200, 200]
     assert r > 150
     assert g < 100
@@ -58,7 +58,7 @@ def test_worker_produces_frames(synthetic_cameras: list[CameraConfig]) -> None:
 
 
 class FlakySource:
-    """Liefert ein paar Bilder und fällt dann aus – wie ein abgezogenes USB-Kabel."""
+    """Delivers a few frames and then fails - like an unplugged USB cable."""
 
     opened = 0
 
@@ -84,7 +84,7 @@ def test_worker_reconnects_after_failures(monkeypatch: pytest.MonkeyPatch) -> No
     worker = CameraWorker(CameraConfig(id="flaky", source="synthetic"), FlakySource)
     worker.start()
     try:
-        # nach 10 Lesefehlern schließt der Worker die Quelle und öffnet sie neu
+        # after 10 read failures the worker closes the source and reopens it
         wait_until(lambda: FlakySource.opened >= 2)
     finally:
         worker.stop()

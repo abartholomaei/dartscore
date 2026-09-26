@@ -1,1 +1,1 @@
-"""Persistenz: Datenbank, Migrationen, Backups."""
+"""Persistence: database, migrations, backups."""

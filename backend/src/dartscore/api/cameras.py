@@ -1,4 +1,4 @@
-"""Kamera-Endpunkte: Status, Einzelbild, MJPEG-Livestream und erkannte Geräte."""
+"""Camera endpoints: status, snapshot, MJPEG live stream and detected devices."""
 
 import threading
 from collections.abc import AsyncIterator
@@ -51,8 +51,8 @@ class DeviceResponse(BaseModel):
 
 
 class JpegRenderer:
-    """Kodiert Kamerabilder als JPEG; das letzte Ergebnis je Kamera wird wiederverwendet,
-    damit mehrere Zuschauer nicht mehrfach dieselbe Arbeit verursachen."""
+    """Encodes camera frames as JPEG; the last result per camera is reused
+    so multiple viewers don't cause the same work repeatedly."""
 
     def __init__(self, stream: StreamConfig, undistorters: dict[str, Undistorter]) -> None:
         self._stream = stream
@@ -79,7 +79,7 @@ class JpegRenderer:
             image = cv2.resize(image, (width, round(h * width / w)), interpolation=cv2.INTER_AREA)
         ok, buf = cv2.imencode(".jpg", image, [cv2.IMWRITE_JPEG_QUALITY, self._stream.jpeg_quality])
         if not ok:
-            raise RuntimeError("JPEG-Kodierung fehlgeschlagen")
+            raise RuntimeError("JPEG encoding failed")
         data = buf.tobytes()
         with self._lock:
             self._cache[frame.camera_id] = (key, data)
@@ -99,7 +99,7 @@ def _renderer(request: Request) -> JpegRenderer:
 def _worker(request: Request, camera_id: str) -> CameraWorker:
     worker = _manager(request).get(camera_id)
     if worker is None:
-        raise HTTPException(status_code=404, detail=f"Unbekannte Kamera: {camera_id}")
+        raise HTTPException(status_code=404, detail=f"Unknown camera: {camera_id}")
     return worker
 
 
@@ -143,7 +143,7 @@ async def snapshot(
     worker = _worker(request, camera_id)
     frame = worker.latest() or await run_in_threadpool(worker.wait_for_frame, 0, 3.0)
     if frame is None:
-        raise HTTPException(status_code=503, detail=f"Kamera {camera_id} liefert keine Bilder")
+        raise HTTPException(status_code=503, detail=f"Camera {camera_id} is not delivering frames")
     data = await run_in_threadpool(
         _renderer(request).render, frame, _width(request, width), undistort
     )
@@ -159,7 +159,7 @@ async def stream(
     undistort: bool = False,
     limit: Annotated[int | None, Query(ge=1)] = None,
 ) -> StreamingResponse:
-    """MJPEG-Stream, direkt als <img src> im Browser nutzbar. ``limit`` = Anzahl Bilder."""
+    """MJPEG stream, usable directly as <img src> in the browser. ``limit`` = number of frames."""
     worker = _worker(request, camera_id)
     settings: Settings = request.app.state.settings
     max_fps = min(fps or settings.stream.max_fps, settings.stream.max_fps)
@@ -178,7 +178,7 @@ async def stream(
             if frame is None:
                 continue
             seq = frame.seq
-            # auf die maximale Stream-Bildrate drosseln
+            # throttle to the maximum stream frame rate
             if frame.timestamp - last_ts < min_interval:
                 continue
             last_ts = frame.timestamp

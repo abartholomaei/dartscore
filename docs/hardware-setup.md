@@ -1,28 +1,28 @@
-# Hardware-Setup: Kameras am Debian-Rechner
+# Hardware setup: cameras on the Debian machine
 
-Anleitung für den Referenzrechner (Intel Mac mini mit Debian) und die drei OV9732-Kameras. Gilt sinngemäß für jeden Linux-Rechner.
+Guide for the reference machine (Intel Mac mini running Debian) and the three OV9732 cameras. Applies analogously to any Linux machine.
 
-## Referenzrechner (geprüft am 2026-09-26)
+## Reference machine (checked on 2026-09-26)
 
-| Punkt | Befund |
+| Item | Finding |
 | --- | --- |
-| Rechner | Mac mini (Late 2012), Intel Core i7-3615QM (Ivy Bridge, 4 Kerne / 8 Threads), 16 GB RAM, Debian 12, Kernel 6.1 |
-| CPU-Befehlssätze | AVX, SSE4.2 – **kein AVX2/FMA** (relevant für die Modell-Inferenz, siehe PRD) |
-| Grafik | Intel HD 4000 – von OpenVINO nicht unterstützt, Inferenz läuft auf der CPU |
-| Kameras | 3× Realtek-UVC (`0bda:5844`, OV9732), alle an einem USB-2.0-Hub (Genesys `05e3:0610`), Hub-Ports 1.1, 1.2, 1.3 |
-| Formate | MJPG 1280x720@30 und YUYV 1280x720@10 – MJPG ist Pflicht |
-| Seriennummern | alle Kameras gleich (`200901010001`) → by-id unbrauchbar, by-path verwenden |
-| Bandbreite | alle 3 gleichzeitig MJPG 1280x720: **29,5 fps je Kamera** (mit `exposure_dynamic_framerate=0`) |
-| Belichtung | ab Werk `exposure_dynamic_framerate=1`: bei wenig Licht nur ~16 fps, auch bei einer Kamera allein |
-| Weitere Dienste | Autodarts (Port 3180), Home Assistant in Docker (Port 8123), GNOME-Desktop; Port 8000 frei |
+| Machine | Mac mini (Late 2012), Intel Core i7-3615QM (Ivy Bridge, 4 cores / 8 threads), 16 GB RAM, Debian 12, kernel 6.1 |
+| CPU instruction sets | AVX, SSE4.2 - **no AVX2/FMA** (relevant for model inference, see PRD) |
+| Graphics | Intel HD 4000 - not supported by OpenVINO, inference runs on the CPU |
+| Cameras | 3× Realtek UVC (`0bda:5844`, OV9732), all on one USB 2.0 hub (Genesys `05e3:0610`), hub ports 1.1, 1.2, 1.3 |
+| Formats | MJPG 1280x720@30 and YUYV 1280x720@10 - MJPG is mandatory |
+| Serial numbers | identical on all cameras (`200901010001`) → by-id unusable, use by-path |
+| Bandwidth | all 3 at once, MJPG 1280x720: **29.5 fps per camera** (with `exposure_dynamic_framerate=0`) |
+| Exposure | factory default `exposure_dynamic_framerate=1`: only ~16 fps in low light, even with a single camera |
+| Other services | Autodarts (port 3180), Home Assistant in Docker (port 8123), GNOME desktop; port 8000 free |
 
-| dartscore-Kameras | 3× 30,0 fps, 0 verlorene Bilder (`dartscore bench`); Server mit 3 Browser-Streams ≈ 110 % CPU (gut 1 von 8 Threads) |
+| dartscore cameras | 3× 30.0 fps, 0 dropped frames (`dartscore bench`); server with 3 browser streams ≈ 110 % CPU (just over 1 of 8 threads) |
 
-### Inferenz-Benchmark (2026-09-26)
+### Inference benchmark (2026-09-26)
 
-Vortrainierte YOLO-Pose-Modelle (noch nicht auf Darts trainiert, nur zur Geschwindigkeitsmessung), Median über 30 Durchläufe, ein Bild pro Durchlauf. Parallel lief dartscore mit allen drei Kameras.
+Pretrained YOLO pose models (not yet trained on darts, for speed measurement only), median over 30 runs, one image per run. dartscore was running in parallel with all three cameras.
 
-| Modell | Eingabe | ONNX Runtime 1.30 | OpenVINO 2026.4 |
+| Model | Input | ONNX Runtime 1.30 | OpenVINO 2026.4 |
 | --- | --- | --- | --- |
 | YOLO26n-pose | 320 px | **41 ms** | 59 ms |
 | YOLO26n-pose | 480 px | **100 ms** | 123 ms |
@@ -34,11 +34,11 @@ Vortrainierte YOLO-Pose-Modelle (noch nicht auf Darts trainiert, nur zur Geschwi
 | YOLO11s-pose | 480 px | 227 ms | 338 ms |
 | YOLO11s-pose | 640 px | 627 ms | 719 ms |
 
-Ergebnis: Beide Laufzeiten funktionieren ohne AVX2. ONNX Runtime ist auf dieser CPU durchweg schneller als OpenVINO (das auf AVX2/AVX-512 optimiert ist). YOLO26n-pose ist das schnellste Modell. Drei Kamerabilder dauern bei 320 px etwa 125 ms, bei 480 px etwa 300 ms – beides innerhalb des Ziels von 500 ms.
+Result: both runtimes work without AVX2. On this CPU, ONNX Runtime is consistently faster than OpenVINO (which is optimized for AVX2/AVX-512). YOLO26n-pose is the fastest model. Three camera images take about 125 ms at 320 px and about 300 ms at 480 px - both within the 500 ms target.
 
-**Autodarts und dartscore können die Kameras nicht gleichzeitig nutzen.** Vor dem Start von dartscore den Autodarts-Dienst anhalten (`systemctl stop autodarts`) und danach wieder starten (`systemctl start autodarts`).
+**Autodarts and dartscore cannot use the cameras at the same time.** Stop the Autodarts service before starting dartscore (`systemctl stop autodarts`) and start it again afterwards (`systemctl start autodarts`).
 
-## 1. Pakete und Rechte
+## 1. Packages and permissions
 
 ```bash
 sudo apt install v4l-utils
@@ -48,9 +48,9 @@ sudo apt install v4l-utils
 sudo usermod -aG video $USER
 ```
 
-Danach einmal ab- und wieder anmelden, damit die Gruppe `video` greift.
+Then log out and back in once so the `video` group takes effect.
 
-## 2. Kameras finden
+## 2. Find the cameras
 
 ```bash
 make install
@@ -60,7 +60,7 @@ make install
 uv run --project backend dartscore devices
 ```
 
-Die Ausgabe zeigt pro Kamera den Gerätepfad, die stabilen Pfade und die unterstützten Formate, zum Beispiel:
+The output shows the device path, the stable paths and the supported formats for each camera, for example:
 
 ```
 /dev/video0  USB Camera
@@ -69,57 +69,57 @@ Die Ausgabe zeigt pro Kamera den Gerätepfad, die stabilen Pfade und die unterst
     YUYV: 1280x720@10, 640x480@30
 ```
 
-Wichtig:
+Important:
 
-- **MJPG muss 1280x720@30 anbieten.** Unkomprimiert (YUYV) schafft USB 2.0 bei 720p meist nur 10 fps, und drei Kameras teilen sich die Bandbreite.
-- **by-path statt /dev/videoN verwenden.** Die Nummern können sich nach jedem Neustart ändern. Günstige Kameras haben oft keine eindeutige Seriennummer, dann sind auch die by-id-Pfade gleich. by-path hängt am USB-Anschluss und bleibt stabil, solange jede Kamera im selben Anschluss steckt. Die Anschlüsse am besten beschriften.
+- **MJPG must offer 1280x720@30.** Uncompressed (YUYV), USB 2.0 usually manages only 10 fps at 720p, and three cameras share the bandwidth.
+- **Use by-path instead of /dev/videoN.** The numbers can change after every reboot. Cheap cameras often have no unique serial number, so the by-id paths are identical too. by-path is tied to the USB port and stays stable as long as each camera stays in the same port. Best to label the ports.
 
-## 3. Konfiguration
+## 3. Configuration
 
 ```bash
 cp config.example.toml config.toml
 ```
 
-In `config.toml` für jede Kamera `device` auf den by-path-Pfad setzen und `position_deg` auf die Montageposition (0 = oben, im Uhrzeigersinn).
+In `config.toml`, set `device` to the by-path path for each camera and `position_deg` to the mounting position (0 = top, clockwise).
 
-Optional feste Belichtung, damit sich die Helligkeit zwischen den Würfen nicht ändert. Die verfügbaren Controls zeigt:
+Optionally use a fixed exposure so the brightness doesn't change between throws. The available controls are shown by:
 
 ```bash
 v4l2-ctl -d /dev/video0 -l
 ```
 
-Die Namen und Werte kommen dann unter `v4l2_controls` in die Kamera-Konfiguration. Bei den OV9732 immer `exposure_dynamic_framerate = 0` setzen, sonst sinkt die Bildrate bei wenig Licht auf etwa 16 fps. Mit fester Beleuchtung zusätzlich `auto_exposure = 1` (manuell) und `exposure_time_absolute` passend wählen.
+The names and values then go under `v4l2_controls` in the camera configuration. For the OV9732, always set `exposure_dynamic_framerate = 0`, otherwise the frame rate drops to about 16 fps in low light. With fixed lighting, also set `auto_exposure = 1` (manual) and choose a suitable `exposure_time_absolute`.
 
-## 4. Bandbreite testen
+## 4. Test the bandwidth
 
 ```bash
 uv run --project backend dartscore bench --seconds 10
 ```
 
-Liest alle drei Kameras gleichzeitig und misst die echte Bildrate. Alle Kameras sollten nahe 30 fps und 0 verlorene Bilder haben. Falls nicht:
+Reads all three cameras at once and measures the actual frame rate. All cameras should be close to 30 fps with 0 dropped frames. If not:
 
 ```bash
 lsusb -t
 ```
 
-Zeigt, welche Kamera an welchem USB-Controller hängt. Hängen alle drei am selben Controller, eine Kamera an einen anderen Anschluss (andere Seite des Geräts) oder einen aktiven USB-Hub stecken.
+Shows which camera is on which USB controller. If all three are on the same controller, plug one camera into a different port (other side of the machine) or into a powered USB hub.
 
-## 5. Linsenkalibrierung (einmal pro Kamera)
+## 5. Lens calibration (once per camera)
 
-Die 100°-Weitwinkel-Linsen verzerren das Bild. Die Kalibrierung misst das mit einem Schachbrettmuster und rechnet es später heraus.
+The 100° wide-angle lenses distort the image. Calibration measures this with a chessboard pattern and corrects it later.
 
-1. Schachbrett mit 10×7 Feldern ausdrucken (ergibt 9×6 innere Ecken), z. B. von [calib.io](https://calib.io/pages/camera-calibration-pattern-generator). Auf eine feste, ebene Platte kleben und die Kantenlänge eines Feldes nachmessen.
-2. Kalibrierung starten:
+1. Print a chessboard with 10×7 squares (giving 9×6 inner corners), e.g. from [calib.io](https://calib.io/pages/camera-calibration-pattern-generator). Glue it onto a rigid, flat board and measure the side length of one square.
+2. Start the calibration:
 
 ```bash
 uv run --project backend dartscore calibrate-lens --camera cam1 --square-mm 25
 ```
 
-3. Das Schachbrett langsam vor der Kamera bewegen: Mitte, alle Ränder und Ecken, auch leicht gekippt. Das Programm nimmt automatisch 20 unterschiedliche Aufnahmen.
-4. Ein Reprojektionsfehler unter 0,5 px ist sehr gut, unter 1 px in Ordnung.
+3. Move the chessboard slowly in front of the camera: center, all edges and corners, also slightly tilted. The program automatically takes 20 distinct captures.
+4. A reprojection error below 0.5 px is very good, below 1 px acceptable.
 
-Das Ergebnis liegt in `data/calibration/<kamera>/lens.json`, eine entzerrte Vorschau in `lens_preview.png`. Auf der Kameraseite der Oberfläche lässt sich dann „Entzerrt anzeigen“ einschalten.
+The result is stored in `data/calibration/<camera>/lens.json`, with an undistorted preview in `lens_preview.png`. On the camera page of the UI you can then enable "Show undistorted".
 
-## 6. Ohne Hardware entwickeln
+## 6. Developing without hardware
 
-Für die Entwicklung am Laptop gibt es simulierte Kameras. In der `config.toml` statt `device` einfach `source = "synthetic"` setzen.
+For development on a laptop there are simulated cameras. In `config.toml`, simply set `source = "synthetic"` instead of `device`.

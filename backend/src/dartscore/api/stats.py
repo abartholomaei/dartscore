@@ -5,6 +5,7 @@ from typing import Annotated, Any
 
 from fastapi import APIRouter, Query, Request, Response
 
+from dartscore.services.achievements import AchievementService
 from dartscore.services.export import ExportService
 from dartscore.services.stats import StatsService, player_positions
 
@@ -29,6 +30,12 @@ def double_rates(request: Request, player_id: int, days: Days = None) -> dict[st
     """Attempts and hits per double (checkout attempts, doubles training, Bob's 27)."""
     exports: ExportService = request.app.state.exports
     return exports.double_rates(player_id, days)
+
+
+@router.get("/players/{player_id}/achievements")
+def achievements(request: Request, player_id: int) -> list[dict[str, Any]]:
+    service: AchievementService = request.app.state.achievements
+    return service.for_player(player_id)
 
 
 @router.get("/head-to-head")

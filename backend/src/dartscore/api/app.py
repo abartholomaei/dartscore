@@ -15,6 +15,7 @@ from dartscore import __version__
 from dartscore.api import calibration, cameras, detection, games, players, stats, ws
 from dartscore.config import Settings
 from dartscore.game import GameError
+from dartscore.services.achievements import AchievementService
 from dartscore.services.bot import BotService
 from dartscore.services.calibration_monitor import CalibrationMonitor
 from dartscore.services.detection import DetectionService
@@ -115,6 +116,7 @@ def create_app(settings: Settings, camera_manager: CameraManager | None = None) 
     bots = app.state.bots = BotService(app.state.games)
     app.state.stats = StatsService(sessions)
     app.state.exports = ExportService(sessions)
+    app.state.achievements = AchievementService(sessions)
     detection_service = DetectionService(
         settings.detection,
         manager,

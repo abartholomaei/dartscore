@@ -272,3 +272,35 @@ def test_exports_and_double_rates(client: TestClient) -> None:
     assert len(full["games"]) == 2
 
     assert client.get(f"/api/stats/players/{pid}?days=7").json()["modes"]["x01"]["games"] == 1
+
+
+def test_achievements(client: TestClient) -> None:
+    a, b = make_players(client, "A", "B")
+    players = [{"player_id": a}, {"player_id": b}]
+    empty = client.get(f"/api/stats/players/{a}/achievements").json()
+    assert all(item["achieved_at"] is None for item in empty)
+
+    client.post(
+        "/api/games", json={"mode": "x01", "settings": {"start_score": 170}, "players": players}
+    )
+    throw(client, "T20", "T20", "BULL")
+    client.post(
+        "/api/games",
+        json={
+            "mode": "x01",
+            "settings": {"start_score": 501},
+            "players": players,
+            "abort_active": True,
+        },
+    )
+    throw(client, "T20", "T20", "T20", "NEXT", "NEXT", "T20", "T20", "T20", "NEXT", "NEXT")
+    throw(client, "T20", "T19", "D12")
+
+    got = {i["id"]: i for i in client.get(f"/api/stats/players/{a}/achievements").json()}
+    unlocked = {key for key, item in got.items() if item["achieved_at"]}
+    assert {"first_win", "big_fish", "ton_out", "bull_finish", "one_eighty", "nine_darter",
+            "leg_12", "average_100"} <= unlocked  # fmt: skip
+    assert "shanghai" not in unlocked
+    assert got["big_fish"]["game_id"] != got["nine_darter"]["game_id"]
+    others = client.get(f"/api/stats/players/{b}/achievements").json()
+    assert {i["id"] for i in others if i["achieved_at"]} == {"first_game"}

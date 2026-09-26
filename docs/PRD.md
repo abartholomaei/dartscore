@@ -436,7 +436,7 @@ Aggregierte Statistiken können als Cache-Tabelle (z. B. `player_stats`) gehalte
 - [x] Filter: Zeitraum; Modi getrennt; Gegner über den direkten Vergleich
 - [x] Stats-Cache, Neuberechnung nach Korrekturen
 - [x] Export CSV (Spiele, Darts) und JSON (vollständige Kopie)
-- [ ] Achievements
+- [x] Achievements
 
 ### Epic 9 – Frontend / UI
 - [x] Responsives Layout (Mobile-first) mit Breakpoints Handy / Tablet / Desktop / TV

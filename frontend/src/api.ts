@@ -196,6 +196,32 @@ export type TurnSummary = {
   checkout: boolean
 }
 
+export type Achievement = { id: AchievementId; achieved_at: string | null; game_id: number | null }
+export const ACHIEVEMENT_ICONS = {
+  first_game: '🎯',
+  first_win: '🏆',
+  ton: '💯',
+  ton_forty: '🔥',
+  one_eighty: '🚀',
+  hat_trick: '🎩',
+  ton_out: '✅',
+  big_fish: '🐟',
+  bull_finish: '🐂',
+  leg_15: '⏱️',
+  leg_12: '⚡',
+  nine_darter: '💎',
+  average_60: '📈',
+  average_80: '📊',
+  average_100: '👑',
+  white_horse: '🐴',
+  mpr_3: '🎳',
+  shanghai: '🏯',
+  round_the_clock: '🕛',
+  games_10: '🔟',
+  games_100: '🏅',
+} as const
+export type AchievementId = keyof typeof ACHIEVEMENT_ICONS
+
 export type GameMode =
   | 'x01'
   | 'cricket'

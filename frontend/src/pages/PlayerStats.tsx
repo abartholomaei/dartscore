@@ -2,7 +2,9 @@ import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useParams } from 'react-router'
 import {
+  ACHIEVEMENT_ICONS,
   getJson,
+  type Achievement,
   PARTY_MODES,
   TRAINING_MODES,
   type AggregateStats,
@@ -28,6 +30,7 @@ export default function PlayerStats() {
   const [error, setError] = useState<string | null>(null)
   const [positions, setPositions] = useState<[number, number][]>([])
   const [days, setDays] = useState<number | null>(null)
+  const [achievements, setAchievements] = useState<Achievement[]>([])
   const [doubles, setDoubles] = useState<Record<string, { attempts: number; hits: number }>>({})
 
   useEffect(() => {
@@ -40,6 +43,9 @@ export default function PlayerStats() {
       .catch(() => undefined)
     getJson<[number, number, string][]>(`/api/stats/players/${id}/positions`)
       .then((list) => setPositions(list.map(([x, y]) => [x, y])))
+      .catch(() => undefined)
+    getJson<Achievement[]>(`/api/stats/players/${id}/achievements`)
+      .then(setAchievements)
       .catch(() => undefined)
     getJson<Player[]>('/api/players?include_archived=true')
       .then((list) => setOthers(list.filter((p) => String(p.id) !== id)))
@@ -134,6 +140,8 @@ export default function PlayerStats() {
           </section>
         )
       })}
+
+      {achievements.length > 0 && <Achievements items={achievements} />}
 
       {Object.keys(doubles).length > 0 && (
         <section className="card">
@@ -230,5 +238,38 @@ function Trend({ stats, field, label }: { stats: AggregateStats; field: 'average
         ))}
       </svg>
     </figure>
+  )
+}
+
+function Achievements({ items }: { items: Achievement[] }) {
+  const { t, i18n } = useTranslation()
+  const unlocked = items.filter((a) => a.achieved_at).length
+  return (
+    <section className="card">
+      <h2 className="cardTitle">
+        {t('achievements.title')} <span className="muted">{t('achievements.count', { count: unlocked, total: items.length })}</span>
+      </h2>
+      <ul className={styles.achievements}>
+        {items.map((a) => (
+          <li
+            key={a.id}
+            className={a.achieved_at ? styles.achievement : `${styles.achievement} ${styles.locked}`}
+            title={t(`achievements.items.${a.id}.description`)}
+          >
+            <span className={styles.achievementIcon} aria-hidden>
+              {ACHIEVEMENT_ICONS[a.id]}
+            </span>
+            <span className={styles.achievementText}>
+              <strong>{t(`achievements.items.${a.id}.name`)}</strong>
+              <span className="muted">
+                {a.achieved_at
+                  ? new Date(a.achieved_at).toLocaleDateString(i18n.language)
+                  : t(`achievements.items.${a.id}.description`)}
+              </span>
+            </span>
+          </li>
+        ))}
+      </ul>
+    </section>
   )
 }

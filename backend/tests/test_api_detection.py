@@ -54,8 +54,10 @@ def test_detected_darts_and_takeout_drive_the_game(client: TestClient, tmp_path:
     assert status["enabled"] is True
     assert sorted(status["cameras"]) == ["cam1", "cam2", "cam3"]
 
+    player_id = client.post("/api/players", json={"name": "A"}).json()["id"]
     client.post(
-        "/api/games", json={"mode": "x01", "players": [{"guest_name": "A"}, {"guest_name": "B"}]}
+        "/api/games",
+        json={"mode": "x01", "players": [{"player_id": player_id}, {"guest_name": "B"}]},
     )
     time.sleep(0.5)  # references settle
 
@@ -95,6 +97,11 @@ def test_detected_darts_and_takeout_drive_the_game(client: TestClient, tmp_path:
     recordings = sorted((tmp_path / "data" / "recordings").rglob("meta.json"))
     assert len(recordings) == 3
     assert (recordings[0].parent / "cam1_after.jpg").is_file()
+
+    # detected positions feed the heatmap (finished or aborted games)
+    client.post("/api/games/active/abort")
+    positions = client.get(f"/api/stats/players/{player_id}/positions").json()
+    assert sorted(label for _, _, label in positions) == ["S20", "S6", "T20"]
 
     # recordings become a labeled dataset: after the third dart, three tips per image
     stats = export_dataset(tmp_path / "data" / "recordings", tmp_path / "ds")

@@ -68,3 +68,10 @@
   fill: #000;
   pointer-events: none;
 }
+
+.points circle {
+  fill: #ffea00;
+  fill-opacity: 0.7;
+  stroke: #000;
+  stroke-width: 1;
+}

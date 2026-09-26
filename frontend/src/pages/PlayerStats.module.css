@@ -98,3 +98,8 @@
   font-weight: 800;
   font-variant-numeric: tabular-nums;
 }
+
+.heatmap {
+  max-width: 420px;
+  margin: 0 auto;
+}

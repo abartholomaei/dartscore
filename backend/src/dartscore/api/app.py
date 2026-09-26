@@ -102,6 +102,7 @@ def create_app(settings: Settings, camera_manager: CameraManager | None = None) 
         settings.calibration_dir, [c.id for c in settings.cameras]
     )
     app.state.hub = hub
+    app.state.sessions = sessions
     app.state.players = PlayerService(sessions)
     app.state.games = GameService(sessions, hub)
     app.state.stats = StatsService(sessions)

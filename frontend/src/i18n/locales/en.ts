@@ -194,6 +194,8 @@ const en = {
     },
   },
   stats: {
+    heatmap_one: 'Hits ({{count}} detected dart)',
+    heatmap_other: 'Hits ({{count}} detected darts)',
     noGames: 'No finished games yet.',
     dartsPerLeg: 'Darts per won leg',
     games: 'Won / played',

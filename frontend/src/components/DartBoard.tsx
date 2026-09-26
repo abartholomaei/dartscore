@@ -5,6 +5,8 @@ import styles from './DartBoard.module.css'
 type Props = {
   /** darts to mark on the board (labels); drawn at the middle of their field */
   darts?: string[]
+  /** measured positions (mm) drawn as small dots, e.g. a heatmap of many darts */
+  points?: [number, number][]
   /** highlighted dart (e.g. selected for correction) */
   selected?: number | null
   /** tap on the board -> dart label; omit for a display-only board */
@@ -29,7 +31,7 @@ function arc(rIn: number, rOut: number, fromDeg: number, toDeg: number): string 
 }
 
 /** Top-down dartboard: input by tapping, display of the current turn's darts. */
-export default function DartBoard({ darts = [], selected = null, onSelect, disabled }: Props) {
+export default function DartBoard({ darts = [], points = [], selected = null, onSelect, disabled }: Props) {
   const fields = useMemo(
     () =>
       SEGMENTS.flatMap((number, i) => {
@@ -84,6 +86,13 @@ export default function DartBoard({ darts = [], selected = null, onSelect, disab
           </text>
         )
       })}
+      {points.length > 0 && (
+        <g className={styles.points}>
+          {points.map(([x, y], i) => (
+            <circle key={i} cx={x} cy={-y} r={5} />
+          ))}
+        </g>
+      )}
       {darts.map((label, i) => {
         const pos = dartCenter(label)
         if (!pos) return null

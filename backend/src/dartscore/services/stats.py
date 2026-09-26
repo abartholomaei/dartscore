@@ -116,3 +116,40 @@ class StatsService:
                     str(b): _aggregate([(r, pb) for r, _, pb in rows]),
                 },
             }
+
+
+def player_positions(
+    sessions: sessionmaker[Session], player_id: int, limit: int = 3000
+) -> list[tuple[float, float, str]]:
+    """Board positions of the player's detected darts (for a heatmap), newest first."""
+    from dartscore.game import Dart, replay_game
+    from dartscore.game.base import DartEvent
+    from dartscore.services.games import _event_from_record
+
+    result: list[tuple[float, float, str]] = []
+    with sessions() as session:
+        games = session.execute(
+            select(GameRecord, GamePlayer)
+            .join(GamePlayer, GamePlayer.game_id == GameRecord.id)
+            .where(GamePlayer.player_id == player_id, GameRecord.status != "active")
+            .order_by(GameRecord.id.desc())
+        ).all()
+        for record, gp in games:
+            events = list(record.events)
+            if not any(e.x_mm is not None for e in events):
+                continue
+            # replay to know whose turn each dart was
+            game = replay_game(record.mode, len(record.players), record.settings, [])
+            for event in events:
+                parsed = _event_from_record(event)
+                if isinstance(parsed, DartEvent):
+                    thrower = game.current_player
+                    if thrower == gp.position and event.x_mm is not None and event.y_mm is not None:
+                        label = Dart(parsed.dart.segment, parsed.dart.multiplier).label
+                        result.append((round(event.x_mm, 1), round(event.y_mm, 1), label))
+                        if len(result) >= limit:
+                            return result
+                    game.throw(parsed.dart)
+                else:
+                    game.next_turn()
+    return result

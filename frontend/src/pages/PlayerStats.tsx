@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useParams } from 'react-router'
 import { getJson, type AggregateStats, type HeadToHead, type Player, type PlayerStats as Stats } from '../api'
+import DartBoard from '../components/DartBoard'
 import { useErrorText } from '../helpers'
 import styles from './PlayerStats.module.css'
 
@@ -17,11 +18,15 @@ export default function PlayerStats() {
   const [opponent, setOpponent] = useState<number | null>(null)
   const [h2h, setH2h] = useState<HeadToHead | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [positions, setPositions] = useState<[number, number][]>([])
 
   useEffect(() => {
     getJson<Stats>(`/api/stats/players/${id}`)
       .then(setStats)
       .catch((err: unknown) => setError(errorText(err)))
+    getJson<[number, number, string][]>(`/api/stats/players/${id}/positions`)
+      .then((list) => setPositions(list.map(([x, y]) => [x, y])))
+      .catch(() => undefined)
     getJson<Player[]>('/api/players?include_archived=true')
       .then((list) => setOthers(list.filter((p) => String(p.id) !== id)))
       .catch(() => undefined)
@@ -85,6 +90,15 @@ export default function PlayerStats() {
             <Tile label={t('stats.winRate')} value={pct(cricket.win_rate)} />
           </div>
           <Trend stats={cricket} field="mpr" label={t('stats.mprTrend')} />
+        </section>
+      )}
+
+      {positions.length > 0 && (
+        <section className="card">
+          <h2 className="cardTitle">{t('stats.heatmap', { count: positions.length })}</h2>
+          <div className={styles.heatmap}>
+            <DartBoard points={positions} />
+          </div>
         </section>
       )}
 

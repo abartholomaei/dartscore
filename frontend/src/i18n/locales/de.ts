@@ -195,6 +195,8 @@ const de: Translations = {
     },
   },
   stats: {
+    heatmap_one: 'Treffer ({{count}} erkannter Dart)',
+    heatmap_other: 'Treffer ({{count}} erkannte Darts)',
     noGames: 'Noch keine beendeten Spiele.',
     dartsPerLeg: 'Darts pro gewonnenem Leg',
     games: 'Gewonnen / gespielt',

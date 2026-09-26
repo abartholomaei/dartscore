@@ -11,12 +11,12 @@ __pycache__/
 node_modules/
 dist/
 
-# Lokale Konfiguration und Laufzeitdaten
+# Local configuration and runtime data
 config.toml
 data/
 *.log
 
-# Modelle und Datensätze (groß, nicht ins Repo)
+# Models and datasets (large, not in the repo)
 *.onnx
 *.pt
 datasets/

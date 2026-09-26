@@ -1,0 +1,44 @@
+# dartscore – Beispielkonfiguration
+# Kopieren nach config.toml und anpassen. Jeder Wert lässt sich per Umgebungsvariable
+# überschreiben, z. B. DARTSCORE_SERVER__PORT=9000 oder DARTSCORE_LOGGING__LEVEL=DEBUG.
+
+# Datenbank, Kalibrierungen, Aufnahmen
+data_dir = "data"
+
+[server]
+host = "0.0.0.0"
+port = 8000
+
+[logging]
+level = "INFO"
+json_output = false
+
+# Drei Kameras, ca. 120° versetzt (0 = oben, im Uhrzeigersinn).
+# Unter Linux stabile Pfade aus /dev/v4l/by-id/ bzw. /dev/v4l/by-path/ verwenden,
+# damit die Kameras nach einem Neustart nicht vertauscht sind.
+[[cameras]]
+id = "cam1"
+device = "/dev/video0"
+width = 1280
+height = 720
+fps = 30
+fourcc = "MJPG"
+position_deg = 0
+
+[[cameras]]
+id = "cam2"
+device = "/dev/video2"
+width = 1280
+height = 720
+fps = 30
+fourcc = "MJPG"
+position_deg = 120
+
+[[cameras]]
+id = "cam3"
+device = "/dev/video4"
+width = 1280
+height = 720
+fps = 30
+fourcc = "MJPG"
+position_deg = 240

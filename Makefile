@@ -1,0 +1,32 @@
+.PHONY: install dev-backend dev-frontend format lint typecheck test check hooks
+
+install:
+	cd backend && uv sync
+	cd frontend && npm install
+
+dev-backend:
+	uv run --project backend dartscore
+
+dev-frontend:
+	cd frontend && npm run dev
+
+format:
+	cd backend && uv run ruff format . && uv run ruff check --fix .
+
+lint:
+	cd backend && uv run ruff check . && uv run ruff format --check .
+	cd frontend && npm run lint
+
+typecheck:
+	cd backend && uv run mypy src tests
+	cd frontend && npm run typecheck
+
+test:
+	cd backend && uv run pytest
+
+# Lokale "CI": alles, was vor einem Commit grün sein muss
+check: lint typecheck test
+	cd frontend && npm run build
+
+hooks:
+	cd backend && uv run pre-commit install

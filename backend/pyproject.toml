@@ -1,0 +1,49 @@
+[project]
+name = "dartscore"
+version = "0.1.0"
+description = "Lokales Auto-Scoring-System für Steeldart mit drei Kameras"
+readme = "README.md"
+authors = [
+    { name = "Alexander Bartholomäi", email = "20922941+abartholomaei@users.noreply.github.com" }
+]
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi>=0.141.1",
+    "pydantic-settings>=2.15.0",
+    "structlog>=26.1.0",
+    "uvicorn[standard]>=0.54.0",
+]
+
+[project.scripts]
+dartscore = "dartscore.cli:main"
+
+[build-system]
+requires = ["uv_build>=0.12.19,<0.13.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "httpx2>=2.13.1",
+    "mypy>=2.3.1",
+    "pre-commit>=4.6.2",
+    "pytest>=9.1.1",
+    "ruff>=0.16.9",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "W", "F", "I", "B", "UP", "SIM", "RUF", "N", "PT", "PTH"]
+# Deutsche Texte nutzen typografische Zeichen (–, „“)
+ignore = ["RUF001", "RUF002", "RUF003"]
+
+[tool.mypy]
+strict = true
+python_version = "3.12"
+plugins = ["pydantic.mypy"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"

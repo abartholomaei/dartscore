@@ -11,6 +11,8 @@ import cv2
 import numpy as np
 from numpy.typing import NDArray
 
+from dartscore.game.dart import Dart
+
 # segment order clockwise, starting at the top
 SEGMENTS = (20, 1, 18, 4, 13, 6, 10, 15, 2, 17, 3, 19, 7, 16, 8, 11, 14, 9, 12, 5)
 SEGMENT_ANGLE_DEG = 360 / len(SEGMENTS)
@@ -101,24 +103,8 @@ def render_board(size_px: int = 900) -> NDArray[np.uint8]:
     return img
 
 
-@dataclass(frozen=True)
-class Score:
-    """A single dart. segment 0 = miss, 25 = bull; multiplier 1-3 (bull: 1 = 25, 2 = 50)."""
-
-    segment: int
-    multiplier: int
-
-    @property
-    def points(self) -> int:
-        return self.segment * self.multiplier
-
-    @property
-    def label(self) -> str:
-        if self.segment == 0:
-            return "MISS"
-        if self.segment == 25:
-            return "BULL" if self.multiplier == 2 else "25"
-        return f"{'SDT'[self.multiplier - 1]}{self.segment}"
+# kept as an alias: the vision code speaks of scores, the game logic of darts
+Score = Dart
 
 
 def segment_at_angle(angle_deg: float) -> int:
@@ -135,7 +121,7 @@ def score_at(x_mm: float, y_mm: float) -> Score:
     if r <= R_OUTER_BULL:
         return Score(25, 1)
     if r > R_DOUBLE_OUTER:
-        return Score(0, 0)
+        return Score.miss()
     segment = segment_at_angle(math.degrees(math.atan2(y_mm, x_mm)))
     if R_TRIPLE_INNER < r <= R_TRIPLE_OUTER:
         return Score(segment, 3)

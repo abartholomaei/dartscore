@@ -26,3 +26,9 @@ a.link:hover {
   flex-wrap: wrap;
   gap: 8px;
 }
+
+.check {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}

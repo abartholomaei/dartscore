@@ -92,6 +92,15 @@ const en = {
     cancel: 'Cancel',
     save: 'Save',
   },
+  caller: {
+    gameShot: 'Game shot!',
+    gameShotMatch: 'Game shot, and the match! {{name}}',
+    winner: '{{name}} wins!',
+    noScore: 'No score',
+    bust: 'Bust',
+    oneEighty: 'One hundred and eighty!',
+    require: '{{name}}, you require {{score}}',
+  },
   errors: {
     player_not_found: 'Player not found.',
     game_not_found: 'Game not found.',
@@ -276,6 +285,11 @@ const en = {
     gamesCount_other: '{{count}} games',
   },
   settings: {
+    audio: 'Sound',
+    caller: 'Caller announces scores',
+    sounds: 'Sounds for darts and wins',
+    audioHint: 'Stored in this browser. The voice follows the interface language.',
+    noSpeech: 'This browser has no speech output.',
     export: 'Export',
     exportHint: 'Your games and darts as a spreadsheet (CSV) or as a complete copy (JSON).',
     exportGames: 'Games (CSV)',

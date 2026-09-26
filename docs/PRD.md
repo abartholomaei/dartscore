@@ -455,7 +455,7 @@ Aggregierte Statistiken können als Cache-Tabelle (z. B. `player_stats`) gehalte
 - [x] Multi-Device: TV-Anzeige + Handy-Steuerung synchron
 - [x] PWA-Grundlagen: Icons, Manifest, „Zum Home-Bildschirm“ (volle Installation braucht HTTPS)
 - [x] i18n Deutsch/Englisch
-- [ ] Sound/Caller-Ansagen, Animationen (180, Checkout)
+- [x] Sound/Caller-Ansagen, Animationen (180, Checkout)
 
 ### Epic 10 – Qualität & Tests
 - [x] Unit-Tests Game Engine (≥ 90 % Abdeckung)

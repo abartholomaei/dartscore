@@ -3,6 +3,7 @@ import { Link } from 'react-router'
 import { sendJson, type CameraStatus, type DetectionStatus, type Health } from '../api'
 import DetectionBadge from '../components/DetectionBadge'
 import { useLiveGame } from '../LiveGame'
+import { setAudioPref, speechAvailable, useAudioPrefs } from '../caller'
 import { LANGUAGES } from '../i18n'
 import { usePolling } from '../usePolling'
 import styles from './Settings.module.css'
@@ -12,6 +13,7 @@ export default function Settings() {
   const health = usePolling<Health>('/api/health', 10000)
   const cameras = usePolling<CameraStatus[]>('/api/cameras', 10000)
   const { detection, setDetection, lastDart } = useLiveGame()
+  const audio = useAudioPrefs()
   const synthetic = cameras.kind === 'ok' && cameras.data.some((c) => c.source === 'synthetic')
 
   const resetDetection = async () => {
@@ -53,6 +55,23 @@ export default function Settings() {
               {t('detection.reset')}
             </button>
           </div>
+        </section>
+        <section className={`card ${styles.link}`}>
+          <strong>{t('settings.audio')}</strong>
+          <label className={styles.check}>
+            <input
+              type="checkbox"
+              checked={audio.caller && speechAvailable}
+              disabled={!speechAvailable}
+              onChange={(e) => setAudioPref('caller', e.target.checked)}
+            />
+            {t('settings.caller')}
+          </label>
+          <label className={styles.check}>
+            <input type="checkbox" checked={audio.sounds} onChange={(e) => setAudioPref('sounds', e.target.checked)} />
+            {t('settings.sounds')}
+          </label>
+          <span className="muted">{speechAvailable ? t('settings.audioHint') : t('settings.noSpeech')}</span>
         </section>
         {synthetic && (
           <section className={`card ${styles.link}`}>

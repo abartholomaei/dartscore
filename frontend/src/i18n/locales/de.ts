@@ -93,6 +93,15 @@ const de: Translations = {
     cancel: 'Abbrechen',
     save: 'Speichern',
   },
+  caller: {
+    gameShot: 'Game shot!',
+    gameShotMatch: 'Game shot und das Match! {{name}}',
+    winner: '{{name}} gewinnt!',
+    noScore: 'Keine Punkte',
+    bust: 'Überworfen',
+    oneEighty: 'Hundertachtzig!',
+    require: '{{name}}, du brauchst {{score}}',
+  },
   errors: {
     player_not_found: 'Spieler nicht gefunden.',
     game_not_found: 'Spiel nicht gefunden.',
@@ -277,6 +286,11 @@ const de: Translations = {
     gamesCount_other: '{{count}} Spiele',
   },
   settings: {
+    audio: 'Ton',
+    caller: 'Caller sagt die Punkte an',
+    sounds: 'Töne für Darts und Siege',
+    audioHint: 'Wird in diesem Browser gespeichert. Die Stimme folgt der Sprache der Oberfläche.',
+    noSpeech: 'Dieser Browser hat keine Sprachausgabe.',
     export: 'Export',
     exportHint: 'Deine Spiele und Darts als Tabelle (CSV) oder als vollständige Kopie (JSON).',
     exportGames: 'Spiele (CSV)',

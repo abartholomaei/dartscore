@@ -510,3 +510,72 @@
   font-weight: 900;
   color: var(--warn);
 }
+
+.celebration {
+  position: fixed;
+  left: 50%;
+  top: 40%;
+  z-index: 50;
+  padding: 24px 48px;
+  border-radius: 24px;
+  font-size: clamp(3rem, 12vw, 8rem);
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  color: #fff;
+  pointer-events: none;
+  white-space: nowrap;
+  box-shadow: 0 20px 60px rgb(0 0 0 / 0.35);
+  animation: celebrate 2.5s ease-out forwards;
+}
+
+.celebration_180 {
+  background: linear-gradient(135deg, #e53935, #fb8c00);
+}
+
+.celebration_checkout {
+  background: linear-gradient(135deg, #2e7d32, #00897b);
+  font-size: clamp(2rem, 8vw, 5rem);
+}
+
+.celebration_bust {
+  background: #455a64;
+  font-size: clamp(2rem, 8vw, 5rem);
+}
+
+@keyframes celebrate {
+  0% {
+    transform: translate(-50%, -50%) scale(0.3);
+    opacity: 0;
+  }
+  12% {
+    transform: translate(-50%, -50%) scale(1.1);
+    opacity: 1;
+  }
+  20% {
+    transform: translate(-50%, -50%) scale(1);
+  }
+  80% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .celebration {
+    animation: fade 2.5s linear forwards;
+    transform: translate(-50%, -50%);
+  }
+}
+
+@keyframes fade {
+  0%,
+  80% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}

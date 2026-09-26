@@ -6,6 +6,7 @@ import DartBoard from '../components/DartBoard'
 import DetectionBadge from '../components/DetectionBadge'
 import { dartLabel, dartPoints } from '../dart'
 import { useLiveGame } from '../LiveGame'
+import { useCaller } from '../caller'
 import { PENDING_KEY, useErrorText, type PendingGame } from '../helpers'
 import styles from './Play.module.css'
 
@@ -17,6 +18,12 @@ const LOW_CONFIDENCE = 0.5
 export default function Play() {
   const { t } = useTranslation()
   const { game, connected } = useLiveGame()
+  const celebration = useCaller(game)
+  const banner = celebration && (
+    <div key={celebration.key} className={`${styles.celebration} ${styles[`celebration_${celebration.kind}`]}`} aria-live="assertive">
+      {celebration.text}
+    </div>
+  )
 
   if (!connected && !game) return <p className="muted">{t('play.connecting')}</p>
   if (!game) {
@@ -30,7 +37,12 @@ export default function Play() {
     )
   }
   if (game.finished && game.mode === 'bull_off') return <BullOffResult game={game} />
-  return game.finished ? <Finished game={game} /> : <Running game={game} />
+  return (
+    <>
+      {banner}
+      {game.finished ? <Finished game={game} /> : <Running game={game} />}
+    </>
+  )
 }
 
 function Running({ game }: { game: GameState }) {

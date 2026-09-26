@@ -8,6 +8,7 @@ from fastapi.testclient import TestClient
 
 from dartscore.api import create_app
 from dartscore.config import CameraConfig, Settings
+from dartscore.training.dataset import export_dataset
 from dartscore.vision import board
 from dartscore.vision.sources import SIMULATED_BOARD, SyntheticSource
 
@@ -91,9 +92,17 @@ def test_detected_darts_and_takeout_drive_the_game(client: TestClient, tmp_path:
     assert state["awaiting_next"] is False
 
     # every detection was recorded with images and metadata
-    recordings = list((tmp_path / "data" / "recordings").rglob("meta.json"))
+    recordings = sorted((tmp_path / "data" / "recordings").rglob("meta.json"))
     assert len(recordings) == 3
     assert (recordings[0].parent / "cam1_after.jpg").is_file()
+
+    # recordings become a labeled dataset: after the third dart, three tips per image
+    stats = export_dataset(tmp_path / "data" / "recordings", tmp_path / "ds")
+    assert stats.images == 9
+    labels = sorted((tmp_path / "ds" / "labels").rglob("*.txt"))
+    last = [line for line in labels[-1].read_text().splitlines() if line.startswith("0 ")]
+    assert len(last) == 3
+    assert (tmp_path / "ds" / "data.yaml").is_file()
 
 
 def test_detection_can_be_switched_off(client: TestClient) -> None:

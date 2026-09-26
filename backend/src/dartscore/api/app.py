@@ -102,7 +102,12 @@ def create_app(settings: Settings, camera_manager: CameraManager | None = None) 
     app.state.games = GameService(sessions, hub)
     app.state.stats = StatsService(sessions)
     detection_service = DetectionService(
-        settings.detection, manager, app.state.games, hub, settings.recordings_dir
+        settings.detection,
+        manager,
+        app.state.games,
+        hub,
+        settings.recordings_dir,
+        settings.model_file,
     )
     app.state.detection = detection_service
 

@@ -79,6 +79,8 @@ class DetectionConfig(BaseModel):
     max_spread_mm: float = Field(default=12.0, gt=0)
     # save images of every detection (training data for the model, debugging)
     record: bool = True
+    # trained dart tip model (ONNX); default: <data_dir>/models/darts.onnx if it exists
+    model_path: Path | None = None
 
 
 class LoggingConfig(BaseModel):
@@ -117,6 +119,10 @@ class Settings(BaseSettings):
     @property
     def recordings_dir(self) -> Path:
         return self.data_dir / "recordings"
+
+    @property
+    def model_file(self) -> Path:
+        return self.detection.model_path or self.data_dir / "models" / "darts.onnx"
 
     @classmethod
     def settings_customise_sources(

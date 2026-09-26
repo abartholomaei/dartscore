@@ -11,6 +11,7 @@ dependencies = [
     "alembic>=1.20.0",
     "fastapi>=0.141.1",
     "numpy>=2.5.3",
+    "onnxruntime>=1.30.0",
     "opencv-python-headless>=5.0.0.93",
     "pydantic-settings>=2.15.0",
     "sqlalchemy>=2.1.1",
@@ -49,3 +50,7 @@ plugins = ["pydantic.mypy"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-ra"
+
+[[tool.mypy.overrides]]
+module = ["onnxruntime", "onnxruntime.*"]
+ignore_missing_imports = true

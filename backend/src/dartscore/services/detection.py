@@ -24,6 +24,7 @@ from dartscore.vision.calibration import BoardCalibration
 from dartscore.vision.camera import CameraManager
 from dartscore.vision.detection import DartDetection, DartDetector, Takeout
 from dartscore.vision.intrinsics import Undistorter
+from dartscore.vision.model import load_model
 
 log = structlog.get_logger(__name__)
 
@@ -36,6 +37,7 @@ class DetectionService:
         games: GameService,
         hub: EventHub,
         recordings_dir: Path,
+        model_file: Path | None = None,
     ) -> None:
         self.config = config
         self._cameras = cameras
@@ -49,6 +51,7 @@ class DetectionService:
         self._stop = threading.Event()
         self._last_dart: dict[str, Any] | None = None
         self._last_published_state = ""
+        self._model = load_model(model_file)
         games.add_listener(self._on_game_event)
 
     # --- control ------------------------------------------------------------------------
@@ -59,7 +62,9 @@ class DetectionService:
         """(Re)builds the detector, e.g. after a calibration was saved or deleted."""
         with self._lock:
             usable = {cid: cal for cid, cal in calibrations.items() if self._cameras.get(cid)}
-            self._detector = DartDetector(self.config, usable, undistorters) if usable else None
+            self._detector = (
+                DartDetector(self.config, usable, undistorters, self._model) if usable else None
+            )
         log.info("detection_configured", cameras=sorted(usable))
         self._publish_status()
 
@@ -96,6 +101,7 @@ class DetectionService:
                 "enabled": self._enabled,
                 "available": detector is not None,
                 "cameras": detector.camera_ids if detector else [],
+                "model": str(self._model.path.name) if self._model else None,
                 "state": detector.state.value if detector else "unavailable",
                 "darts_in_turn": detector.darts_in_turn if detector else 0,
                 "last_dart": self._last_dart,

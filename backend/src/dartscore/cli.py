@@ -182,6 +182,24 @@ def _collect_live(
         worker.stop()
 
 
+def cmd_export_dataset(settings: Settings, args: argparse.Namespace) -> None:
+    from dartscore.storage.db import create_db_engine, database_url, session_factory
+    from dartscore.training.dataset import export_dataset
+
+    engine = create_db_engine(database_url(settings.data_dir))
+    with session_factory(engine)() as session:
+        stats = export_dataset(
+            settings.recordings_dir, Path(args.out), session, args.min_confidence
+        )
+    print(f"Recordings: {stats.recordings}, images exported: {stats.images}")
+    print(
+        f"Skipped: {stats.skipped_unknown_darts} (unknown darts), "
+        f"{stats.skipped_low_confidence} (low confidence)"
+    )
+    print(f"Corrected darts without position (need manual labels): {len(stats.needs_label)}")
+    print(f"Dataset: {Path(args.out).resolve() / 'data.yaml'}")
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="dartscore", description=__doc__)
     parser.add_argument("-c", "--config", type=Path, help="path to config.toml")
@@ -200,6 +218,10 @@ def build_parser() -> argparse.ArgumentParser:
     lens.add_argument("--square-mm", type=float, default=25.0, help="side length of one square")
     lens.add_argument("--frames", type=int, default=20, help="number of captures")
     lens.add_argument("--images", help="instead of live: folder with existing captures")
+
+    export = sub.add_parser("export-dataset", help="export recordings as a YOLO training set")
+    export.add_argument("--out", default="datasets/darts", help="output folder")
+    export.add_argument("--min-confidence", type=float, default=0.5)
     return parser
 
 
@@ -209,6 +231,7 @@ COMMANDS = {
     "devices": cmd_devices,
     "bench": cmd_bench,
     "calibrate-lens": cmd_calibrate_lens,
+    "export-dataset": cmd_export_dataset,
 }
 
 

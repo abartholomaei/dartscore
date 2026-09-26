@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router'
 import { ApiError, getJson, sendJson, TRAINING_MODES, type GameMode, type GameState, type Player } from '../api'
 import { useLiveGame } from '../LiveGame'
-import { useErrorText } from '../helpers'
+import { PENDING_KEY, useErrorText } from '../helpers'
 import { PlayerForm } from './Players'
 import styles from './NewGame.module.css'
 
@@ -141,15 +141,21 @@ export default function NewGame() {
   const nameOf = (p: Participant) => p.guestName ?? players.find((pl) => pl.id === p.playerId)?.name ?? '?'
   const colorOf = (p: Participant) => players.find((pl) => pl.id === p.playerId)?.color ?? '#9e9e9e'
 
-  const start = async () => {
-    const running = active && !active.finished
-    if (running && !window.confirm(t('newGame.confirmAbort'))) return
+  const buildRequest = () => {
     const settings =
       mode === 'x01'
         ? { start_score: startScore, in_rule: inRule, out_rule: outRule, legs_to_win: legs, sets_to_win: sets }
         : mode === 'cricket'
           ? { variant, legs_to_win: legs, sets_to_win: sets }
           : trainingSettings(mode, training)
+    return {
+      mode,
+      settings,
+      players: participants.map((p) => (p.playerId === null ? { guest_name: p.guestName } : { player_id: p.playerId })),
+    }
+  }
+
+  const remember = () => {
     const toStore: Saved = {
       mode, startScore, inRule, outRule, variant, training, legs, sets,
       playerIds: participants.flatMap((p) => (p.playerId === null ? [] : [p.playerId])),
@@ -159,18 +165,35 @@ export default function NewGame() {
     } catch {
       // private mode: the setup is just not remembered
     }
+  }
+
+  const launch = async (body: object) => {
+    const running = active && !active.finished
+    if (running && !window.confirm(t('newGame.confirmAbort'))) return
     try {
-      const state = await sendJson<GameState>('POST', '/api/games', {
-        mode,
-        settings,
-        abort_active: Boolean(running),
-        players: participants.map((p) => (p.playerId === null ? { guest_name: p.guestName } : { player_id: p.playerId })),
-      })
+      const state = await sendJson<GameState>('POST', '/api/games', { ...body, abort_active: Boolean(running) })
       setGame(state)
       void navigate('/play')
     } catch (err) {
       setError(err instanceof ApiError ? errorText(err) : String(err))
     }
+  }
+
+  const start = async () => {
+    remember()
+    await launch(buildRequest())
+  }
+
+  // bull-off first: the game itself is started afterwards with the winner throwing first
+  const bullOff = async () => {
+    remember()
+    const request = buildRequest()
+    try {
+      sessionStorage.setItem(PENDING_KEY, JSON.stringify(request))
+    } catch {
+      // without storage the game has to be started by hand afterwards
+    }
+    await launch({ mode: 'bull_off', settings: {}, players: request.players })
   }
 
   const choice = <T extends string | number>(value: T, current: T, set: (v: T) => void, label: string) => (
@@ -375,9 +398,16 @@ export default function NewGame() {
         </section>
       </div>
       {error && <p className="error">{error}</p>}
-      <button className="button primary large" disabled={participants.length === 0} onClick={() => void start()}>
-        {t('newGame.start')}
-      </button>
+      <div className={styles.startRow}>
+        <button className="button primary large" disabled={participants.length === 0} onClick={() => void start()}>
+          {t('newGame.start')}
+        </button>
+        {participants.length > 1 && (
+          <button className="button large" onClick={() => void bullOff()} title={t('newGame.bullOffHint')}>
+            {t('newGame.bullOff')}
+          </button>
+        )}
+      </div>
     </>
   )
 }

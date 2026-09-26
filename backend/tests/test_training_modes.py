@@ -101,3 +101,12 @@ def test_training_settings_are_validated() -> None:
         create_game("shanghai", 1, {"rounds": 30})
     with pytest.raises(GameError):
         create_game("checkout_training", 1, {"darts_per_target": 5})
+
+
+def test_bull_off_closest_starts_and_ties_rethrow() -> None:
+    game = create_game("bull_off", 3, {})
+    play(game, "25", "NEXT", "25", "NEXT", "S5")  # tie between players 0 and 1
+    assert not game.finished
+    play(game, "NEXT", "T20", "NEXT", "BULL", "NEXT", "MISS")
+    assert game.finished
+    assert game.winner == 1

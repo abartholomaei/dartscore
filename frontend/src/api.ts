@@ -203,6 +203,7 @@ export type GameMode =
   | 'bobs_27'
   | 'checkout_training'
   | 'doubles_training'
+  | 'bull_off'
 export const TRAINING_MODES: GameMode[] = [
   'around_the_clock',
   'shanghai',
@@ -263,6 +264,8 @@ export type GameState = {
   darts_on_target?: number[]
   hits?: number[]
   hits_by_target?: Record<string, number>[]
+  // bull-off
+  last_round?: (number | null)[]
 }
 
 export type HistoryEntry = {

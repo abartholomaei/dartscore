@@ -396,7 +396,7 @@ Aggregierte Statistiken können als Cache-Tabelle (z. B. `player_stats`) gehalte
 - [ ] Bot-Gegner mit einstellbarem Niveau (Streuungsmodell)
 - [x] Undo/Redo, Wurf korrigieren, Wurf manuell eingeben
 - [x] Pausieren/Fortsetzen (laufende Spiele überstehen Neustarts, „Spiel fortsetzen“ auf der Startseite), Rematch
-- [ ] Bull-Out zur Reihenfolgebestimmung
+- [x] Bull-Out zur Reihenfolgebestimmung (Ausbullen, danach startet das vorbereitete Spiel mit dem Gewinner)
 - [x] Unit-Tests für alle Modi inkl. Randfälle (Bust auf 1, Double-Out auf Bull …)
 
 ### Epic 5 – Backend & API

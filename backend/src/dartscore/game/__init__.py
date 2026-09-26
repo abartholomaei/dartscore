@@ -10,6 +10,7 @@ from dartscore.game.training import (
     AroundTheClockSettings,
     BobsGame,
     BobsSettings,
+    BullOffGame,
     CheckoutTrainingGame,
     CheckoutTrainingSettings,
     DoublesTrainingGame,
@@ -27,6 +28,7 @@ MODES = (
     "bobs_27",
     "checkout_training",
     "doubles_training",
+    "bull_off",
 )
 
 __all__ = [
@@ -63,6 +65,8 @@ def create_game(mode: str, player_count: int, settings: dict[str, Any]) -> Game:
             return BobsGame(player_count, BobsSettings(**options))
         if mode == "checkout_training":
             return CheckoutTrainingGame(player_count, CheckoutTrainingSettings(**options))
+        if mode == "bull_off":
+            return BullOffGame(player_count)
         if mode == "doubles_training":
             return DoublesTrainingGame(player_count, DoublesTrainingSettings(**options))
     except TypeError as exc:

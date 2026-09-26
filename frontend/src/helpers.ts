@@ -3,6 +3,11 @@ import { useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 import { ApiError, type CricketVariant, type GameMode } from './api'
 
+/** sessionStorage key: the game to start after a bull-off */
+export const PENDING_KEY = 'dartscore.afterBullOff'
+
+export type PendingGame = { mode: GameMode; settings: object; players: object[] }
+
 export const PLAYER_COLORS = [
   '#e53935', '#1e88e5', '#43a047', '#fb8c00', '#8e24aa', '#00acc1', '#fdd835', '#6d4c41', '#546e7a', '#d81b60',
 ]  // prettier-ignore

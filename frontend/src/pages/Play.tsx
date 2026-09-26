@@ -6,7 +6,7 @@ import DartBoard from '../components/DartBoard'
 import DetectionBadge from '../components/DetectionBadge'
 import { dartLabel, dartPoints } from '../dart'
 import { useLiveGame } from '../LiveGame'
-import { useErrorText } from '../helpers'
+import { PENDING_KEY, useErrorText, type PendingGame } from '../helpers'
 import styles from './Play.module.css'
 
 type InputMode = 'pad' | 'board'
@@ -29,6 +29,7 @@ export default function Play() {
       </div>
     )
   }
+  if (game.finished && game.mode === 'bull_off') return <BullOffResult game={game} />
   return game.finished ? <Finished game={game} /> : <Running game={game} />
 }
 
@@ -397,6 +398,12 @@ function TrainingScores({ game }: { game: GameState }) {
             big = game.hits?.[i] ?? 0
             detail = t('play.hits')
             break
+          case 'bull_off': {
+            const own = game.history.filter((h) => h.player === i)
+            big = own.at(-1)?.darts[0] ?? '–'
+            detail = t('play.bullOffRound', { round: Math.max(own.length, 1) })
+            break
+          }
         }
         return (
           <article key={i} className={`card ${styles.player} ${active ? styles.active : ''}`}>
@@ -513,6 +520,54 @@ function GameMenu() {
       <button className="button danger" onClick={() => void abort()}>
         {t('play.abort')}
       </button>
+    </div>
+  )
+}
+
+function readPending(): PendingGame | null {
+  try {
+    return JSON.parse(sessionStorage.getItem(PENDING_KEY) ?? 'null') as PendingGame | null
+  } catch {
+    return null
+  }
+}
+
+/** After the bull-off: start the prepared game with the winner throwing first. */
+function BullOffResult({ game }: { game: GameState }) {
+  const { t } = useTranslation()
+  const { setGame } = useLiveGame()
+  const navigate = useNavigate()
+  const winner = game.winner !== null ? game.players[game.winner] : null
+  const pending = readPending()
+
+  const startGame = async () => {
+    if (!pending || game.winner === null) return
+    // keep the order around the table, starting with the winner
+    const order = [...pending.players.slice(game.winner), ...pending.players.slice(0, game.winner)]
+    const state = await sendJson<GameState>('POST', '/api/games', { ...pending, players: order })
+    sessionStorage.removeItem(PENDING_KEY)
+    setGame(state)
+  }
+
+  return (
+    <div className={styles.finished}>
+      {winner && (
+        <div className={styles.winner}>
+          <span className={styles.winnerDot} style={{ background: winner.color }} />
+          <h1>{t('play.startsFirst', { name: winner.name })}</h1>
+        </div>
+      )}
+      <div className={styles.actions}>
+        {pending ? (
+          <button className="button primary large" onClick={() => void startGame()}>
+            {t('play.startPrepared', { mode: t(`modes.${pending.mode}`) })}
+          </button>
+        ) : (
+          <button className="button primary large" onClick={() => void navigate('/play/new')}>
+            {t('home.newGame')}
+          </button>
+        )}
+      </div>
     </div>
   )
 }

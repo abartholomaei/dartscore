@@ -402,3 +402,54 @@ class DoublesTrainingGame(Game):
             "include_bull": self.settings.include_bull,
             "seed": self.settings.seed,
         }
+
+
+# --- Bull-off (throwing order) -------------------------------------------------------------
+
+
+def bull_distance_class(dart: Dart) -> int:
+    """How close a dart is to the bull, by field: 0 = bull, 1 = 25, then single inner, triple,
+    single outer, double, miss."""
+    if dart.segment == BULL:
+        return 0 if dart.multiplier == 2 else 1
+    if dart.is_miss:
+        return 6
+    return {1: 2, 3: 3, 2: 5}[dart.multiplier]
+
+
+class BullOffGame(Game):
+    """Everybody throws one dart at the bull; the closest starts. On a tie all throw again.
+    (Single darts are not told apart into inner and outer single without a board position.)"""
+
+    mode = "bull_off"
+
+    def __init__(self, player_count: int, _settings: object = None) -> None:
+        super().__init__(player_count, MatchSettings())
+
+    def _start_leg(self) -> None:
+        self.last_round: list[int | None] = [None] * self.player_count
+
+    def _score_dart(self, turn: Turn, dart: Dart) -> None:
+        turn.values.append(bull_distance_class(dart))
+        turn.stop = True  # one dart per player and round
+
+    def _after_turn(self, turn: Turn) -> int | None:
+        counts = [len(self.turns_of(p)) for p in range(self.player_count)]
+        if len(set(counts)) != 1:
+            return None
+        # a round is complete: compare the last dart of every player
+        classes = [self.turns_of(p)[-1].values[0] for p in range(self.player_count)]
+        self.last_round = list(classes)
+        best = min(classes)
+        if classes.count(best) == 1:
+            return classes.index(best)
+        return None
+
+    def player_result(self, player: int) -> dict[str, int]:
+        return {}
+
+    def _leg_state(self) -> dict[str, Any]:
+        return {"last_round": list(self.last_round)}
+
+    def settings_dict(self) -> dict[str, Any]:
+        return {}

@@ -129,6 +129,8 @@ const de: Translations = {
     color: 'Farbe',
   },
   newGame: {
+    bullOff: 'Ausbullen',
+    bullOffHint: 'Jeder wirft einen Dart aufs Bull, wer am nächsten dran ist, beginnt.',
     training: 'Training',
     ring: 'Zählender Ring',
     rings: { single: 'Beliebig', double: 'Doppel', triple: 'Triple' },
@@ -174,6 +176,9 @@ const de: Translations = {
     confirmAbort: 'Es läuft noch ein Spiel. Abbrechen und ein neues starten?',
   },
   play: {
+    bullOffRound: 'Ausbullen, Runde {{round}}',
+    startsFirst: '{{name}} beginnt!',
+    startPrepared: '{{mode}} starten',
     unsure: 'Unsicher erkannt – bitte prüfen (antippen zum Korrigieren)',
     target: 'Ziel',
     round: 'Runde {{round}}/{{rounds}}',
@@ -295,6 +300,7 @@ const de: Translations = {
     handOut: 'Hand weg',
   },
   modes: {
+    bull_off: 'Ausbullen',
     x01: 'X01',
     cricket: 'Cricket',
     around_the_clock: 'Around the Clock',

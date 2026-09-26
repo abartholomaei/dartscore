@@ -128,6 +128,8 @@ const en = {
     color: 'Color',
   },
   newGame: {
+    bullOff: 'Bull-off for the order',
+    bullOffHint: 'Everybody throws one dart at the bull, the closest starts.',
     training: 'Training',
     ring: 'Counting ring',
     rings: { single: 'Any', double: 'Doubles', triple: 'Triples' },
@@ -173,6 +175,9 @@ const en = {
     confirmAbort: 'A game is still running. Abort it and start a new one?',
   },
   play: {
+    bullOffRound: 'Bull-off round {{round}}',
+    startsFirst: '{{name}} throws first!',
+    startPrepared: 'Start {{mode}}',
     unsure: 'Detected with low confidence - please check (tap to correct)',
     target: 'Target',
     round: 'Round {{round}}/{{rounds}}',
@@ -294,6 +299,7 @@ const en = {
     handOut: 'Hand gone',
   },
   modes: {
+    bull_off: 'Bull-off',
     x01: 'X01',
     cricket: 'Cricket',
     around_the_clock: 'Around the Clock',

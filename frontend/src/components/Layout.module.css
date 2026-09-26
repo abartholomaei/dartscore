@@ -12,6 +12,10 @@
   align-items: center;
   gap: var(--gutter);
   padding: 12px var(--gutter);
+  /* installed on a phone: keep clear of the notch / status bar */
+  padding-top: max(12px, env(safe-area-inset-top));
+  padding-left: max(var(--gutter), env(safe-area-inset-left));
+  padding-right: max(var(--gutter), env(safe-area-inset-right));
   background: var(--surface);
   border-bottom: 1px solid var(--border);
 }

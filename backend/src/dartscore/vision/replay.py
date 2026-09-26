@@ -87,10 +87,13 @@ def _truth(db: sqlite3.Connection | None, meta: dict[str, object]) -> str | None
     if db is None or meta.get("game_id") is None or meta.get("event_seq") is None:
         return None
     row = db.execute(
-        "select segment, multiplier from game_events "
+        "select segment, multiplier, source from game_events "
         "where game_id = ? and seq = ? and kind = 'dart'",
         (meta["game_id"], meta["event_seq"]),
     ).fetchone()
+    if row and row[2] == "bounce":
+        # fell out of the board: the detected position was right, the score is not comparable
+        return None
     return Dart(row[0], row[1]).label if row else None
 
 

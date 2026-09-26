@@ -191,3 +191,14 @@ def test_websocket_receives_updates(client: TestClient) -> None:
         assert message["data"]["mode"] == "x01"
         client.post("/api/games/active/throws", json={"dart": "T20"})
         assert ws.receive_json()["data"]["remaining"] == [441]
+
+
+def test_bounce_scores_nothing_and_is_marked(client: TestClient) -> None:
+    client.post("/api/games", json={"mode": "x01", "players": [{"guest_name": "A"}]})
+    throw(client, "S20", "T20")
+    state = client.put(
+        "/api/games/active/darts", json={"turn_index": -1, "dart_index": 1, "bounce": True}
+    ).json()
+    assert state["turn"]["darts"] == ["S20", "MISS"]
+    assert state["remaining"] == [481]
+    assert state["turn_sources"] == ["manual", "bounce"]

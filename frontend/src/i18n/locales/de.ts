@@ -157,6 +157,8 @@ const de: Translations = {
     confirmAbort: 'Es läuft noch ein Spiel. Abbrechen und ein neues starten?',
   },
   play: {
+    bounce: 'Abpraller',
+    bounceHint: 'Der letzte (oder ausgewählte) Dart ist herausgefallen: zählt 0.',
     detected: 'automatisch erkannt',
     connecting: 'Verbinde …',
     noGame: 'Es läuft kein Spiel.',

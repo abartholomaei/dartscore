@@ -221,24 +221,26 @@ class GameService:
                     session.commit()
             return self._after_change(active)
 
-    def correct(self, turn_index: int, dart_index: int, dart: Dart) -> dict[str, Any]:
+    def correct(
+        self, turn_index: int, dart_index: int, dart: Dart, bounce: bool = False
+    ) -> dict[str, Any]:
+        """Replaces a dart. ``bounce``: the dart hit the board where it was detected but fell
+        out - it scores nothing, but the detection was right (kept as training data)."""
         with self._lock:
             active = self._require_active()
-            before = list(active.game.events)
-            active.game.replace_dart(turn_index, dart_index, dart)
-            changed = [
-                i for i, (a, b) in enumerate(zip(before, active.game.events, strict=True)) if a != b
-            ]
+            if bounce:
+                dart = Dart.miss()
+            seq = active.game.replace_dart(turn_index, dart_index, dart)
+            source = "bounce" if bounce else "corrected"
             with self._sessions() as session:
-                for seq in changed:
-                    record = session.scalars(
-                        select(GameEventRecord).where(
-                            GameEventRecord.game_id == active.id, GameEventRecord.seq == seq
-                        )
-                    ).one()
-                    record.segment, record.multiplier = dart.segment, dart.multiplier
-                    record.source = "corrected"
-                    active.meta[seq].source = "corrected"
+                record = session.scalars(
+                    select(GameEventRecord).where(
+                        GameEventRecord.game_id == active.id, GameEventRecord.seq == seq
+                    )
+                ).one()
+                record.segment, record.multiplier = dart.segment, dart.multiplier
+                record.source = source
+                active.meta[seq].source = source
                 session.commit()
             return self._after_change(active)
 

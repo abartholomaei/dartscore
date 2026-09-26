@@ -137,9 +137,9 @@ class Game(ABC):
         self._replay()
         return event
 
-    def replace_dart(self, turn_index: int, dart_index: int, dart: Dart) -> None:
-        """Correct a dart: the ``dart_index``-th dart of the ``turn_index``-th turn of the
-        current leg (negative indices count from the end)."""
+    def dart_event_index(self, turn_index: int, dart_index: int) -> int:
+        """Position in ``events`` of the ``dart_index``-th dart of the ``turn_index``-th turn of
+        the current leg (negative indices count from the end)."""
         leg = self.legs[-1]
         try:
             turn = leg.turns[turn_index]
@@ -150,7 +150,11 @@ class Game(ABC):
             dart_index += len(turn.darts)
         if dart_index >= len(turn.darts) - turn.implicit_misses:
             raise GameError("no_such_dart", "Implicit misses cannot be corrected")
-        position = self._event_position(leg, leg.turns.index(turn), dart_index)
+        return self._event_position(leg, leg.turns.index(turn), dart_index)
+
+    def replace_dart(self, turn_index: int, dart_index: int, dart: Dart) -> int:
+        """Correct a dart (see ``dart_event_index``); returns its position in ``events``."""
+        position = self.dart_event_index(turn_index, dart_index)
         backup = list(self.events)
         self.events[position] = DartEvent(dart)
         try:
@@ -159,6 +163,7 @@ class Game(ABC):
             self.events = backup
             self._replay()
             raise
+        return position
 
     def state(self) -> dict[str, Any]:
         leg = self.legs[-1]

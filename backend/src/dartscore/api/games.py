@@ -54,6 +54,11 @@ class DartInput(BaseModel):
 class DartCorrection(DartInput):
     turn_index: int
     dart_index: int
+    # the dart fell out of the board: scores nothing, the detection itself was right
+    bounce: bool = False
+
+    def to_dart(self) -> Dart:
+        return Dart.miss() if self.bounce else super().to_dart()
 
 
 def _service(request: Request) -> GameService:
@@ -94,7 +99,9 @@ def undo(request: Request) -> GameState:
 
 @router.put("/active/darts")
 def correct(request: Request, body: DartCorrection) -> GameState:
-    return _service(request).correct(body.turn_index, body.dart_index, body.to_dart())
+    return _service(request).correct(
+        body.turn_index, body.dart_index, body.to_dart(), bounce=body.bounce
+    )
 
 
 @router.post("/active/abort", status_code=204)

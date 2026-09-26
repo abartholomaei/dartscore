@@ -367,6 +367,11 @@
   grid-column: span 3;
 }
 
+.bounce {
+  grid-column: 1 / -1;
+  font-size: 1rem !important;
+}
+
 .boardInput {
   max-width: 480px;
   width: 100%;

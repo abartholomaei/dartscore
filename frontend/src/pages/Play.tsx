@@ -82,6 +82,16 @@ function Running({ game }: { game: GameState }) {
     })
   }
 
+  // the selected dart, or the last one of the turn, fell out of the board
+  const bounce = () => {
+    const index = correcting ?? shownDarts.length - 1
+    setCorrecting(null)
+    if (index < 0) return
+    return call(() =>
+      sendJson<GameState>('PUT', '/api/games/active/darts', { turn_index: -1, dart_index: index, bounce: true }),
+    )
+  }
+
   const next = () => call(() => sendJson<GameState>('POST', '/api/games/active/next'))
   const undo = () => {
     setCorrecting(null)
@@ -164,7 +174,13 @@ function Running({ game }: { game: GameState }) {
           ))}
         </div>
         {inputMode === 'pad' ? (
-          <Pad multiplier={multiplier} setMultiplier={setMultiplier} onDart={(l) => void enter(l)} disabled={false} />
+          <Pad
+            multiplier={multiplier}
+            setMultiplier={setMultiplier}
+            onDart={(l) => void enter(l)}
+            onBounce={shownDarts.length > 0 ? () => void bounce() : undefined}
+            disabled={false}
+          />
         ) : (
           <div className={styles.boardInput}>
             <DartBoard darts={shownDarts} selected={correcting} onSelect={(l) => void enter(l)} />
@@ -312,11 +328,13 @@ function Pad({
   multiplier,
   setMultiplier,
   onDart,
+  onBounce,
   disabled,
 }: {
   multiplier: 1 | 2 | 3
   setMultiplier: (m: 1 | 2 | 3) => void
   onDart: (label: string) => void
+  onBounce?: () => void
   disabled: boolean
 }) {
   const { t } = useTranslation()
@@ -349,6 +367,14 @@ function Pad({
         </button>
         <button disabled={disabled} className={styles.miss} onClick={() => onDart('MISS')}>
           {t('play.miss')}
+        </button>
+        <button
+          disabled={disabled || !onBounce}
+          className={styles.bounce}
+          onClick={onBounce}
+          title={t('play.bounceHint')}
+        >
+          {t('play.bounce')}
         </button>
       </div>
     </div>

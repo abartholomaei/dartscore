@@ -196,7 +196,7 @@ export type CricketVariant = 'standard' | 'cut_throat' | 'no_score'
 export type GameState = {
   id: number
   event_count: number
-  turn_sources: ('manual' | 'auto' | 'corrected')[]
+  turn_sources: ('manual' | 'auto' | 'corrected' | 'bounce')[]
   mode: GameMode
   settings: Record<string, string | number>
   created_at: string

@@ -156,6 +156,8 @@ const en = {
     confirmAbort: 'A game is still running. Abort it and start a new one?',
   },
   play: {
+    bounce: 'Bounce-out',
+    bounceHint: 'The last dart (or the selected one) fell out of the board: scores 0.',
     detected: 'detected automatically',
     connecting: 'Connecting …',
     noGame: 'No game is running.',

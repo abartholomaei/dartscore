@@ -309,7 +309,7 @@ Aggregierte Statistiken können als Cache-Tabelle (z. B. `player_stats`) gehalte
 - [x] Logging-Konzept (structlog, Konsole oder JSON)
 - [x] README mit Setup-Anleitung
 
-### Epic 1 – Hardware & Kameras (erledigt 2026-09-26, Linsenkalibrierung offen)
+### Epic 1 – Hardware & Kameras (erledigt 2026-09-26, Linsenkalibrierung: Software fertig, Durchführung offen)
 - [x] Kameramodelle, Auflösung und fps dokumentieren
 - [x] Montageposition bestimmen (0°/120°/240°, siehe Hardware-Tabelle)
 - [ ] Beleuchtung optimieren (LED-Ring, Flimmer-Test)
@@ -501,3 +501,80 @@ Aggregierte Statistiken können als Cache-Tabelle (z. B. `player_stats`) gehalte
 
 - Soll das System auf einem dedizierten Gerät (z. B. Mini-PC/Raspberry Pi) dauerhaft laufen oder auf dem Mac?
 - Welche Spielmodi sind persönlich am wichtigsten (Reihenfolge nach dem MVP)?
+
+---
+
+## 11. Version 2 – Ideen aus dem Marktvergleich (Stand 2026-09-26)
+
+Verglichen wurden **Target Omni** (Hardware; Software kommt komplett aus der App DartCounter), **Scolia** (Home/Home 2/Pro, Scolia Social) und **Autodarts** (DIY/Autodarts X, play.autodarts.io und das Community-Werkzeug „Tools for Autodarts“). Übernommen werden nur Funktionen, die ohne Internet auf einem einzelnen Board Sinn ergeben. Online-Spiel, Matchmaking, Lobbys, Video-Chat, Ranglisten, Freundeslisten, Cloud-Sync und Abos bleiben Nicht-Ziele (siehe Abschnitt 2).
+
+Schon vorhanden und deshalb nicht aufgeführt: Master-In/Out, Ausbullen, Gäste, manuelle Eingabe, automatischer Spielerwechsel beim Herausziehen, Checkout-Training mit Bereich, Punkte-Training, Halve-It, Gotcha, Killer, Bot, Caller, Achievements, Heatmap, Gruppierung, Linsenkalibrierung.
+
+### 11.1 Übersicht
+
+Priorität für V2: **M** = zuerst, **S** = danach, **C** = bei Gelegenheit.
+
+| ID | Funktion | Beschreibung | Vorbild | Nutzen / Aufwand | Prio |
+| --- | --- | --- | --- | --- | --- |
+| V2-1 | Wurf-Fotos pro Aufnahme | Kamerabilder jeder Aufnahme im Verlauf ansehen, mit Zoom auf die Darts – zum Prüfen strittiger Würfe | Autodarts „Last Turn Check“ | hoch / gering (Aufnahmen existieren schon) | M |
+| V2-2 | Schiedsrichter-Nachprüfung | Auf Knopfdruck die gespeicherten Bilder mit einer langsameren, genaueren Auswertung (mehr Kandidaten, Modell) erneut prüfen und nur bei Abweichung korrigieren | Autodarts AI Referee | hoch / mittel | M |
+| V2-3 | Zielabweichung | Mittlere Abweichung nach links/rechts und oben/unten sowie Abstand in mm zum angepeilten Feld (z. B. T20, Doppel beim Checkout) | Scolia, Omni | hoch / gering–mittel | M |
+| V2-4 | Persönlicher Bot | Bot, der Average und Streuung eines Spielers aus dessen gespeicherten Würfen übernimmt („spiel gegen dich selbst“) | Scolia | hoch / gering | M |
+| V2-5 | Segment-Training | Beliebiges Ziel (Single, Doppel, Triple, zufällig), Ende nach N Treffern oder 33/66/99 Darts, Trefferquote pro Segment | Autodarts, DartCounter | hoch / gering | M |
+| V2-6 | 121-Checkout | Start bei 121; Checkout geschafft = eine Stufe höher, verpasst = eine Stufe niedriger | Autodarts, DartCounter, Scolia | hoch / gering | M |
+| V2-7 | Zweiter Bildschirm / Handy-Fernbedienung | TV zeigt die Anzeige, Handy oder Tablet im WLAN dient als Eingabe und Korrektur; Zuschauer-Ansicht | Scolia, DartCounter | hoch / mittel | S |
+| V2-8 | Lokale Turniere | K.-o. oder Jeder-gegen-jeden mit Freilosen, auf einem Board, Ergebnisse fließen in die Statistik | DartCounter | hoch / mittel | S |
+| V2-9 | Trainingspläne | Mehrtägige Programme aus Übungen mit Zielwerten und Fortschritt („Trainer“) | Scolia (GoDartsPro), Autodarts-Community | hoch / mittel | S |
+| V2-10 | LED-/WLED-Anbindung | Lichtfarben für Status (bereit, herausziehen, Bust, 180, Sieg) über WLED oder den LED-Ring | Scolia Pro, Tools for Autodarts | hoch / gering–mittel | S |
+| V2-11 | Statistik-Verläufe für alle Modi | Liniendiagramme je Trainingsmodus (Bob's 27, Around the Clock, Segment-Training …) | DartCounter v9 | hoch / mittel | S |
+| V2-12 | Aufnahme-Verteilung und Formkurve | Häufigkeit 0–59 / 60+ / 100+ / 140+ / 180, beste und schlechteste Spiele, aktuelle Form, Leistungsnote | DartCounter, Scolia, Autodarts Plus | mittel / gering | S |
+| V2-13 | Automatische Bounce-out-Erkennung | Beim Herausziehen fehlende Darts automatisch als Fehlwurf eintragen, statt den Knopf zu brauchen | Scolia | mittel / gering–mittel | S |
+| V2-14 | Diagnose-Ansicht | Live-Bewegungsbild, FPS pro Kamera, CPU/RAM, Erkennungsprotokoll | Autodarts Desktop | mittel / gering–mittel | S |
+| V2-15 | Namen in Ansagen | Caller nennt Spielernamen („Game shot, Alex!“, „Alex, du brauchst 40“) – teilweise schon vorhanden, ausbauen und pro Modus schaltbar | DartCounter, Autodarts | mittel / gering | S |
+| V2-16 | Weitere Modi | Round the World, Count Up, Bermuda (feste Zielfolge mit Halbierung), Random/Hidden Cricket, Power-Scoring und Checkout-Serie | Autodarts, Scolia | mittel / gering | S |
+| V2-17 | X01-Extras | Bull-Wertung 25/50 oder 50/50, Rundenlimit (niedrigster Rest gewinnt), offizielles Ausbullen | Autodarts | mittel / gering | C |
+| V2-18 | Teams / Doppel | Teams mit gemeinsamem Punktestand, bis 12 Spieler in 6 Teams | DartCounter | mittel / mittel | C |
+| V2-19 | Mirror Match | Eine eigene frühere Partie Dart für Dart als Gegner nachspielen | DartCounter | mittel / gering | C |
+| V2-20 | Sofort-Wiederholung | Kurzer Clip aus allen Kameras pro Aufnahme, Favoriten dauerhaft speichern | DartCounter, Tools for Autodarts | mittel / mittel | C |
+| V2-21 | Lokale Liga / Elo | Laufende Tabelle und Elo-Wertung im Haushalt | DartCounter Ranked (lokal umgedacht) | mittel / mittel | C |
+| V2-22 | Hardware-Knopf / Tastatur | USB/Bluetooth-Taster oder Tastenkürzel für Weiter, Rückgängig, Nachkalibrieren | Scolia, DartCounter | mittel / gering | C |
+| V2-23 | Lokale Ereignis-Schnittstelle | WebSocket/Webhook mit Spielereignissen für Home Assistant, WLED, OBS-Overlays | Autodarts-Ökosystem | mittel / gering–mittel | C |
+| V2-24 | Themes und Ansichten | Farbschemata, Board-Skins, größere TV-Darstellung, Startspieler per Münzwurf/Glücksrad | Autodarts Plus, DartCounter | gering–mittel / gering | C |
+| V2-25 | Arcade-Spiele | Animierte Party-Spiele mit Darts als Steuerung (z. B. Asteroiden, Zombies, Holzfäller) | Scolia Social | mittel / hoch | C |
+
+### 11.2 Hinweise
+
+- **V2-1, V2-2 und V2-13** bauen direkt auf den vorhandenen Aufnahmen (Vorher/Nachher-Bilder je Dart) auf und verbessern das Vertrauen in die Erkennung am meisten.
+- **V2-2** ist zugleich eine Quelle für genauere Trainingsdaten (siehe Epic 3b).
+- **V2-10 und V2-23** passen gut zum vorhandenen Home Assistant auf dem Mac mini.
+- **V2-24 Themes:** Die Oberfläche soll zunächst ein schwarz-graues Grundschema mit einer Akzentfarbe bekommen (Vorschlag: Board-Grün statt Rot, um sich von Target Omni abzuheben; Rot bleibt Fehlern und Bust vorbehalten). Entscheidung steht aus.
+
+### 11.3 To-Do-Liste Version 2
+
+- [ ] V2-1 Wurf-Fotos pro Aufnahme im Spielverlauf
+- [ ] V2-2 Schiedsrichter-Nachprüfung auf Knopfdruck
+- [ ] V2-3 Zielabweichung (horizontal/vertikal, mm) in der Statistik
+- [ ] V2-4 Persönlicher Bot aus eigenen Wurfdaten
+- [ ] V2-5 Segment-Training
+- [ ] V2-6 121-Checkout
+- [ ] V2-7 Zweiter Bildschirm / Handy als Fernbedienung / Zuschauer-Ansicht
+- [ ] V2-8 Lokale Turniere
+- [ ] V2-9 Trainingspläne
+- [ ] V2-10 LED-/WLED-Anbindung
+- [ ] V2-11 Statistik-Verläufe für alle Modi
+- [ ] V2-12 Aufnahme-Verteilung, Formkurve, beste/schlechteste Spiele
+- [ ] V2-13 Automatische Bounce-out-Erkennung
+- [ ] V2-14 Diagnose-Ansicht
+- [ ] V2-15 Namen in Ansagen, Ton pro Modus schaltbar
+- [ ] V2-16 Round the World, Count Up, Bermuda, Random/Hidden Cricket, Power-Scoring, Checkout-Serie
+- [ ] V2-17 X01-Extras (Bull-Wertung, Rundenlimit, offizielles Ausbullen)
+- [ ] V2-18 Teams / Doppel
+- [ ] V2-19 Mirror Match
+- [ ] V2-20 Sofort-Wiederholung
+- [ ] V2-21 Lokale Liga / Elo
+- [ ] V2-22 Hardware-Knopf / Tastenkürzel
+- [ ] V2-23 Lokale Ereignis-Schnittstelle
+- [ ] V2-24 Themes, Board-Skins, Startspieler per Münzwurf
+- [ ] V2-25 Arcade-Spiele
+
+**Quellen (Auswahl):** targetdarts.com/omni, dartcounter.net (Spiele, Ultimate, Release Notes v8.4/v9.0/v9.7), scoliadarts.com (Home 2, Vergleich, Software, FAQ, Social), autodarts.com (Preise, Updates), autodarts.diy (Spieleinstellungen, Desktop, AI Referee, Statistik), github.com/creazy231/tools-for-autodarts.

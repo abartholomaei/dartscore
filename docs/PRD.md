@@ -357,7 +357,7 @@ Aggregierte Statistiken können als Cache-Tabelle (z. B. `player_stats`) gehalte
 - [ ] Testdatensatz aufbauen (≥ 500 gelabelte Würfe, alle Segmente)
 - [x] Genauigkeits-Messung per Replay (Stand 2026-09-26: 26/27 = 96 % auf echten Würfen, vorher 70 %)
 - [ ] Parameter-Tuning über UI (Schwellwerte, Wartezeiten)
-- [ ] Degradierter Modus mit 2 Kameras
+- [x] Degradierter Modus: Erkennung arbeitet mit jeder Teilmenge kalibrierter Kameras, die Fusion gewichtet die vorhandenen
 
 ### Epic 3b – Erkennungsmodell (ML)
 - [ ] DeepDarts-Datensatz von IEEE Dataport laden, Lizenz prüfen, ins YOLO-Pose-Format umwandeln
@@ -367,7 +367,7 @@ Aggregierte Statistiken können als Cache-Tabelle (z. B. `player_stats`) gehalte
 - [x] Automatisches Labeling über die Kalibrierung (`dartscore export-dataset`), inkl. 4 Kalibrierpunkte für spätere Auto-Kalibrierung
 - [ ] Vorlabeln mit klassischer CV bzw. aktuellem Modell, nur noch korrigieren
 - [ ] Eigenen Datensatz aufbauen: alle Segmente, Grenzfälle an Drähten, Verdeckung, verschiedene Lichtverhältnisse
-- [ ] Train/Val/Test-Split nach Session (nicht nach Bild), damit der Test ehrlich bleibt
+- [x] Train/Val-Split nach Tag bzw. zeitlich (nicht nach Bild), damit der Test ehrlich bleibt
 - [ ] Data Augmentation (Helligkeit, Unschärfe, leichte Perspektive)
 - [x] Erstes Modell auf eigenen Daten trainiert (YOLO26n, 360 Bilder, 2026-09-26): im Replay 127/135 vs. klassisch 131/135 → nicht eingesetzt. Ursache: Markierungen stammen aus der klassischen Erkennung, das Modell übernimmt deren Millimeter-Verschiebungen
 - [ ] Genauere, unabhängige Markierungen für das Training (z. B. Klick auf die Spitze bei Korrekturen, 9-Punkt-Kalibrierung + Linsenkalibrierung) und mehr Daten, dann erneut trainieren und per Replay vergleichen
@@ -378,7 +378,7 @@ Aggregierte Statistiken können als Cache-Tabelle (z. B. `player_stats`) gehalte
 - [ ] Modell-Versionierung, Umschalten zwischen Modellen in den Einstellungen
 - [x] Automatische Trainingsdaten aus Spielen (bestätigte/korrigierte Würfe) sammeln
 - [ ] Nachtrainings-Skript (z. B. monatlich oder per Knopfdruck)
-- [ ] Vergleichsbenchmark Modell vs. klassische CV auf gleichem Testdatensatz
+- [x] Vergleichsbenchmark Modell vs. klassische CV per Replay (`dartscore replay --model`)
 
 ### Epic 4 – Game Engine
 - [x] Einheitliches Interface für Spielmodi (`start`, `apply_throw`, `undo`, `is_finished`, `state`)
@@ -386,16 +386,16 @@ Aggregierte Statistiken können als Cache-Tabelle (z. B. `player_stats`) gehalte
 - [x] X01: Startwerte, In/Out-Varianten, Bust, Legs/Sets, Anwurf-Rotation
 - [x] Checkout-Tabelle / Checkout-Rechner (inkl. bevorzugtem Doppel)
 - [x] Cricket: Standard, Cut-Throat, No-Score
-- [ ] Around the Clock
-- [ ] Shanghai
-- [ ] Bob’s 27
-- [ ] Checkout-Training
-- [ ] Doubles-Training
+- [x] Around the Clock
+- [x] Shanghai
+- [x] Bob’s 27
+- [x] Checkout-Training
+- [x] Doubles-Training
 - [ ] Score-Training
 - [ ] Killer, Halve-It, Gotcha (Party)
 - [ ] Bot-Gegner mit einstellbarem Niveau (Streuungsmodell)
 - [x] Undo/Redo, Wurf korrigieren, Wurf manuell eingeben
-- [ ] Pausieren/Fortsetzen, Rematch
+- [x] Pausieren/Fortsetzen (laufende Spiele überstehen Neustarts, „Spiel fortsetzen“ auf der Startseite), Rematch
 - [ ] Bull-Out zur Reihenfolgebestimmung
 - [x] Unit-Tests für alle Modi inkl. Randfälle (Bust auf 1, Double-Out auf Bull …)
 
@@ -403,7 +403,7 @@ Aggregierte Statistiken können als Cache-Tabelle (z. B. `player_stats`) gehalte
 - [x] FastAPI-App, Router-Struktur
 - [x] WebSocket-Kanal für Live-Events (Wurf, Zugwechsel, Spielstand)
 - [x] REST-Endpunkte: Profile, Spiele, Statistiken, Einstellungen, Kalibrierung
-- [ ] Anbindung Vision-Service → Game Engine (Event-Bus/Queue)
+- [x] Anbindung Vision-Service → Game Engine (Erkennungsdienst + Event-Hub)
 - [x] Persistenz jedes Wurfs sofort (Crash-Sicherheit)
 - [x] Wiederaufnahme laufender Spiele nach Neustart
 - [x] Healthcheck/Status-Endpunkt (Kameras ok, fps; Erkennung folgt)
@@ -421,7 +421,7 @@ Aggregierte Statistiken können als Cache-Tabelle (z. B. `player_stats`) gehalte
 - [x] Profile anlegen/bearbeiten/archivieren/löschen
 - [x] Avatar/Farbe wählen
 - [x] Gastspieler
-- [ ] Profil-Einstellungen (Lieblingsdoppel, Standardmodus)
+- [x] Profil-Einstellungen (Lieblingsdoppel für Checkout-Vorschläge, Wurfhand, Standardmodus)
 - [ ] Optional PIN-Schutz
 
 ### Epic 8 – Statistiken
@@ -429,13 +429,13 @@ Aggregierte Statistiken können als Cache-Tabelle (z. B. `player_stats`) gehalte
 - [x] 60+/100+/140+/180-Zähler
 - [x] Siege/Niederlagen, Head-to-Head
 - [x] Cricket MPR
-- [ ] Trefferquote pro Segment/Doppel
+- [x] Trefferquote pro Doppel (Checkout-Versuche, Doppel-Training, Bob’s 27)
 - [x] Heatmap aus Wurfkoordinaten
 - [x] Zeitverlauf (Charts)
-- [ ] Trainingsstatistiken und persönliche Bestwerte
-- [ ] Filter (Zeitraum, Modus, Gegner)
+- [x] Trainingsstatistiken und persönliche Bestwerte
+- [x] Filter: Zeitraum; Modi getrennt; Gegner über den direkten Vergleich
 - [x] Stats-Cache, Neuberechnung nach Korrekturen
-- [ ] Export CSV/JSON
+- [x] Export CSV (Spiele, Darts) und JSON (vollständige Kopie)
 - [ ] Achievements
 
 ### Epic 9 – Frontend / UI
@@ -445,7 +445,7 @@ Aggregierte Statistiken können als Cache-Tabelle (z. B. `player_stats`) gehalte
 - [x] Spiel-Setup-Assistent (Modus, Optionen, Spieler, Reihenfolge)
 - [x] Spielansicht X01 (Score, Rest, Aufnahme, Checkout-Weg, Leg/Set-Stand)
 - [x] Spielansicht Cricket (Marks-Tabelle)
-- [ ] Ansichten für Trainings- und Party-Modi
+- [x] Ansichten für Trainingsmodi
 - [x] Interaktive Scheiben-Grafik (Treffer anzeigen, Tippen zum Korrigieren)
 - [x] Manuelle Eingabe (Ziffernfeld + S/D/T)
 - [x] Spielende-Screen mit Match-Statistik
@@ -453,7 +453,7 @@ Aggregierte Statistiken können als Cache-Tabelle (z. B. `player_stats`) gehalte
 - [x] Statistik-Seite mit Kennzahlen und Verlaufskurve (Heatmap folgt mit Wurfkoordinaten aus der Erkennung)
 - [x] Einstellungen: Kameras (Live-Bild), Kalibrierung, Sprache (Erkennung und Sound folgen)
 - [x] Multi-Device: TV-Anzeige + Handy-Steuerung synchron
-- [ ] PWA (installierbar, Vollbild)
+- [x] PWA-Grundlagen: Icons, Manifest, „Zum Home-Bildschirm“ (volle Installation braucht HTTPS)
 - [x] i18n Deutsch/Englisch
 - [ ] Sound/Caller-Ansagen, Animationen (180, Checkout)
 

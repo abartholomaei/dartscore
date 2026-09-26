@@ -75,6 +75,21 @@ export default function Settings() {
           </section>
         )}
         <section className={`card ${styles.link}`}>
+          <strong>{t('settings.export')}</strong>
+          <span className="muted">{t('settings.exportHint')}</span>
+          <div className={styles.languages}>
+            <a className="button" href="/api/export/games.csv" download>
+              {t('settings.exportGames')}
+            </a>
+            <a className="button" href="/api/export/darts.csv" download>
+              {t('settings.exportDarts')}
+            </a>
+            <a className="button" href="/api/export/all.json" download>
+              JSON
+            </a>
+          </div>
+        </section>
+        <section className={`card ${styles.link}`}>
           <strong>{t('language.label')}</strong>
           <div className={styles.languages}>
             {LANGUAGES.map((lang) => (

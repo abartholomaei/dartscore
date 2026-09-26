@@ -234,6 +234,12 @@ const de: Translations = {
     },
   },
   stats: {
+    period: 'Zeitraum',
+    allTime: 'Gesamt',
+    lastDays_one: 'Letzter Tag',
+    lastDays_other: 'Letzte {{count}} Tage',
+    doubles: 'Trefferquote pro Doppel',
+    doublesHint: 'Zählt jeden Dart auf ein Doppel: Checkout-Versuche in X01, Doppel-Training und Bob\'s 27.',
     bestScore: 'Bestwert',
     averageScore: 'Durchschnitt',
     gamesPlayed: 'Spiele',
@@ -251,6 +257,10 @@ const de: Translations = {
     gamesCount_other: '{{count}} Spiele',
   },
   settings: {
+    export: 'Export',
+    exportHint: 'Deine Spiele und Darts als Tabelle (CSV) oder als vollständige Kopie (JSON).',
+    exportGames: 'Spiele (CSV)',
+    exportDarts: 'Darts (CSV)',
     title: 'Einstellungen',
     camerasHint: 'Livebilder, Bildrate und Status der Kameras.',
     calibrationHint: 'Die Scheibe in jedem Kamerabild markieren.',

@@ -1,11 +1,13 @@
 """Statistics across games: per player (by mode) and head-to-head."""
 
+from datetime import datetime
 from typing import Any
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session, aliased, sessionmaker
 
 from dartscore.game import GameError
+from dartscore.services.export import _since
 from dartscore.storage.models import GamePlayer, GameRecord, Player
 
 _SUMMED = (
@@ -90,7 +92,8 @@ class StatsService:
     def __init__(self, sessions: sessionmaker[Session]) -> None:
         self._sessions = sessions
 
-    def player(self, player_id: int) -> dict[str, Any]:
+    def player(self, player_id: int, days: int | None = None) -> dict[str, Any]:
+        """Statistics per mode; ``days`` limits them to the most recent days."""
         with self._sessions() as session:
             player = session.get(Player, player_id)
             if player is None:
@@ -98,7 +101,11 @@ class StatsService:
             rows = session.execute(
                 select(GameRecord, GamePlayer)
                 .join(GamePlayer, GamePlayer.game_id == GameRecord.id)
-                .where(GamePlayer.player_id == player_id, GameRecord.status == "finished")
+                .where(
+                    GamePlayer.player_id == player_id,
+                    GameRecord.status == "finished",
+                    GameRecord.created_at >= (_since(days) or datetime.min),
+                )
                 .order_by(GameRecord.id)
             ).all()
             by_mode: dict[str, list[tuple[GameRecord, GamePlayer]]] = {}

@@ -103,3 +103,40 @@
   max-width: 420px;
   margin: 0 auto;
 }
+
+.doubles {
+  display: grid;
+  gap: 6px;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  column-gap: 24px;
+}
+
+.double {
+  display: grid;
+  grid-template-columns: 3.2em 1fr 7em;
+  align-items: center;
+  gap: 10px;
+  font-variant-numeric: tabular-nums;
+}
+
+.doubleName {
+  font-weight: 700;
+}
+
+.bar {
+  height: 10px;
+  border-radius: 999px;
+  background: var(--bg);
+  overflow: hidden;
+}
+
+.bar span {
+  display: block;
+  height: 100%;
+  background: var(--ok);
+}
+
+.doubleValue {
+  text-align: right;
+  font-size: 0.875rem;
+}

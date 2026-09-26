@@ -233,6 +233,12 @@ const en = {
     },
   },
   stats: {
+    period: 'Period',
+    allTime: 'All time',
+    lastDays_one: 'Last day',
+    lastDays_other: 'Last {{count}} days',
+    doubles: 'Hit rate per double',
+    doublesHint: 'Counts every dart thrown at a double: checkout attempts in X01, doubles training and Bob\'s 27.',
     bestScore: 'Best score',
     averageScore: 'Average score',
     gamesPlayed: 'Games',
@@ -250,6 +256,10 @@ const en = {
     gamesCount_other: '{{count}} games',
   },
   settings: {
+    export: 'Export',
+    exportHint: 'Your games and darts as a spreadsheet (CSV) or as a complete copy (JSON).',
+    exportGames: 'Games (CSV)',
+    exportDarts: 'Darts (CSV)',
     title: 'Settings',
     camerasHint: 'Live images, frame rate and status of the cameras.',
     calibrationHint: 'Mark the board in each camera image.',

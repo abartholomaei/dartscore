@@ -17,6 +17,7 @@ from dartscore.config import Settings
 from dartscore.game import GameError
 from dartscore.services.calibration_monitor import CalibrationMonitor
 from dartscore.services.detection import DetectionService
+from dartscore.services.export import ExportService
 from dartscore.services.games import GameService
 from dartscore.services.hub import EventHub
 from dartscore.services.players import PlayerService
@@ -109,6 +110,7 @@ def create_app(settings: Settings, camera_manager: CameraManager | None = None) 
     app.state.players = PlayerService(sessions)
     app.state.games = GameService(sessions, hub)
     app.state.stats = StatsService(sessions)
+    app.state.exports = ExportService(sessions)
     detection_service = DetectionService(
         settings.detection,
         manager,
@@ -137,6 +139,7 @@ def create_app(settings: Settings, camera_manager: CameraManager | None = None) 
     app.state.calibration_monitor = monitor
     for module in (cameras, calibration, players, games, stats, detection, ws):
         app.include_router(module.router)
+    app.include_router(stats.export_router)
 
     @app.exception_handler(GameError)
     async def game_error(_request: Request, exc: GameError) -> JSONResponse:

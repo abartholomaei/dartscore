@@ -26,18 +26,24 @@ export default function PlayerStats() {
   const [h2h, setH2h] = useState<HeadToHead | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [positions, setPositions] = useState<[number, number][]>([])
+  const [days, setDays] = useState<number | null>(null)
+  const [doubles, setDoubles] = useState<Record<string, { attempts: number; hits: number }>>({})
 
   useEffect(() => {
-    getJson<Stats>(`/api/stats/players/${id}`)
+    const query = days ? `?days=${days}` : ''
+    getJson<Stats>(`/api/stats/players/${id}${query}`)
       .then(setStats)
       .catch((err: unknown) => setError(errorText(err)))
+    getJson<Record<string, { attempts: number; hits: number }>>(`/api/stats/players/${id}/doubles${query}`)
+      .then(setDoubles)
+      .catch(() => undefined)
     getJson<[number, number, string][]>(`/api/stats/players/${id}/positions`)
       .then((list) => setPositions(list.map(([x, y]) => [x, y])))
       .catch(() => undefined)
     getJson<Player[]>('/api/players?include_archived=true')
       .then((list) => setOthers(list.filter((p) => String(p.id) !== id)))
       .catch(() => undefined)
-  }, [id, errorText])
+  }, [id, days, errorText])
 
   useEffect(() => {
     if (opponent === null) return
@@ -59,6 +65,19 @@ export default function PlayerStats() {
           {stats.player.name.slice(0, 1).toUpperCase()}
         </span>
         <h1 className={styles.title}>{stats.player.name}</h1>
+        <select
+          className={styles.select}
+          aria-label={t('stats.period')}
+          value={days ?? ''}
+          onChange={(e) => setDays(e.target.value ? Number(e.target.value) : null)}
+        >
+          <option value="">{t('stats.allTime')}</option>
+          {[7, 30, 90, 365].map((d) => (
+            <option key={d} value={d}>
+              {t('stats.lastDays', { count: d })}
+            </option>
+          ))}
+        </select>
         <Link to="/players" className="button">
           {t('nav.players')}
         </Link>
@@ -114,6 +133,32 @@ export default function PlayerStats() {
           </section>
         )
       })}
+
+      {Object.keys(doubles).length > 0 && (
+        <section className="card">
+          <h2 className="cardTitle">{t('stats.doubles')}</h2>
+          <div className={styles.doubles}>
+            {[...Array.from({ length: 20 }, (_, i) => i + 1), 25]
+              .filter((n) => doubles[String(n)])
+              .map((n) => {
+                const { attempts, hits } = doubles[String(n)]
+                const rate = attempts ? hits / attempts : 0
+                return (
+                  <div key={n} className={styles.double}>
+                    <span className={styles.doubleName}>{n === 25 ? 'Bull' : `D${n}`}</span>
+                    <span className={styles.bar}>
+                      <span style={{ width: `${Math.round(rate * 100)}%` }} />
+                    </span>
+                    <span className={styles.doubleValue}>
+                      {Math.round(rate * 100)} % <span className="muted">({hits}/{attempts})</span>
+                    </span>
+                  </div>
+                )
+              })}
+          </div>
+          <p className="muted">{t('stats.doublesHint')}</p>
+        </section>
+      )}
 
       {positions.length > 0 && (
         <section className="card">

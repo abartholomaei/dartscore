@@ -235,3 +235,40 @@ def test_favorite_double_drives_checkout_suggestion(client: TestClient) -> None:
     assert state["remaining"] == [64]
     assert state["checkout"][-1] == "D16"
     assert state["settings"]["preferred_doubles"] == [16]
+
+
+def test_exports_and_double_rates(client: TestClient) -> None:
+    (pid,) = make_players(client, "Eva")
+    client.post(
+        "/api/games",
+        json={"mode": "x01", "settings": {"start_score": 101}, "players": [{"player_id": pid}]},
+    )
+    # 101 - 60 - 1 = 40: two darts at D20, the second one hits
+    throw(client, "T20", "S1", "S20", "NEXT", "D10")
+    rates = client.get(f"/api/stats/players/{pid}/doubles").json()
+    assert rates == {"20": {"attempts": 1, "hits": 0}, "10": {"attempts": 1, "hits": 1}}
+
+    client.post(
+        "/api/games",
+        json={
+            "mode": "doubles_training",
+            "settings": {"include_bull": False},
+            "players": [{"player_id": pid}],
+        },
+    )
+    throw(client, "D1", "S1", "MISS")
+    client.post("/api/games/active/abort")
+    rates = client.get(f"/api/stats/players/{pid}/doubles").json()
+    assert rates["1"] == {"attempts": 3, "hits": 1}
+
+    games = client.get("/api/export/games.csv")
+    assert games.headers["content-type"].startswith("text/csv")
+    assert "Eva" in games.text
+    darts = client.get("/api/export/darts.csv").text.splitlines()
+    assert darts[0].startswith("game_id,seq")
+    assert len(darts) == 1 + 4 + 3  # header, x01 darts, doubles training darts
+    full = client.get("/api/export/all.json").json()
+    assert full["format"] == "dartscore-1"
+    assert len(full["games"]) == 2
+
+    assert client.get(f"/api/stats/players/{pid}?days=7").json()["modes"]["x01"]["games"] == 1

@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { Link, useNavigate } from 'react-router'
 import { sendJson, type CricketVariant, type GamePlayer, type GameState, type InOutRule } from '../api'
 import DartBoard from '../components/DartBoard'
+import DetectionBadge from '../components/DetectionBadge'
 import { dartLabel, dartPoints } from '../dart'
 import { useLiveGame } from '../LiveGame'
 import { useErrorText } from '../helpers'
@@ -110,6 +111,9 @@ function Running({ game }: { game: GameState }) {
               {t('play.checkout')}: {game.checkout.join(' · ')}
             </span>
           )}
+          <span className={styles.detection}>
+            <DetectionBadge />
+          </span>
         </div>
         <div className={styles.slots}>
           {[0, 1, 2].map((i) => {
@@ -123,6 +127,11 @@ function Running({ game }: { game: GameState }) {
                 aria-label={label ? t('play.correctDart', { n: i + 1 }) : undefined}
               >
                 <span className={styles.slotLabel}>{label ?? '–'}</span>
+                {label && game.turn_sources[i] === 'auto' && (
+                  <span className={styles.auto} title={t('play.detected')}>
+                    ◉
+                  </span>
+                )}
                 {label && game.mode === 'x01' && <span className={styles.slotPoints}>{dartPoints(label)}</span>}
               </button>
             )

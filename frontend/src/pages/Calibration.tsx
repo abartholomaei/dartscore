@@ -16,6 +16,7 @@ import {
 } from '../api'
 import BoardDiagram from '../components/BoardDiagram'
 import BoardOverlay from '../components/BoardOverlay'
+import { useLiveGame } from '../LiveGame'
 import { usePolling } from '../usePolling'
 import styles from './Calibration.module.css'
 
@@ -87,6 +88,8 @@ function CameraCalibration({ camera, catalog }: { camera: CameraStatus; catalog:
   const [drag, setDrag] = useState<Drag | null>(null)
   const [loupe, setLoupe] = useState<Loupe | null>(null)
   const boxRef = useRef<HTMLDivElement>(null)
+  const { lastDart } = useLiveGame()
+  const detectedHere = mode === 'test' ? lastDart?.hits.find((h) => h.camera_id === camera.id) : undefined
 
   const errorText = useCallback(
     (err: unknown) => {
@@ -324,6 +327,11 @@ function CameraCalibration({ camera, catalog }: { camera: CameraStatus; catalog:
                   <line x1={x} y1={y - markerR * 1.6} x2={x} y2={y + markerR * 1.6} />
                 </g>
               ))}
+              {detectedHere && (
+                <g className={styles.detected}>
+                  <circle cx={detectedHere.tip_px[0]} cy={detectedHere.tip_px[1]} r={markerR * 0.8} />
+                </g>
+              )}
               {testHits.map(({ point: [x, y], result }, i) => (
                 <g key={i} className={styles.hit}>
                   <circle cx={x} cy={y} r={markerR * 0.6} />
@@ -398,6 +406,12 @@ function CameraCalibration({ camera, catalog }: { camera: CameraStatus; catalog:
         )}
         {placedIds.length === catalog.required && mode === 'edit' && (
           <p className="muted">{t('calibration.morePointsHint')}</p>
+        )}
+        {mode === 'test' && lastDart && (
+          <p>
+            {t('detection.last', { label: lastDart.label, confidence: Math.round(lastDart.confidence * 100) })}
+            {detectedHere && !detectedHere.used && <span className="muted"> · {t('calibration.outlier')}</span>}
+          </p>
         )}
         {saved?.stale && <p className="error">{t('calibration.stale')}</p>}
         {saved?.drift_warning && (

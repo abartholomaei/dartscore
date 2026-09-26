@@ -195,6 +195,8 @@ export type CricketVariant = 'standard' | 'cut_throat' | 'no_score'
 
 export type GameState = {
   id: number
+  event_count: number
+  turn_sources: ('manual' | 'auto' | 'corrected')[]
   mode: GameMode
   settings: Record<string, string | number>
   created_at: string
@@ -270,4 +272,33 @@ export type HeadToHead = {
   games: number
   wins: Record<string, number>
   stats: Record<string, AggregateStats>
+}
+
+export type DetectionHit = {
+  camera_id: string
+  tip_px: [number, number]
+  board_mm: [number, number]
+  area_px: number
+  used: boolean
+}
+
+export type DetectedDart = {
+  x_mm: number
+  y_mm: number
+  label: string
+  segment: number
+  multiplier: number
+  confidence: number
+  hits: DetectionHit[]
+  accepted: boolean
+  time: string
+}
+
+export type DetectionStatus = {
+  enabled: boolean
+  available: boolean
+  cameras: string[]
+  state: 'idle' | 'motion' | 'blocked' | 'unavailable'
+  darts_in_turn: number
+  last_dart: DetectedDart | null
 }

@@ -260,3 +260,10 @@
   color: var(--error);
   font-weight: 600;
 }
+
+.detected circle {
+  fill: none;
+  stroke: #00e676;
+  stroke-width: 3;
+  vector-effect: non-scaling-stroke;
+}

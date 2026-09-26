@@ -184,6 +184,7 @@ def test_stats_and_head_to_head(client: TestClient) -> None:
 def test_websocket_receives_updates(client: TestClient) -> None:
     with client.websocket_connect("/ws") as ws:
         assert ws.receive_json() == {"type": "game", "data": None}
+        assert ws.receive_json()["type"] == "detection"
         client.post("/api/games", json={"mode": "x01", "players": [{"guest_name": "A"}]})
         message = ws.receive_json()
         assert message["type"] == "game"

@@ -22,6 +22,11 @@ async def live(websocket: WebSocket) -> None:
         await websocket.send_text(
             json.dumps({"type": "game", "data": games.active_state()}, default=str)
         )
+        await websocket.send_text(
+            json.dumps(
+                {"type": "detection", "data": websocket.app.state.detection.status()}, default=str
+            )
+        )
 
         async def forward() -> None:
             while True:

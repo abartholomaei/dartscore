@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState } from 'react'
-import type { GameState } from './api'
+import type { DetectedDart, DetectionStatus, GameState } from './api'
 
 type Live = {
   /** the active (or just finished) game; null if none */
@@ -8,9 +8,20 @@ type Live = {
   connected: boolean
   /** apply a state returned by a REST call right away (the WebSocket echo follows) */
   setGame: (game: GameState | null) => void
+  detection: DetectionStatus | null
+  setDetection: (status: DetectionStatus) => void
+  /** the most recently detected dart (also outside of games, e.g. for testing) */
+  lastDart: DetectedDart | null
 }
 
-const LiveGameContext = createContext<Live>({ game: null, connected: false, setGame: () => undefined })
+const LiveGameContext = createContext<Live>({
+  game: null,
+  connected: false,
+  setGame: () => undefined,
+  detection: null,
+  setDetection: () => undefined,
+  lastDart: null,
+})
 
 const RECONNECT_MS = 2000
 
@@ -18,6 +29,8 @@ const RECONNECT_MS = 2000
 export function LiveGameProvider({ children }: { children: React.ReactNode }) {
   const [game, setGame] = useState<GameState | null>(null)
   const [connected, setConnected] = useState(false)
+  const [detection, setDetection] = useState<DetectionStatus | null>(null)
+  const [lastDart, setLastDart] = useState<DetectedDart | null>(null)
 
   useEffect(() => {
     let socket: WebSocket | null = null
@@ -32,6 +45,10 @@ export function LiveGameProvider({ children }: { children: React.ReactNode }) {
         if (message.type === 'game') {
           setGame(message.data as GameState | null)
           setConnected(true)
+        } else if (message.type === 'detection') {
+          setDetection(message.data as DetectionStatus)
+        } else if (message.type === 'dart') {
+          setLastDart(message.data as DetectedDart)
         }
       }
       socket.onclose = () => {
@@ -48,7 +65,11 @@ export function LiveGameProvider({ children }: { children: React.ReactNode }) {
     }
   }, [])
 
-  return <LiveGameContext.Provider value={{ game, connected, setGame }}>{children}</LiveGameContext.Provider>
+  return (
+    <LiveGameContext.Provider value={{ game, connected, setGame, detection, setDetection, lastDart }}>
+      {children}
+    </LiveGameContext.Provider>
+  )
 }
 
 // eslint-disable-next-line react-refresh/only-export-components

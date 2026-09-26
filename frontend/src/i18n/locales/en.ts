@@ -46,6 +46,7 @@ const en = {
     overlay: 'Show board overlay',
   },
   calibration: {
+    outlier: 'this camera was ignored as an outlier',
     title: 'Board calibration',
     placeInstruction: 'Tap in the image: {{point}}',
     allPlaced: 'All points placed. Drag markers to fine-tune, then save.',
@@ -146,6 +147,7 @@ const en = {
     confirmAbort: 'A game is still running. Abort it and start a new one?',
   },
   play: {
+    detected: 'detected automatically',
     connecting: 'Connecting …',
     noGame: 'No game is running.',
     checkout: 'Checkout',
@@ -208,6 +210,34 @@ const en = {
     camerasHint: 'Live images, frame rate and status of the cameras.',
     calibrationHint: 'Mark the board in each camera image.',
     system: 'System',
+  },
+  detection: {
+    title: 'Automatic detection',
+    state: {
+      idle: 'Auto: ready',
+      motion: 'Auto: motion',
+      blocked: 'Auto: waiting',
+      off: 'Auto: off',
+      unavailable: 'Auto: not calibrated',
+    },
+    hint: {
+      idle: 'Darts are detected automatically. Click to switch off.',
+      motion: 'Something is moving in front of the board.',
+      blocked: 'Something is in view (hand, person) - waiting until it is gone.',
+      off: 'Automatic detection is off. Click to switch on.',
+      unavailable: 'Calibrate at least one camera to enable automatic detection.',
+    },
+    cameras: 'Cameras: {{cameras}}',
+    last: 'Last detected dart: {{label}} ({{confidence}} % confidence)',
+    reset: 'Board is empty - reset reference',
+  },
+  simulator: {
+    title: 'Simulator',
+    hint: 'Only for simulated cameras: test the automatic detection without darts.',
+    throw: 'Throw a dart',
+    handIn: 'Hand in view',
+    clear: 'Pull darts',
+    handOut: 'Hand gone',
   },
   cameraState: {
     starting: 'starting',

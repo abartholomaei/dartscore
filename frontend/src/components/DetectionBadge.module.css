@@ -1,0 +1,59 @@
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 12px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text-muted);
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.badge:disabled {
+  cursor: default;
+}
+
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.idle {
+  color: var(--ok);
+}
+
+.motion {
+  color: var(--warn);
+}
+
+.motion .dot {
+  animation: pulse 0.8s ease-in-out infinite;
+}
+
+.blocked {
+  color: var(--warn);
+}
+
+.off,
+.unavailable {
+  color: var(--text-muted);
+}
+
+@keyframes pulse {
+  50% {
+    opacity: 0.3;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .motion .dot {
+    animation: none;
+  }
+}

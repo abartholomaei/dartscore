@@ -47,6 +47,7 @@ const de: Translations = {
     overlay: 'Board-Raster anzeigen',
   },
   calibration: {
+    outlier: 'diese Kamera wurde als Ausreißer ignoriert',
     title: 'Board-Kalibrierung',
     placeInstruction: 'Im Bild antippen: {{point}}',
     allPlaced: 'Alle Punkte gesetzt. Markierungen zum Feinjustieren verschieben, dann speichern.',
@@ -147,6 +148,7 @@ const de: Translations = {
     confirmAbort: 'Es läuft noch ein Spiel. Abbrechen und ein neues starten?',
   },
   play: {
+    detected: 'automatisch erkannt',
     connecting: 'Verbinde …',
     noGame: 'Es läuft kein Spiel.',
     checkout: 'Checkout',
@@ -209,6 +211,34 @@ const de: Translations = {
     camerasHint: 'Livebilder, Bildrate und Status der Kameras.',
     calibrationHint: 'Die Scheibe in jedem Kamerabild markieren.',
     system: 'System',
+  },
+  detection: {
+    title: 'Automatische Erkennung',
+    state: {
+      idle: 'Auto: bereit',
+      motion: 'Auto: Bewegung',
+      blocked: 'Auto: wartet',
+      off: 'Auto: aus',
+      unavailable: 'Auto: nicht kalibriert',
+    },
+    hint: {
+      idle: 'Darts werden automatisch erkannt. Klicken zum Ausschalten.',
+      motion: 'Vor der Scheibe bewegt sich etwas.',
+      blocked: 'Etwas ist im Bild (Hand, Person) – warte, bis es weg ist.',
+      off: 'Die automatische Erkennung ist aus. Klicken zum Einschalten.',
+      unavailable: 'Mindestens eine Kamera kalibrieren, um die automatische Erkennung zu nutzen.',
+    },
+    cameras: 'Kameras: {{cameras}}',
+    last: 'Zuletzt erkannter Dart: {{label}} ({{confidence}} % Sicherheit)',
+    reset: 'Scheibe ist leer – Referenz neu setzen',
+  },
+  simulator: {
+    title: 'Simulator',
+    hint: 'Nur für simulierte Kameras: die automatische Erkennung ohne Darts testen.',
+    throw: 'Dart werfen',
+    handIn: 'Hand ins Bild',
+    clear: 'Darts ziehen',
+    handOut: 'Hand weg',
   },
   cameraState: {
     starting: 'startet',

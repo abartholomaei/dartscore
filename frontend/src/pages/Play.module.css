@@ -468,3 +468,23 @@
   width: 100%;
   max-width: 800px;
 }
+
+.detection {
+  margin-left: auto;
+}
+
+.checkout + .detection {
+  margin-left: 0;
+}
+
+.slot {
+  position: relative;
+}
+
+.auto {
+  position: absolute;
+  top: 4px;
+  right: 6px;
+  font-size: 0.75rem;
+  color: var(--ok);
+}

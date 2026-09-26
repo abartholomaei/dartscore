@@ -223,6 +223,33 @@ def cmd_backup(settings: Settings, args: argparse.Namespace) -> None:
         print("Restored.")
 
 
+def cmd_replay(settings: Settings, args: argparse.Namespace) -> None:
+    from dartscore.vision.replay import replay_all
+
+    recordings = Path(args.recordings) if args.recordings else settings.recordings_dir
+    database = Path(args.db) if args.db else settings.data_dir / "dartscore.db"
+    results = replay_all(recordings, database, settings.detection)
+    judged = [r for r in results if r.truth is not None]
+    for r in results:
+        cams = " ".join(
+            f"{h.camera_id}:{h.board_mm[0]:.0f},{h.board_mm[1]:.0f}/{h.mm_per_px:.1f}"
+            + ("" if h.used else "(x)")
+            for h in r.hits
+        )
+        mark = "" if r.truth is None else ("ok " if r.replayed == r.truth else "ERR")
+        print(
+            f"{mark:3} {r.folder}  truth={r.truth}  recorded={r.recorded}  "
+            f"replay={r.replayed}  {cams}"
+        )
+    if judged:
+        recorded_ok = sum(r.recorded == r.truth for r in judged)
+        replay_ok = sum(r.replayed == r.truth for r in judged)
+        print(
+            f"\nrecorded: {recorded_ok}/{len(judged)} correct, "
+            f"replay: {replay_ok}/{len(judged)} correct"
+        )
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="dartscore", description=__doc__)
     parser.add_argument("-c", "--config", type=Path, help="path to config.toml")
@@ -246,6 +273,10 @@ def build_parser() -> argparse.ArgumentParser:
     export.add_argument("--out", default="datasets/darts", help="output folder")
     export.add_argument("--min-confidence", type=float, default=0.5)
 
+    replay = sub.add_parser("replay", help="re-run the detection on recordings and compare")
+    replay.add_argument("--recordings", help="recordings folder (default: data dir)")
+    replay.add_argument("--db", help="database with the true results (default: data dir)")
+
     backup = sub.add_parser("backup", help="create, list or restore database backups")
     backup.add_argument("action", choices=["create", "list", "restore"])
     backup.add_argument("--file", help="backup file name for restore (default: newest)")
@@ -260,6 +291,7 @@ COMMANDS = {
     "calibrate-lens": cmd_calibrate_lens,
     "export-dataset": cmd_export_dataset,
     "backup": cmd_backup,
+    "replay": cmd_replay,
 }
 
 

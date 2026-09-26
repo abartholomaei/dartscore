@@ -50,6 +50,8 @@ class CameraHit:
     board_mm: tuple[float, float]
     area_px: int
     used: bool = True
+    # board millimetres per image pixel at the tip: small = the camera sees this spot sharply
+    mm_per_px: float = 1.0
 
 
 @dataclass(frozen=True)
@@ -130,49 +132,72 @@ def find_dart_tip(
 ) -> tuple[tuple[float, float], int] | None:
     """Locates a new dart in the difference of two full resolution images.
 
-    Returns the tip (lowest end of the dart along its main axis) and the blob area.
+    Returns the tip (lowest point of the dart in the image) and the number of changed pixels
+    belonging to the dart.
     """
     diff = color_diff(cv2.GaussianBlur(reference, (5, 5), 0), cv2.GaussianBlur(current, (5, 5), 0))
     _, binary = cv2.threshold(diff, threshold, 255, cv2.THRESH_BINARY)
     binary = cv2.bitwise_and(binary, mask)
     binary = cv2.morphologyEx(binary, cv2.MORPH_OPEN, np.ones((3, 3), np.uint8))
-    binary = cv2.morphologyEx(binary, cv2.MORPH_CLOSE, np.ones((9, 9), np.uint8))
-    contours, _ = cv2.findContours(binary, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
-    if not contours:
+    # A dart often falls apart into flight, shaft and barrel in the difference image (parts
+    # that look like the background behind them). Join nearby parts, keep the largest group,
+    # but take the tip from the original pixels of that group.
+    joined = cv2.dilate(binary, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (21, 21)))
+    count, labels, stats, _ = cv2.connectedComponentsWithStats(joined)
+    if count < 2:
         return None
-    blob = max(contours, key=cv2.contourArea)
-    area = int(cv2.contourArea(blob))
+    largest = 1 + int(np.argmax(stats[1:, cv2.CC_STAT_AREA]))
+    ys, xs = np.nonzero((labels == largest) & (binary > 0))
+    area = len(xs)
     if area < min_area_px:
         return None
-    points = blob.reshape(-1, 2).astype(np.float64)
-    vx, vy, x0, y0 = (float(v) for v in cv2.fitLine(points, cv2.DIST_HUBER, 0, 0.01, 0.01).ravel())
-    # orient the axis downwards: the tip is the end closest to the board surface
-    if vy < 0:
-        vx, vy = -vx, -vy
-    along = (points[:, 0] - x0) * vx + (points[:, 1] - y0) * vy
-    # the tip is thin: average the few outermost points instead of taking a single pixel
-    far = points[along >= along.max() - 2.0]
-    tip = far.mean(axis=0)
-    return (float(tip[0]), float(tip[1])), area
+    # The cameras look flat across the board and the dart sticks out towards them, so it
+    # stands upright in the image with the tip at the bottom. The lowest point is robust;
+    # a fitted axis gets pulled sideways by the large flight.
+    bottom = ys.max()
+    near_bottom = ys >= bottom - 3
+    tip = (float(xs[near_bottom].mean()), float(bottom))
+    return tip, area
+
+
+def local_resolution(calibration: BoardCalibration, x: float, y: float) -> float:
+    """Board millimetres covered by one image pixel at (x, y), in the worst direction."""
+    pts = calibration.image_to_board(np.array([[x, y], [x + 1, y], [x, y + 1]]))
+    return float(max(np.linalg.norm(pts[1] - pts[0]), np.linalg.norm(pts[2] - pts[0])))
 
 
 def fuse(
     hits: list[CameraHit], max_spread_mm: float, camera_count: int
 ) -> tuple[float, float, float, list[CameraHit]]:
-    """Combines the per-camera board positions: the largest group of cameras that agree
-    within ``max_spread_mm`` wins; if none agree, the camera seeing most of the dart.
-    Returns x, y, confidence and the hits with the ignored ones marked as unused."""
+    """Combines the per-camera board positions.
+
+    Each camera is trusted according to its local resolution: a camera seeing the spot from
+    close by (few mm per pixel) counts more than one looking at it across the whole board.
+    Two cameras agree if they are closer than ``max_spread_mm`` plus a margin for their
+    resolution. The best supported group is averaged; if no cameras agree, the sharpest one
+    wins. Returns x, y, confidence and the hits with the ignored ones marked as unused.
+    """
     pts = np.array([h.board_mm for h in hits], dtype=np.float64)
+    sigma = np.array([max(h.mm_per_px, 0.1) for h in hits])
+    weight = 1.0 / sigma**2
     distances = np.linalg.norm(pts[:, None, :] - pts[None, :, :], axis=2)
-    neighbours = (distances <= max_spread_mm).sum(axis=1)
-    # most neighbours first, then the largest visible dart
-    best = max(range(len(hits)), key=lambda i: (neighbours[i], hits[i].area_px))
-    used_mask = distances[best] <= max_spread_mm
+    tolerance = max_spread_mm + 3.0 * (sigma[:, None] + sigma[None, :])
+    agrees = distances <= tolerance
+    if agrees.sum(axis=1).max() == 1 and len(hits) > 2:
+        # nobody agrees strictly: two cameras that are at least roughly together are still
+        # more trustworthy than a single one far away from both (a wrong blob)
+        agrees = distances <= 2 * tolerance
+    count = agrees.sum(axis=1)
+    support = (agrees * weight[None, :]).sum(axis=1)
+    # more agreeing cameras first, then the sharper ones
+    best = max(range(len(hits)), key=lambda i: (count[i], support[i], -sigma[i]))
+    used_mask = agrees[best]
     marked = [
-        CameraHit(h.camera_id, h.tip_px, h.board_mm, h.area_px, used=bool(u))
+        CameraHit(h.camera_id, h.tip_px, h.board_mm, h.area_px, bool(u), h.mm_per_px)
         for h, u in zip(hits, used_mask, strict=True)
     ]
-    x, y = pts[used_mask].mean(axis=0)
+    w = weight[used_mask]
+    x, y = (pts[used_mask] * w[:, None]).sum(axis=0) / w.sum()
     spread = float(np.max(np.linalg.norm(pts[used_mask] - [x, y], axis=1)))
     agreeing = int(used_mask.sum())
     confidence = (
@@ -462,6 +487,7 @@ class DartDetector:
                     (round(tx, 1), round(ty, 1)),
                     (round(float(bx), 1), round(float(by), 1)),
                     area,
+                    mm_per_px=round(local_resolution(cam.calibration, tx, ty), 2),
                 )
             )
         if not hits:

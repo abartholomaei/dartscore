@@ -155,6 +155,7 @@ class DetectionService:
                     source="auto",
                     x_mm=dart.x_mm,
                     y_mm=dart.y_mm,
+                    confidence=dart.confidence,
                 )
                 accepted = True
             except GameError as exc:

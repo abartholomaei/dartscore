@@ -167,6 +167,7 @@ const en = {
     confirmAbort: 'A game is still running. Abort it and start a new one?',
   },
   play: {
+    unsure: 'Detected with low confidence - please check (tap to correct)',
     target: 'Target',
     round: 'Round {{round}}/{{rounds}}',
     progress: '{{done}}/{{total}} done',

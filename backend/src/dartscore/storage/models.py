@@ -78,8 +78,10 @@ class GameEventRecord(Base):
     # board position if the dart was detected by the cameras
     x_mm: Mapped[float | None]
     y_mm: Mapped[float | None]
-    # manual | auto | corrected
+    # manual | auto | corrected | bounce
     source: Mapped[str] = mapped_column(String(10), default="manual")
+    # confidence of an automatic detection (0..1)
+    confidence: Mapped[float | None] = mapped_column(default=None)
     created_at: Mapped[datetime] = mapped_column(default=utcnow)
 
     game: Mapped[GameRecord] = relationship(back_populates="events")

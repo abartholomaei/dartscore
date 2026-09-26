@@ -43,6 +43,7 @@ class EventMeta:
     source: str = "manual"
     x_mm: float | None = None
     y_mm: float | None = None
+    confidence: float | None = None
 
 
 @dataclass
@@ -186,11 +187,12 @@ class GameService:
         source: str = "manual",
         x_mm: float | None = None,
         y_mm: float | None = None,
+        confidence: float | None = None,
     ) -> dict[str, Any]:
         with self._lock:
             active = self._require_active()
             active.game.throw(dart)
-            active.meta.append(EventMeta(source, x_mm, y_mm))
+            active.meta.append(EventMeta(source, x_mm, y_mm, confidence))
             self._append_event(active)
             return self._after_change(active)
 
@@ -284,7 +286,7 @@ class GameService:
             game=game,
             players=[_player_info(gp) for gp in record.players],
             created_at=record.created_at.isoformat(),
-            meta=[EventMeta(e.source, e.x_mm, e.y_mm) for e in record.events],
+            meta=[EventMeta(e.source, e.x_mm, e.y_mm, e.confidence) for e in record.events],
         )
 
     def _load_active(self) -> None:
@@ -316,6 +318,7 @@ class GameService:
                 source=meta.source,
                 x_mm=meta.x_mm,
                 y_mm=meta.y_mm,
+                confidence=meta.confidence,
             )
             if isinstance(event, DartEvent):
                 record.segment, record.multiplier = event.dart.segment, event.dart.multiplier
@@ -357,7 +360,7 @@ class GameService:
         self._hub.publish("game", state)
         return state or {}
 
-    def _turn_sources(self, active: ActiveGame) -> list[str]:
+    def _turn_meta(self, active: ActiveGame) -> list[EventMeta]:
         game = active.game
         turn = game.state()["turn"]
         if not turn:
@@ -367,7 +370,7 @@ class GameService:
         dart_meta = [
             m for m, e in zip(active.meta, game.events, strict=True) if isinstance(e, DartEvent)
         ]
-        return [m.source for m in dart_meta[-count:]] if count else []
+        return dart_meta[-count:] if count else []
 
     def _state(self, active: ActiveGame) -> dict[str, Any]:
         game = active.game
@@ -382,7 +385,9 @@ class GameService:
             "created_at": active.created_at,
             "event_count": len(game.events),
             # how each dart of the shown turn was entered: manual | auto | corrected
-            "turn_sources": self._turn_sources(active),
+            "turn_sources": [m.source for m in self._turn_meta(active)],
+            # confidence of automatically detected darts of the shown turn (None if manual)
+            "turn_confidence": [m.confidence for m in self._turn_meta(active)],
             "players": [
                 {**info, "stats": stats[info["position"]].to_dict()} for info in active.players
             ],

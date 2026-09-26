@@ -168,6 +168,7 @@ const de: Translations = {
     confirmAbort: 'Es läuft noch ein Spiel. Abbrechen und ein neues starten?',
   },
   play: {
+    unsure: 'Unsicher erkannt – bitte prüfen (antippen zum Korrigieren)',
     target: 'Ziel',
     round: 'Runde {{round}}/{{rounds}}',
     progress: '{{done}}/{{total}} geschafft',

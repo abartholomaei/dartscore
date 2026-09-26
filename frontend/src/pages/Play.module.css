@@ -501,3 +501,12 @@
   color: var(--accent);
   font-weight: 800;
 }
+
+.unsure {
+  position: absolute;
+  top: 2px;
+  right: 6px;
+  font-size: 0.875rem;
+  font-weight: 900;
+  color: var(--warn);
+}

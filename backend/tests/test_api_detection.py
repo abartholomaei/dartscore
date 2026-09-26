@@ -70,6 +70,7 @@ def test_detected_darts_and_takeout_drive_the_game(client: TestClient, tmp_path:
     state = wait_for(lambda: active() if active()["turn"] else None)
     assert state["turn"]["darts"] == ["T20"]
     assert state["turn_sources"] == ["auto"]
+    assert state["turn_confidence"][0] > 0.5
     assert state["remaining"][0] == 441
 
     for x, y in [(0, 60), (60, 0)]:

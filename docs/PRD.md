@@ -369,7 +369,8 @@ Aggregierte Statistiken können als Cache-Tabelle (z. B. `player_stats`) gehalte
 - [ ] Eigenen Datensatz aufbauen: alle Segmente, Grenzfälle an Drähten, Verdeckung, verschiedene Lichtverhältnisse
 - [ ] Train/Val/Test-Split nach Session (nicht nach Bild), damit der Test ehrlich bleibt
 - [ ] Data Augmentation (Helligkeit, Unschärfe, leichte Perspektive)
-- [ ] Fine-Tuning auf eigenen Daten, Modellgröße abwägen (n/s/m) nach Latenz
+- [x] Erstes Modell auf eigenen Daten trainiert (YOLO26n, 360 Bilder, 2026-09-26): im Replay 127/135 vs. klassisch 131/135 → nicht eingesetzt. Ursache: Markierungen stammen aus der klassischen Erkennung, das Modell übernimmt deren Millimeter-Verschiebungen
+- [ ] Genauere, unabhängige Markierungen für das Training (z. B. Klick auf die Spitze bei Korrekturen, 9-Punkt-Kalibrierung + Linsenkalibrierung) und mehr Daten, dann erneut trainieren und per Replay vergleichen
 - [x] Export nach ONNX (OpenVINO nicht nötig: ONNX Runtime ist auf dem Referenzrechner schneller)
 - [x] Inferenz mit ONNX Runtime (CPU), klassische und End-to-End-YOLO-Ausgaben; Modell optional, klassische Erkennung als Fallback
 - [x] Inferenz-Benchmark auf dem Mac mini: YOLO26n-pose mit ONNX Runtime 41 ms (320 px) / 100 ms (480 px) pro Bild – Ergebnisse in [hardware-setup.md](hardware-setup.md)

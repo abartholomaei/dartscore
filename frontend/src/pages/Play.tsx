@@ -11,6 +11,9 @@ import styles from './Play.module.css'
 
 type InputMode = 'pad' | 'board'
 
+// automatic detections below this confidence are marked for checking
+const LOW_CONFIDENCE = 0.5
+
 export default function Play() {
   const { t } = useTranslation()
   const { game, connected } = useLiveGame()
@@ -149,9 +152,15 @@ function Running({ game }: { game: GameState }) {
               >
                 <span className={styles.slotLabel}>{label ?? '–'}</span>
                 {label && game.turn_sources[i] === 'auto' && (
-                  <span className={styles.auto} title={t('play.detected')}>
-                    ◉
-                  </span>
+                  (game.turn_confidence[i] ?? 1) < LOW_CONFIDENCE ? (
+                    <span className={styles.unsure} title={t('play.unsure')}>
+                      ?
+                    </span>
+                  ) : (
+                    <span className={styles.auto} title={t('play.detected')}>
+                      ◉
+                    </span>
+                  )
                 )}
                 {label && (game.mode === 'x01' || game.mode === 'checkout_training') && (
                   <span className={styles.slotPoints}>{dartPoints(label)}</span>

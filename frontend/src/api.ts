@@ -214,6 +214,7 @@ export type GameState = {
   id: number
   event_count: number
   turn_sources: ('manual' | 'auto' | 'corrected' | 'bounce')[]
+  turn_confidence: (number | null)[]
   mode: GameMode
   settings: Record<string, string | number>
   created_at: string

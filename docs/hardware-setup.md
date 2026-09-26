@@ -16,6 +16,26 @@ Anleitung für den Referenzrechner (Intel Mac mini mit Debian) und die drei OV97
 | Belichtung | ab Werk `exposure_dynamic_framerate=1`: bei wenig Licht nur ~16 fps, auch bei einer Kamera allein |
 | Weitere Dienste | Autodarts (Port 3180), Home Assistant in Docker (Port 8123), GNOME-Desktop; Port 8000 frei |
 
+| dartscore-Kameras | 3× 30,0 fps, 0 verlorene Bilder (`dartscore bench`); Server mit 3 Browser-Streams ≈ 110 % CPU (gut 1 von 8 Threads) |
+
+### Inferenz-Benchmark (2026-09-26)
+
+Vortrainierte YOLO-Pose-Modelle (noch nicht auf Darts trainiert, nur zur Geschwindigkeitsmessung), Median über 30 Durchläufe, ein Bild pro Durchlauf. Parallel lief dartscore mit allen drei Kameras.
+
+| Modell | Eingabe | ONNX Runtime 1.30 | OpenVINO 2026.4 |
+| --- | --- | --- | --- |
+| YOLO26n-pose | 320 px | **41 ms** | 59 ms |
+| YOLO26n-pose | 480 px | **100 ms** | 123 ms |
+| YOLO26n-pose | 640 px | **139 ms** | 220 ms |
+| YOLO11n-pose | 320 px | 62 ms | 71 ms |
+| YOLO11n-pose | 480 px | 123 ms | 164 ms |
+| YOLO11n-pose | 640 px | 349 ms | 355 ms |
+| YOLO11s-pose | 320 px | 136 ms | 165 ms |
+| YOLO11s-pose | 480 px | 227 ms | 338 ms |
+| YOLO11s-pose | 640 px | 627 ms | 719 ms |
+
+Ergebnis: Beide Laufzeiten funktionieren ohne AVX2. ONNX Runtime ist auf dieser CPU durchweg schneller als OpenVINO (das auf AVX2/AVX-512 optimiert ist). YOLO26n-pose ist das schnellste Modell. Drei Kamerabilder dauern bei 320 px etwa 125 ms, bei 480 px etwa 300 ms – beides innerhalb des Ziels von 500 ms.
+
 **Autodarts und dartscore können die Kameras nicht gleichzeitig nutzen.** Vor dem Start von dartscore den Autodarts-Dienst anhalten (`systemctl stop autodarts`) und danach wieder starten (`systemctl start autodarts`).
 
 ## 1. Pakete und Rechte

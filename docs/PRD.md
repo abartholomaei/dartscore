@@ -10,6 +10,7 @@ Stand: 2026-09-26
 | Oberfläche | Läuft im Browser wie bei Autodarts, responsive (Handy, Tablet, Desktop, TV) |
 | Erkennung | Trainiertes Deep-Learning-Modell (Keypoint-/Objekterkennung), klassische Bildverarbeitung nur als Unterstützung |
 | Zielrechner | Mac mini (Late 2012), i7-3615QM (Ivy Bridge, 4C/8T, AVX, kein AVX2), 16 GB RAM, Debian 12. Inferenz auf der CPU (HD 4000 von OpenVINO nicht unterstützt). Autodarts läuft darauf problemlos. Details: [hardware-setup.md](hardware-setup.md) |
+| Inferenz | ONNX Runtime (CPU) mit YOLO26n-pose; auf dem Referenzrechner gemessen 41 ms (320 px) bzw. 100 ms (480 px) pro Kamerabild. OpenVINO optional für neuere Intel-CPUs |
 | Plattform | Universell: läuft auf Linux x86_64 und ARM64 (Raspberry Pi 5), nativ auch auf macOS und Windows; Hardware-Beschleunigung wird automatisch erkannt |
 
 ---
@@ -76,7 +77,7 @@ Die drei Kameras sind bereits vorhanden; sie werden im Abstand von ca. 120° um 
 | Anzeige | Browser auf TV, Tablet oder Handy im Heimnetz |
 | Optional | Mikrofon/Piezo als Einschlag-Trigger, Lautsprecher für Caller-Ansagen |
 
-Offen: Montageart (Surround/Ring) und welche Kamera an welcher Position hängt (Testbilder waren wegen fehlender Beleuchtung schwarz).
+Kamerapositionen (per Testbild bestimmt): USB-Port 1.2 = oben (0°), Port 1.1 = rechts unten (~120°), Port 1.3 = links unten (~240°). Montage in einem beleuchteten Surround-Ring.
 
 ---
 
@@ -308,9 +309,9 @@ Aggregierte Statistiken können als Cache-Tabelle (z. B. `player_stats`) gehalte
 - [x] Logging-Konzept (structlog, Konsole oder JSON)
 - [x] README mit Setup-Anleitung
 
-### Epic 1 – Hardware & Kameras (Software erledigt 2026-09-26, Tests am Mac mini offen)
+### Epic 1 – Hardware & Kameras (erledigt 2026-09-26, Linsenkalibrierung offen)
 - [x] Kameramodelle, Auflösung und fps dokumentieren
-- [ ] Montageposition und Winkel vermessen und dokumentieren
+- [x] Montageposition bestimmen (0°/120°/240°, siehe Hardware-Tabelle)
 - [ ] Beleuchtung optimieren (LED-Ring, Flimmer-Test)
 - [x] Kamera-Abstraktion: Geräte auflisten, öffnen, Frames lesen (OpenCV; V4L2/AVFoundation/DirectShow) – `dartscore devices`
 - [x] Stabile Kamera-Zuordnung über `/dev/v4l/by-path` bzw. `by-id` (Anleitung in [hardware-setup.md](hardware-setup.md))
@@ -368,7 +369,7 @@ Aggregierte Statistiken können als Cache-Tabelle (z. B. `player_stats`) gehalte
 - [ ] Fine-Tuning auf eigenen Daten, Modellgröße abwägen (n/s/m) nach Latenz
 - [ ] Export nach ONNX, zusätzlich OpenVINO-IR (INT8) für Intel
 - [ ] Inferenz-Abstraktion mit automatischer Backend-Wahl (OpenVINO, CUDA/TensorRT, CoreML, CPU)
-- [ ] Inferenz-Benchmark auf dem Mac mini: Latenz je Modellgröße und Eingabegröße, Ziel ≤ 300 ms für 3 Bilder
+- [x] Inferenz-Benchmark auf dem Mac mini: YOLO26n-pose mit ONNX Runtime 41 ms (320 px) / 100 ms (480 px) pro Bild – Ergebnisse in [hardware-setup.md](hardware-setup.md)
 - [ ] Trainingsumgebung festlegen (eigener GPU-Rechner oder Colab), Trainings-Notebook
 - [ ] Modell-Versionierung, Umschalten zwischen Modellen in den Einstellungen
 - [ ] Automatische Trainingsdaten aus Spielen (bestätigte/korrigierte Würfe) sammeln
@@ -485,7 +486,7 @@ Aggregierte Statistiken können als Cache-Tabelle (z. B. `player_stats`) gehalte
 | Board/Kamera verschiebt sich | Systematische Fehler | Drift-Erkennung, schnelle Nachkalibrierung |
 | Kein fertiges Modell für seitliche 3-Kamera-Ansicht | Eigenes Training nötig, Aufwand für Labeling | DeepDarts-Vortraining, Auto-Labeling aus Spielen, klassische CV als Übergang |
 | Zu wenig/zu einseitige Trainingsdaten | Modell versagt bei Grenzfällen | Gezielt Grenzfälle sammeln, Test-Split nach Session |
-| CPU ohne AVX2 (Ivy Bridge): aktuelle ONNX-Runtime-/OpenVINO-Pakete könnten AVX2 voraussetzen oder langsamer sein | Modell läuft nicht oder zu langsam | Früh testen (Epic 3b); Fallback: ONNX Runtime mit AVX-Build bzw. OpenCV-DNN, kleinere Eingabegröße |
+| CPU ohne AVX2 (Ivy Bridge) – geprüft: ONNX Runtime und OpenVINO laufen, YOLO26n-pose 41–139 ms pro Bild | Gering | Bildausschnitt um die Scheibe bzw. den Einschlag mit 320–480 px auswerten |
 | Alter Mac mini zu langsam für Inferenz (geringes Risiko: Autodarts läuft darauf problemlos) | Latenz > 500 ms | ROI, kleine Eingabe, INT8/OpenVINO, Modell nur nach Trigger; notfalls günstiger Mini-PC mit neuerer CPU |
 | 100°-Weitwinkel verzerrt stark | Ungenaue Koordinaten am Rand | Linsenkalibrierung mit Schachbrett pro Kamera |
 | Kamerazugriff mit Autodarts geteilt | dartscore und Autodarts blockieren sich gegenseitig | Nur eines von beiden laufen lassen; Umschalten per systemd (Epic 11) |
@@ -493,7 +494,5 @@ Aggregierte Statistiken können als Cache-Tabelle (z. B. `player_stats`) gehalte
 
 **Offene Fragen**
 
-- Läuft die Modell-Inferenz (ONNX Runtime/OpenVINO) auf der Ivy-Bridge-CPU ohne AVX2, und wie schnell?
-- Welche Kamera hängt an welcher Position? (Testbilder bei eingeschalteter Beleuchtung)
 - Soll das System auf einem dedizierten Gerät (z. B. Mini-PC/Raspberry Pi) dauerhaft laufen oder auf dem Mac?
 - Welche Spielmodi sind persönlich am wichtigsten (Reihenfolge nach dem MVP)?

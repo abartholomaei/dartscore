@@ -20,6 +20,7 @@ from dartscore.services.games import GameService
 from dartscore.services.hub import EventHub
 from dartscore.services.players import PlayerService
 from dartscore.services.stats import StatsService
+from dartscore.storage.backup import DailyBackup
 from dartscore.storage.db import create_db_engine, database_url, migrate, session_factory
 from dartscore.vision.camera import CameraManager
 from dartscore.vision.intrinsics import Undistorter, load_lens
@@ -76,15 +77,18 @@ def create_app(settings: Settings, camera_manager: CameraManager | None = None) 
     migrate(engine)
     sessions = session_factory(engine)
     hub = EventHub()
+    backups = DailyBackup(settings.data_dir / "dartscore.db", settings.data_dir / "backups")
 
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         hub.bind(asyncio.get_running_loop())
         manager.start()
         detection_service.start()
+        backups.start()
         try:
             yield
         finally:
+            backups.stop()
             detection_service.stop()
             manager.stop()
 

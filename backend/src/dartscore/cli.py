@@ -200,6 +200,29 @@ def cmd_export_dataset(settings: Settings, args: argparse.Namespace) -> None:
     print(f"Dataset: {Path(args.out).resolve() / 'data.yaml'}")
 
 
+def cmd_backup(settings: Settings, args: argparse.Namespace) -> None:
+    from dartscore.storage.backup import create_backup, list_backups, restore_backup
+
+    database = settings.data_dir / "dartscore.db"
+    backup_dir = settings.data_dir / "backups"
+    if args.action == "create":
+        print(f"Backup written: {create_backup(database, backup_dir)}")
+    elif args.action == "list":
+        for path in list_backups(backup_dir):
+            print(path.name)
+    else:
+        backups = list_backups(backup_dir)
+        chosen = backup_dir / args.file if args.file else (backups[0] if backups else None)
+        if chosen is None or not chosen.is_file():
+            sys.exit("No such backup.")
+        print("Stop dartscore before restoring (systemctl stop dartscore).")
+        if input(f"Restore {chosen.name}? The current data is replaced. [y/N] ").lower() != "y":
+            return
+        create_backup(database, backup_dir)  # keep the current state, just in case
+        restore_backup(chosen, database)
+        print("Restored.")
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="dartscore", description=__doc__)
     parser.add_argument("-c", "--config", type=Path, help="path to config.toml")
@@ -222,6 +245,10 @@ def build_parser() -> argparse.ArgumentParser:
     export = sub.add_parser("export-dataset", help="export recordings as a YOLO training set")
     export.add_argument("--out", default="datasets/darts", help="output folder")
     export.add_argument("--min-confidence", type=float, default=0.5)
+
+    backup = sub.add_parser("backup", help="create, list or restore database backups")
+    backup.add_argument("action", choices=["create", "list", "restore"])
+    backup.add_argument("--file", help="backup file name for restore (default: newest)")
     return parser
 
 
@@ -232,6 +259,7 @@ COMMANDS = {
     "bench": cmd_bench,
     "calibrate-lens": cmd_calibrate_lens,
     "export-dataset": cmd_export_dataset,
+    "backup": cmd_backup,
 }
 
 

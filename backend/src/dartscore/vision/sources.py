@@ -1,6 +1,5 @@
 """Frame sources: real cameras via OpenCV and a simulated camera for development."""
 
-import math
 import shutil
 import subprocess
 import sys
@@ -137,14 +136,32 @@ class OpenCVSource:
             self._cap = None
 
 
-class SyntheticSource:
-    """Simulated camera: the board from a side perspective, plus a moving marker.
+class SimulatedBoard:
+    """Shared state of the simulated cameras: darts in the board and a hand in view.
 
-    The perspective depends on ``position_deg`` so the three images differ.
+    All synthetic cameras render the same darts, each from its own perspective, so the
+    detection pipeline can be exercised end to end without hardware.
     """
 
-    def __init__(self, config: CameraConfig) -> None:
+    def __init__(self) -> None:
+        self.darts: list[tuple[float, float]] = []
+        self.hand = False
+
+    def clear(self) -> None:
+        self.darts.clear()
+        self.hand = False
+
+
+SIMULATED_BOARD = SimulatedBoard()
+
+
+class SyntheticSource:
+    """Simulated camera: the board from a side perspective with the darts of
+    ``SIMULATED_BOARD``. The perspective depends on ``position_deg``."""
+
+    def __init__(self, config: CameraConfig, board_state: SimulatedBoard = SIMULATED_BOARD) -> None:
         self._config = config
+        self._board = board_state
         self._base: Image | None = None
         self._next_frame_at = 0.0
         self._started_at = 0.0
@@ -159,6 +176,28 @@ class SyntheticSource:
         return SourceInfo(
             width=cfg.width, height=cfg.height, fps=cfg.fps, fourcc="SYNT", backend="synthetic"
         )
+
+    def render(self) -> Image:
+        """The current simulated image (without frame rate pacing)."""
+        if self._base is None:
+            self.open()
+        assert self._base is not None
+        frame = self._base.copy()
+        h_img = frame.shape[0]
+        homography = self.board_homography()
+        shaft = h_img / 720 * 55
+        for x_mm, y_mm in self._board.darts:
+            p = homography @ np.array([x_mm, y_mm, 1.0])
+            tip = (round(p[0] / p[2]), round(p[1] / p[2]))
+            # the dart sticks out of the board towards the camera: upwards in the image
+            end = (tip[0] + int(shaft * 0.15), tip[1] - int(shaft))
+            cv2.line(frame, tip, end, (235, 235, 240), 3, cv2.LINE_AA)
+            cv2.rectangle(frame, (end[0] - 6, end[1] - 14), (end[0] + 6, end[1]), (30, 30, 230), -1)
+        if self._board.hand:
+            h, w = frame.shape[:2]
+            center, axes = (w // 2, int(h * 0.75)), (w // 4, h // 3)
+            cv2.ellipse(frame, center, axes, 0, 0, 360, (140, 170, 220), -1)
+        return frame
 
     def board_homography(self) -> NDArray[np.float64]:
         """Ground truth: board plane (mm) -> image (px). Used by tests to simulate clicks."""
@@ -198,14 +237,8 @@ class SyntheticSource:
         if now < self._next_frame_at:
             time.sleep(self._next_frame_at - now)
         self._next_frame_at = max(self._next_frame_at + 1 / self._config.fps, time.monotonic())
-
-        frame = self._base.copy()
-        t = time.monotonic() - self._started_at
-        h, w = frame.shape[:2]
-        x = int(w / 2 + math.cos(t) * w * 0.3)
-        y = int(h / 2 + math.sin(t * 1.3) * h * 0.2)
-        cv2.circle(frame, (x, y), 8, (0, 220, 255), -1, cv2.LINE_AA)
-        label = f"{self._config.id}  sim  {t:6.1f}s"
+        frame = self.render()
+        label = f"{self._config.id}  sim"
         cv2.putText(frame, label, (16, 32), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 255), 2)
         return frame
 

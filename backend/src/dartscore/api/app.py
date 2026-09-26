@@ -12,9 +12,10 @@ from starlette.responses import Response
 from starlette.types import Scope
 
 from dartscore import __version__
-from dartscore.api import calibration, cameras, games, players, stats, ws
+from dartscore.api import calibration, cameras, detection, games, players, stats, ws
 from dartscore.config import Settings
 from dartscore.game import GameError
+from dartscore.services.detection import DetectionService
 from dartscore.services.games import GameService
 from dartscore.services.hub import EventHub
 from dartscore.services.players import PlayerService
@@ -80,9 +81,11 @@ def create_app(settings: Settings, camera_manager: CameraManager | None = None) 
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         hub.bind(asyncio.get_running_loop())
         manager.start()
+        detection_service.start()
         try:
             yield
         finally:
+            detection_service.stop()
             manager.stop()
 
     app = FastAPI(title="dartscore", version=__version__, lifespan=lifespan)
@@ -98,7 +101,18 @@ def create_app(settings: Settings, camera_manager: CameraManager | None = None) 
     app.state.players = PlayerService(sessions)
     app.state.games = GameService(sessions, hub)
     app.state.stats = StatsService(sessions)
-    for module in (cameras, calibration, players, games, stats, ws):
+    detection_service = DetectionService(
+        settings.detection, manager, app.state.games, hub, settings.recordings_dir
+    )
+    app.state.detection = detection_service
+
+    def reconfigure_detection() -> None:
+        store: calibration.CalibrationStore = app.state.calibrations
+        detection_service.configure(store.all(), app.state.undistorters)
+
+    app.state.calibrations.on_change = reconfigure_detection
+    reconfigure_detection()
+    for module in (cameras, calibration, players, games, stats, detection, ws):
         app.include_router(module.router)
 
     @app.exception_handler(GameError)

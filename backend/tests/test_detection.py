@@ -1,0 +1,161 @@
+import math
+
+import numpy as np
+import pytest
+
+from dartscore.config import CameraConfig, DetectionConfig
+from dartscore.vision import board
+from dartscore.vision.calibration import BoardCalibration
+from dartscore.vision.detection import DartDetection, DartDetector, DetectorState, Takeout
+from dartscore.vision.sources import SimulatedBoard, SyntheticSource
+
+STEP = 1 / 15
+
+
+class Rig:
+    """Three simulated cameras around one simulated board, driven with a fake clock."""
+
+    def __init__(self) -> None:
+        self.board = SimulatedBoard()
+        self.sources = {
+            f"cam{i + 1}": SyntheticSource(
+                CameraConfig(id=f"cam{i + 1}", source="synthetic", position_deg=i * 120),
+                self.board,
+            )
+            for i in range(3)
+        }
+        calibrations = {
+            cid: BoardCalibration(cid, {}, src.board_homography(), (1280, 720), False, None, 0.0)
+            for cid, src in self.sources.items()
+        }
+        self.detector = DartDetector(DetectionConfig(), calibrations, {})
+        self.now = 0.0
+
+    def step(self, seconds: float) -> list[object]:
+        events: list[object] = []
+        for _ in range(max(1, round(seconds / STEP))):
+            self.now += STEP
+            frames = {cid: src.render() for cid, src in self.sources.items()}
+            events += self.detector.process(frames, self.now)
+        return events
+
+    def throw(self, x: float, y: float) -> list[object]:
+        self.board.darts.append((x, y))
+        return self.step(1.0)
+
+
+def polar(r: float, deg_from_top: float) -> tuple[float, float]:
+    a = math.radians(90 - deg_from_top)
+    return r * math.cos(a), r * math.sin(a)
+
+
+@pytest.fixture
+def rig() -> Rig:
+    rig = Rig()
+    rig.step(0.5)  # references
+    return rig
+
+
+def test_detects_single_dart(rig: Rig) -> None:
+    events = rig.throw(0, 103)  # triple 20
+    darts = [e for e in events if isinstance(e, DartDetection)]
+    assert len(darts) == 1
+    dart = darts[0]
+    assert dart.label == "T20"
+    assert math.hypot(dart.x_mm - 0, dart.y_mm - 103) < 4
+    assert sum(h.used for h in dart.hits) >= 2
+    assert rig.detector.state == DetectorState.IDLE
+
+
+@pytest.mark.parametrize(
+    ("r", "deg", "label"),
+    [
+        (50, 0, "S20"),
+        (166, 90, "D6"),
+        (103, 180, "T3"),
+        (0, 0, "BULL"),
+        (60, 234, "S16"),
+    ],
+)
+def test_detects_fields_around_the_board(rig: Rig, r: float, deg: float, label: str) -> None:
+    events = rig.throw(*polar(r, deg))
+    darts = [e for e in events if isinstance(e, DartDetection)]
+    assert [d.label for d in darts] == [label]
+
+
+def test_three_darts_then_takeout(rig: Rig) -> None:
+    labels = []
+    for pos in [(0, 60), polar(60, 18), polar(60, 342)]:
+        labels += [e.label for e in rig.throw(*pos) if isinstance(e, DartDetection)]
+    assert labels == ["S20", "S1", "S5"]
+    assert rig.detector.darts_in_turn == 3
+
+    # hand comes in, darts are pulled, hand leaves
+    rig.board.hand = True
+    assert rig.step(1.0) == []
+    assert rig.detector.state == DetectorState.BLOCKED
+    rig.board.darts.clear()
+    rig.step(0.5)
+    rig.board.hand = False
+    events = rig.step(1.0)
+    assert any(isinstance(e, Takeout) for e in events)
+    assert rig.detector.darts_in_turn == 0
+
+
+def test_darts_pulled_one_by_one_are_not_new_darts(rig: Rig) -> None:
+    rig.throw(0, 60)
+    rig.throw(*polar(60, 90))
+    rig.board.darts.pop()  # one dart removed without a hand in view
+    events = rig.step(1.0)
+    assert not any(isinstance(e, DartDetection) for e in events)
+    rig.board.darts.pop()
+    events = rig.step(1.0)
+    assert any(isinstance(e, Takeout) for e in events)
+
+
+def test_bounce_out_produces_nothing(rig: Rig) -> None:
+    rig.board.darts.append((0, 60))
+    rig.step(STEP)  # visible for a single frame
+    rig.board.darts.pop()
+    events = rig.step(1.0)
+    assert events == []
+    assert rig.detector.darts_in_turn == 0
+
+
+def test_miss_outside_double_ring(rig: Rig) -> None:
+    events = rig.throw(*polar(190, 45))
+    darts = [e for e in events if isinstance(e, DartDetection)]
+    assert [d.label for d in darts] == ["MISS"]
+
+
+def test_fuse_drops_outlier() -> None:
+    from dartscore.vision.detection import CameraHit, fuse
+
+    hits = [
+        CameraHit("a", (0, 0), (10.0, 10.0), 100),
+        CameraHit("b", (0, 0), (11.0, 10.0), 100),
+        CameraHit("c", (0, 0), (60.0, 10.0), 100),
+    ]
+    x, y, confidence, marked = fuse(hits, 12.0, 3)
+    assert x == pytest.approx(10.5)
+    assert y == pytest.approx(10.0)
+    assert [h.used for h in marked] == [True, True, False]
+    assert 0 < confidence < 1
+
+
+def test_tip_is_lowest_point_of_the_dart() -> None:
+    from dartscore.vision.detection import find_dart_tip
+
+    reference = np.full((200, 200), 50, np.uint8)
+    current = reference.copy()
+    # a slanted "dart" from (100, 150) up to (110, 90)
+    for t in np.linspace(0, 1, 200):
+        x, y = int(100 + 10 * t), int(150 - 60 * t)
+        current[y - 1 : y + 2, x - 1 : x + 2] = 230
+    mask = np.full_like(reference, 255)
+    found = find_dart_tip(reference, current, mask, 28, 20)
+    assert found is not None
+    (tx, ty), _ = found
+    assert abs(tx - 100) < 3
+    assert abs(ty - 150) < 3
+    assert board.score_at(0, 0).label == "BULL"

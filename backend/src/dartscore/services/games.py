@@ -5,6 +5,7 @@ database before the new state is published, so a crash or power loss loses nothi
 """
 
 import threading
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -85,7 +86,19 @@ class GameService:
         self._hub = hub
         self._lock = threading.RLock()
         self._active: ActiveGame | None = None
+        self._listeners: list[Callable[[str], None]] = []
         self._load_active()
+
+    def add_listener(self, listener: Callable[[str], None]) -> None:
+        """Called with "next" or "new_game" after the change (e.g. to sync the detector)."""
+        self._listeners.append(listener)
+
+    def _notify(self, event: str) -> None:
+        for listener in self._listeners:
+            try:
+                listener(event)
+            except Exception:
+                log.exception("game_listener_failed", event=event)
 
     # --- queries ------------------------------------------------------------------------
 
@@ -164,6 +177,7 @@ class GameService:
                     created_at=record.created_at.isoformat(),
                 )
             log.info("game_started", game_id=record.id, mode=mode, players=len(players))
+            self._notify("new_game")
             return self._publish()
 
     def throw(
@@ -180,13 +194,15 @@ class GameService:
             self._append_event(active)
             return self._after_change(active)
 
-    def next_turn(self) -> dict[str, Any]:
+    def next_turn(self, source: str = "manual") -> dict[str, Any]:
         with self._lock:
             active = self._require_active()
             active.game.next_turn()
-            active.meta.append(EventMeta("manual"))
+            active.meta.append(EventMeta(source))
             self._append_event(active)
-            return self._after_change(active)
+            state = self._after_change(active)
+            self._notify("next")
+            return state
 
     def undo(self) -> dict[str, Any]:
         with self._lock:
@@ -339,6 +355,18 @@ class GameService:
         self._hub.publish("game", state)
         return state or {}
 
+    def _turn_sources(self, active: ActiveGame) -> list[str]:
+        game = active.game
+        turn = game.state()["turn"]
+        if not turn:
+            return []
+        count = len(turn["darts"])
+        # darts of the shown turn are the last dart events (implicit misses have no event)
+        dart_meta = [
+            m for m, e in zip(active.meta, game.events, strict=True) if isinstance(e, DartEvent)
+        ]
+        return [m.source for m in dart_meta[-count:]] if count else []
+
     def _state(self, active: ActiveGame) -> dict[str, Any]:
         game = active.game
         state = game.state()
@@ -350,6 +378,9 @@ class GameService:
         return {
             "id": active.id,
             "created_at": active.created_at,
+            "event_count": len(game.events),
+            # how each dart of the shown turn was entered: manual | auto | corrected
+            "turn_sources": self._turn_sources(active),
             "players": [
                 {**info, "stats": stats[info["position"]].to_dict()} for info in active.players
             ],

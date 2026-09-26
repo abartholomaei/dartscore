@@ -2,6 +2,7 @@
 
 import threading
 import time
+from collections.abc import Callable
 from pathlib import Path
 
 import cv2
@@ -45,6 +46,16 @@ class CalibrationStore:
         self._references: dict[str, Image | None] = {}
         # (timestamp, drift) per camera, so polling clients do not recompute constantly
         self._drift_cache: dict[str, tuple[float, float]] = {}
+        # called after a calibration was saved or deleted (e.g. to rebuild the detector)
+        self.on_change: Callable[[], None] | None = None
+
+    def all(self) -> dict[str, BoardCalibration]:
+        with self._lock:
+            return dict(self._calibrations)
+
+    def _changed(self) -> None:
+        if self.on_change is not None:
+            self.on_change()
 
     def get(self, camera_id: str) -> BoardCalibration | None:
         with self._lock:
@@ -56,6 +67,7 @@ class CalibrationStore:
             self._calibrations[calibration.camera_id] = calibration
             self._references[calibration.camera_id] = reference
             self._drift_cache.pop(calibration.camera_id, None)
+        self._changed()
 
     def delete(self, camera_id: str) -> None:
         delete_board(self.dir, camera_id)
@@ -63,6 +75,7 @@ class CalibrationStore:
             self._calibrations.pop(camera_id, None)
             self._references.pop(camera_id, None)
             self._drift_cache.pop(camera_id, None)
+        self._changed()
 
     def reference(self, camera_id: str) -> Image | None:
         with self._lock:

@@ -57,6 +57,30 @@ class StreamConfig(BaseModel):
     jpeg_quality: int = Field(default=75, ge=30, le=95)
 
 
+class DetectionConfig(BaseModel):
+    """Automatic dart detection (classic image processing on the calibrated cameras)."""
+
+    enabled: bool = True
+    # analysis rate; the cameras keep running at full frame rate
+    rate_hz: float = Field(default=15.0, ge=2, le=30)
+    # frames are downscaled to this width for motion detection
+    analysis_width: int = Field(default=640, ge=160, le=1920)
+    # gray level difference that counts as a changed pixel
+    pixel_threshold: int = Field(default=28, ge=5, le=120)
+    # share of changed pixels (of the board region) that counts as motion
+    motion_area: float = Field(default=0.0006, gt=0, lt=1)
+    # quiet time after motion before a change is evaluated (s)
+    settle_time: float = Field(default=0.3, ge=0.05, le=3)
+    # smallest change that is a dart (share of the board region)
+    min_dart_area: float = Field(default=0.00025, gt=0, lt=1)
+    # larger changes are a hand, a person or darts being pulled
+    max_dart_area: float = Field(default=0.03, gt=0, lt=1)
+    # camera estimates farther apart than this (mm) are treated as outliers
+    max_spread_mm: float = Field(default=12.0, gt=0)
+    # save images of every detection (training data for the model, debugging)
+    record: bool = True
+
+
 class LoggingConfig(BaseModel):
     level: Literal["DEBUG", "INFO", "WARNING", "ERROR"] = "INFO"
     json_output: bool = False
@@ -75,6 +99,7 @@ class Settings(BaseSettings):
     server: ServerConfig = ServerConfig()
     logging: LoggingConfig = LoggingConfig()
     stream: StreamConfig = StreamConfig()
+    detection: DetectionConfig = DetectionConfig()
     cameras: list[CameraConfig] = []
 
     @field_validator("cameras")
@@ -88,6 +113,10 @@ class Settings(BaseSettings):
     @property
     def calibration_dir(self) -> Path:
         return self.data_dir / "calibration"
+
+    @property
+    def recordings_dir(self) -> Path:
+        return self.data_dir / "recordings"
 
     @classmethod
     def settings_customise_sources(

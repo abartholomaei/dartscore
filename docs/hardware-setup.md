@@ -2,6 +2,22 @@
 
 Anleitung für den Referenzrechner (Intel Mac mini mit Debian) und die drei OV9732-Kameras. Gilt sinngemäß für jeden Linux-Rechner.
 
+## Referenzrechner (geprüft am 2026-09-26)
+
+| Punkt | Befund |
+| --- | --- |
+| Rechner | Mac mini (Late 2012), Intel Core i7-3615QM (Ivy Bridge, 4 Kerne / 8 Threads), 16 GB RAM, Debian 12, Kernel 6.1 |
+| CPU-Befehlssätze | AVX, SSE4.2 – **kein AVX2/FMA** (relevant für die Modell-Inferenz, siehe PRD) |
+| Grafik | Intel HD 4000 – von OpenVINO nicht unterstützt, Inferenz läuft auf der CPU |
+| Kameras | 3× Realtek-UVC (`0bda:5844`, OV9732), alle an einem USB-2.0-Hub (Genesys `05e3:0610`), Hub-Ports 1.1, 1.2, 1.3 |
+| Formate | MJPG 1280x720@30 und YUYV 1280x720@10 – MJPG ist Pflicht |
+| Seriennummern | alle Kameras gleich (`200901010001`) → by-id unbrauchbar, by-path verwenden |
+| Bandbreite | alle 3 gleichzeitig MJPG 1280x720: **29,5 fps je Kamera** (mit `exposure_dynamic_framerate=0`) |
+| Belichtung | ab Werk `exposure_dynamic_framerate=1`: bei wenig Licht nur ~16 fps, auch bei einer Kamera allein |
+| Weitere Dienste | Autodarts (Port 3180), Home Assistant in Docker (Port 8123), GNOME-Desktop; Port 8000 frei |
+
+**Autodarts und dartscore können die Kameras nicht gleichzeitig nutzen.** Vor dem Start von dartscore den Autodarts-Dienst anhalten (`systemctl stop autodarts`) und danach wieder starten (`systemctl start autodarts`).
+
 ## 1. Pakete und Rechte
 
 ```bash
@@ -52,7 +68,7 @@ Optional feste Belichtung, damit sich die Helligkeit zwischen den Würfen nicht 
 v4l2-ctl -d /dev/video0 -l
 ```
 
-Die Namen und Werte kommen dann unter `v4l2_controls` in die Kamera-Konfiguration, z. B. `{ auto_exposure = 1, exposure_time_absolute = 150 }`.
+Die Namen und Werte kommen dann unter `v4l2_controls` in die Kamera-Konfiguration. Bei den OV9732 immer `exposure_dynamic_framerate = 0` setzen, sonst sinkt die Bildrate bei wenig Licht auf etwa 16 fps. Mit fester Beleuchtung zusätzlich `auto_exposure = 1` (manuell) und `exposure_time_absolute` passend wählen.
 
 ## 4. Bandbreite testen
 

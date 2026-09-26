@@ -9,7 +9,7 @@ Stand: 2026-09-26
 | Kameras | 3× OV9732-Kameramodul (1280×720, 30 fps, 100° FOV, Fixfokus, USB 2.0), als Autodarts-kompatibles Set gekauft ([Amazon](https://www.amazon.de/dp/B0DYJW1S1N)) |
 | Oberfläche | Läuft im Browser wie bei Autodarts, responsive (Handy, Tablet, Desktop, TV) |
 | Erkennung | Trainiertes Deep-Learning-Modell (Keypoint-/Objekterkennung), klassische Bildverarbeitung nur als Unterstützung |
-| Zielrechner | Alter Intel Mac mini mit Debian (Referenz-Hardware, Inferenz auf CPU/iGPU); Autodarts läuft darauf problemlos → Leistung für 3 Kameras + Modell grundsätzlich ausreichend |
+| Zielrechner | Mac mini (Late 2012), i7-3615QM (Ivy Bridge, 4C/8T, AVX, kein AVX2), 16 GB RAM, Debian 12. Inferenz auf der CPU (HD 4000 von OpenVINO nicht unterstützt). Autodarts läuft darauf problemlos. Details: [hardware-setup.md](hardware-setup.md) |
 | Plattform | Universell: läuft auf Linux x86_64 und ARM64 (Raspberry Pi 5), nativ auch auf macOS und Windows; Hardware-Beschleunigung wird automatisch erkannt |
 
 ---
@@ -71,12 +71,12 @@ Die drei Kameras sind bereits vorhanden; sie werden im Abstand von ca. 120° um 
 | Kameras (3×) | OV9732-Modul: 1280×720, 30 fps, 100° Weitwinkel, Fixfokus, USB 2.0 (UVC), 2 m Kabel. Weitwinkel → Linsenentzerrung nötig; MJPEG-Unterstützung noch prüfen |
 | Montage | Ring oder Surround mit 3 Halterungen, ca. 120° versetzt, Kameras knapp vor der Scheibenebene |
 | Beleuchtung | LED-Ring, gleichmäßig, schattenarm, flimmerfrei (wichtig für stabile Differenzbilder) |
-| Rechner | Referenz: alter Intel Mac mini mit Debian, Inferenz auf CPU bzw. Intel-iGPU via OpenVINO. Ebenfalls unterstützt: andere x86-PCs, NVIDIA-GPU (CUDA/TensorRT), Apple Silicon (CoreML), Raspberry Pi 5 (CPU, optional Hailo-Beschleuniger) |
-| USB | 3× 720p30 über USB 2.0: nur mit MJPEG stabil, sonst getrennte USB-Controller/Ports nötig |
+| Rechner | Referenz: Mac mini (i7-3615QM, 16 GB, Debian 12), Inferenz auf der CPU (OpenVINO oder ONNX Runtime); teilt sich den Rechner mit Home Assistant und Autodarts. Ebenfalls unterstützt: andere x86-PCs, NVIDIA-GPU (CUDA/TensorRT), Apple Silicon (CoreML), Raspberry Pi 5 (CPU, optional Hailo-Beschleuniger) |
+| USB | Gemessen: 3× MJPG 1280x720 an einem USB-2.0-Hub mit je 29,5 fps – ausreichend. Voraussetzung: `exposure_dynamic_framerate=0` |
 | Anzeige | Browser auf TV, Tablet oder Handy im Heimnetz |
 | Optional | Mikrofon/Piezo als Einschlag-Trigger, Lautsprecher für Caller-Ansagen |
 
-Offen: Montageart (Surround/Ring), Baujahr/CPU und RAM des Mac mini.
+Offen: Montageart (Surround/Ring) und welche Kamera an welcher Position hängt (Testbilder waren wegen fehlender Beleuchtung schwarz).
 
 ---
 
@@ -317,7 +317,7 @@ Aggregierte Statistiken können als Cache-Tabelle (z. B. `player_stats`) gehalte
 - [x] Kamera-Controls (Belichtung usw.) per `v4l2_controls` in der Konfiguration
 - [x] Paralleles Auslesen von 3 Streams (ein Thread pro Kamera), Zeitstempel je Bild, automatische Neuverbindung
 - [x] USB-Bandbreitentest – `dartscore bench` (Ist-fps, verlorene Bilder)
-- [ ] Bandbreitentest auf dem Mac mini mit den echten Kameras durchführen
+- [x] Bandbreitentest auf dem Mac mini: 3× 29,5 fps (MJPG 720p), Ursache für 16 fps gefunden (`exposure_dynamic_framerate`)
 - [x] MJPEG-Livestream der Kamerabilder in die UI (Kameraseite, responsiv)
 - [x] Linsenverzeichnung kalibrieren (Schachbrett, `dartscore calibrate-lens`) und entzerren
 - [ ] Linsenkalibrierung für alle 3 Kameras durchführen
@@ -464,6 +464,7 @@ Aggregierte Statistiken können als Cache-Tabelle (z. B. `player_stats`) gehalte
 - [ ] Docker-Image multi-arch (amd64/arm64) mit Kamera-Durchreichung
 - [ ] Alternativ native Installation (Installskript) mit Autostart als systemd-Dienst
 - [ ] Plattformtests: Debian x86 (Referenz), Raspberry Pi OS, macOS, Windows (nativ)
+- [ ] Umschalten zwischen Autodarts und dartscore auf dem Referenzrechner (systemd, Kamerafreigabe)
 - [ ] Zugriff im Heimnetz (feste IP / mDNS, z. B. `darts.local`)
 - [ ] Update-Prozess (git pull + Migration)
 - [ ] Log-Rotation
@@ -484,15 +485,15 @@ Aggregierte Statistiken können als Cache-Tabelle (z. B. `player_stats`) gehalte
 | Board/Kamera verschiebt sich | Systematische Fehler | Drift-Erkennung, schnelle Nachkalibrierung |
 | Kein fertiges Modell für seitliche 3-Kamera-Ansicht | Eigenes Training nötig, Aufwand für Labeling | DeepDarts-Vortraining, Auto-Labeling aus Spielen, klassische CV als Übergang |
 | Zu wenig/zu einseitige Trainingsdaten | Modell versagt bei Grenzfällen | Gezielt Grenzfälle sammeln, Test-Split nach Session |
+| CPU ohne AVX2 (Ivy Bridge): aktuelle ONNX-Runtime-/OpenVINO-Pakete könnten AVX2 voraussetzen oder langsamer sein | Modell läuft nicht oder zu langsam | Früh testen (Epic 3b); Fallback: ONNX Runtime mit AVX-Build bzw. OpenCV-DNN, kleinere Eingabegröße |
 | Alter Mac mini zu langsam für Inferenz (geringes Risiko: Autodarts läuft darauf problemlos) | Latenz > 500 ms | ROI, kleine Eingabe, INT8/OpenVINO, Modell nur nach Trigger; notfalls günstiger Mini-PC mit neuerer CPU |
 | 100°-Weitwinkel verzerrt stark | Ungenaue Koordinaten am Rand | Linsenkalibrierung mit Schachbrett pro Kamera |
-| USB-2.0-Bandbreite bei 3 Kameras | Frame-Drops | MJPEG, separate USB-Ports/Hubs |
+| Kamerazugriff mit Autodarts geteilt | dartscore und Autodarts blockieren sich gegenseitig | Nur eines von beiden laufen lassen; Umschalten per systemd (Epic 11) |
 | Aufwand der Entwicklung unterschätzt | Verzögerung | Früh Testdatensatz + Replay-Tool, manuelle Eingabe als Fallback ab Tag 1 |
 
 **Offene Fragen**
 
-- Welches Baujahr/welche CPU und wie viel RAM hat der Mac mini? (`lscpu`, `free -h`)
-- Hat der Mac mini genug getrennte USB-Controller für 3 Kameras? (`lsusb -t`)
-- Unterstützen die OV9732-Module MJPEG? (Test mit `v4l2-ctl` / `ffmpeg -list_formats`)
+- Läuft die Modell-Inferenz (ONNX Runtime/OpenVINO) auf der Ivy-Bridge-CPU ohne AVX2, und wie schnell?
+- Welche Kamera hängt an welcher Position? (Testbilder bei eingeschalteter Beleuchtung)
 - Soll das System auf einem dedizierten Gerät (z. B. Mini-PC/Raspberry Pi) dauerhaft laufen oder auf dem Mac?
 - Welche Spielmodi sind persönlich am wichtigsten (Reihenfolge nach dem MVP)?

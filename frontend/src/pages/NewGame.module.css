@@ -161,3 +161,10 @@
   opacity: 0.4;
   cursor: default;
 }
+
+.toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 8px;
+}

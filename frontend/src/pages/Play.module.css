@@ -493,3 +493,11 @@
   font-size: 0.75rem;
   color: var(--ok);
 }
+
+.target {
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent) 15%, transparent);
+  color: var(--accent);
+  font-weight: 800;
+}

@@ -1,7 +1,14 @@
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useParams } from 'react-router'
-import { getJson, type AggregateStats, type HeadToHead, type Player, type PlayerStats as Stats } from '../api'
+import {
+  getJson,
+  TRAINING_MODES,
+  type AggregateStats,
+  type HeadToHead,
+  type Player,
+  type PlayerStats as Stats,
+} from '../api'
 import DartBoard from '../components/DartBoard'
 import { useErrorText } from '../helpers'
 import styles from './PlayerStats.module.css'
@@ -57,7 +64,7 @@ export default function PlayerStats() {
         </Link>
       </div>
 
-      {!x01 && !cricket && <p className="muted">{t('stats.noGames')}</p>}
+      {Object.keys(stats.modes).length === 0 && <p className="muted">{t('stats.noGames')}</p>}
 
       {x01 && (
         <section className="card">
@@ -92,6 +99,21 @@ export default function PlayerStats() {
           <Trend stats={cricket} field="mpr" label={t('stats.mprTrend')} />
         </section>
       )}
+
+      {TRAINING_MODES.filter((m) => stats.modes[m]).map((m) => {
+        const ms = stats.modes[m] as AggregateStats
+        return (
+          <section key={m} className="card">
+            <h2 className="cardTitle">{t(`modes.${m}`)}</h2>
+            <div className={styles.tiles}>
+              <Tile label={t('stats.bestScore')} value={ms.best_score ?? '–'} big />
+              <Tile label={t('stats.averageScore')} value={num(ms.average_score)} />
+              <Tile label={t('play.stats.hitRate')} value={pct(ms.hit_rate)} />
+              <Tile label={t('stats.gamesPlayed')} value={ms.games} />
+            </div>
+          </section>
+        )
+      })}
 
       {positions.length > 0 && (
         <section className="card">

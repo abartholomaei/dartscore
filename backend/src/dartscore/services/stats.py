@@ -21,6 +21,7 @@ _SUMMED = (
     "darts_in_won_legs",
     "busts",
     "marks",
+    "hits",
 )
 
 
@@ -37,6 +38,9 @@ def _aggregate(rows: list[tuple[GameRecord, GamePlayer]]) -> dict[str, Any]:
         highest_turn=0,
         best_leg_darts=None,
         tons={"60": 0, "100": 0, "140": 0, "180": 0},
+        best_score=None,
+        score_sum=0,
+        scored_games=0,
     )
     trend = []
     for record, gp in rows:
@@ -50,6 +54,12 @@ def _aggregate(rows: list[tuple[GameRecord, GamePlayer]]) -> dict[str, Any]:
         best = s.get("best_leg_darts")
         if best is not None and (total["best_leg_darts"] is None or best < total["best_leg_darts"]):
             total["best_leg_darts"] = best
+        score = s.get("score")
+        if score is not None:
+            total["scored_games"] += 1
+            total["score_sum"] += score
+            if total["best_score"] is None or score > total["best_score"]:
+                total["best_score"] = score
         for bucket, count in (s.get("tons") or {}).items():
             total["tons"][bucket] = total["tons"].get(bucket, 0) + count
         trend.append(
@@ -58,6 +68,7 @@ def _aggregate(rows: list[tuple[GameRecord, GamePlayer]]) -> dict[str, Any]:
                 "date": record.created_at.isoformat(),
                 "average": s.get("average"),
                 "mpr": s.get("mpr"),
+                "score": s.get("score"),
                 "won": record.winner_position == gp.position,
             }
         )
@@ -68,6 +79,8 @@ def _aggregate(rows: list[tuple[GameRecord, GamePlayer]]) -> dict[str, Any]:
         mpr=_ratio(total["marks"], total["darts"], 3),
         win_rate=_ratio(total["wins"], total["games"], digits=4),
         darts_per_leg=_ratio(total["darts_in_won_legs"], total["legs_won"], digits=1),
+        average_score=_ratio(total["score_sum"], total["scored_games"], digits=1),
+        hit_rate=_ratio(total["hits"], total["darts"], digits=4) if total["scored_games"] else None,
         trend=trend,
     )
     return total

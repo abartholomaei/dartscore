@@ -166,6 +166,9 @@ export type PlayerGameStats = {
   busts: number
   tons: Record<'60' | '100' | '140' | '180', number>
   marks: number
+  score: number | null
+  hits: number
+  hit_rate: number | null
   average: number | null
   first9_average: number | null
   checkout_rate: number | null
@@ -189,7 +192,21 @@ export type TurnSummary = {
   checkout: boolean
 }
 
-export type GameMode = 'x01' | 'cricket'
+export type GameMode =
+  | 'x01'
+  | 'cricket'
+  | 'around_the_clock'
+  | 'shanghai'
+  | 'bobs_27'
+  | 'checkout_training'
+  | 'doubles_training'
+export const TRAINING_MODES: GameMode[] = [
+  'around_the_clock',
+  'shanghai',
+  'bobs_27',
+  'checkout_training',
+  'doubles_training',
+]
 export type InOutRule = 'single' | 'double' | 'master'
 export type CricketVariant = 'standard' | 'cut_throat' | 'no_score'
 
@@ -224,10 +241,24 @@ export type GameState = {
   remaining?: number[]
   opened?: boolean[]
   checkout?: string[] | null
-  // cricket
+  // cricket (targets also used by training modes)
   targets?: number[]
   marks?: number[][]
   points?: number[]
+  // training modes
+  position?: number[]
+  current_targets?: (string | null)[]
+  scores?: number[]
+  round?: number
+  rounds?: number
+  target?: string
+  out?: boolean[]
+  target_index?: number[]
+  successes?: number[]
+  results?: boolean[][]
+  darts_on_target?: number[]
+  hits?: number[]
+  hits_by_target?: Record<string, number>[]
 }
 
 export type HistoryEntry = {
@@ -260,7 +291,17 @@ export type AggregateStats = {
   tons: Record<'60' | '100' | '140' | '180', number>
   mpr: number | null
   marks: number
-  trend: { game_id: number; date: string; average: number | null; mpr: number | null; won: boolean }[]
+  best_score: number | null
+  average_score: number | null
+  hit_rate: number | null
+  trend: {
+    game_id: number
+    date: string
+    average: number | null
+    mpr: number | null
+    score: number | null
+    won: boolean
+  }[]
 }
 
 export type PlayerStats = {

@@ -109,14 +109,25 @@ function Running({ game }: { game: GameState }) {
     <div className={styles.layout}>
       <section className={styles.scores}>
         <MatchInfo game={game} />
-        {game.mode === 'x01' ? <X01Scores game={game} /> : <CricketScores game={game} />}
+        {game.mode === 'x01' ? (
+          <X01Scores game={game} />
+        ) : game.mode === 'cricket' ? (
+          <CricketScores game={game} />
+        ) : (
+          <TrainingScores game={game} />
+        )}
       </section>
 
       <section className={`card ${styles.turn}`} aria-live="polite">
         <div className={styles.turnHeader}>
           <span className={styles.dot} style={{ background: current.color }} />
           <strong>{current.name}</strong>
-          {game.mode === 'x01' && game.checkout && !game.awaiting_next && (
+          {trainingTarget(game) && !game.awaiting_next && (
+            <span className={styles.target}>
+              {t('play.target')}: {trainingTarget(game)}
+            </span>
+          )}
+          {(game.mode === 'x01' || game.mode === 'checkout_training') && game.checkout && !game.awaiting_next && (
             <span className={styles.checkout}>
               {t('play.checkout')}: {game.checkout.join(' · ')}
             </span>
@@ -142,7 +153,9 @@ function Running({ game }: { game: GameState }) {
                     ◉
                   </span>
                 )}
-                {label && game.mode === 'x01' && <span className={styles.slotPoints}>{dartPoints(label)}</span>}
+                {label && (game.mode === 'x01' || game.mode === 'checkout_training') && (
+                  <span className={styles.slotPoints}>{dartPoints(label)}</span>
+                )}
               </button>
             )
           })}
@@ -209,7 +222,9 @@ function MatchInfo({ game }: { game: GameState }) {
   const title =
     game.mode === 'x01'
       ? `${s.start_score} · ${t(`newGame.rule.${s.in_rule as InOutRule}`)} in · ${t(`newGame.rule.${s.out_rule as InOutRule}`)} out`
-      : `Cricket · ${t(`newGame.variants.${s.variant as CricketVariant}`)}`
+      : game.mode === 'cricket'
+        ? `Cricket · ${t(`newGame.variants.${s.variant as CricketVariant}`)}`
+        : `${t(`modes.${game.mode}`)}${game.round && game.rounds ? ` · ${t('play.round', { round: game.round, rounds: game.rounds })}` : ''}`
   const legs = Number(s.legs_to_win)
   const sets = Number(s.sets_to_win)
   return (
@@ -320,6 +335,73 @@ function CricketScores({ game }: { game: GameState }) {
           </tr>
         </tbody>
       </table>
+    </div>
+  )
+}
+
+/** What the current player aims at in a training mode (null for X01/Cricket). */
+function trainingTarget(game: GameState): string | null {
+  switch (game.mode) {
+    case 'around_the_clock':
+      return game.current_targets?.[game.current_player] ?? null
+    case 'shanghai':
+      return game.round ? String(game.round) : null
+    case 'bobs_27':
+    case 'doubles_training':
+      return game.target ?? null
+    default:
+      return null
+  }
+}
+
+function TrainingScores({ game }: { game: GameState }) {
+  const { t } = useTranslation()
+  return (
+    <div className={styles.playerGrid} data-count={game.players.length}>
+      {game.players.map((p) => {
+        const i = p.position
+        const active = i === game.current_player
+        let big: string | number = '–'
+        let detail = ''
+        switch (game.mode) {
+          case 'around_the_clock':
+            big = game.current_targets?.[i] ?? '✓'
+            detail = t('play.progress', { done: game.position?.[i] ?? 0, total: game.targets?.length ?? 0 })
+            break
+          case 'shanghai':
+          case 'bobs_27':
+            big = game.scores?.[i] ?? 0
+            detail = game.out?.[i] ? t('play.out') : t('play.points')
+            break
+          case 'checkout_training': {
+            const index = game.target_index?.[i] ?? 0
+            const total = game.targets?.length ?? 0
+            big = index < total ? (game.remaining?.[i] ?? '–') : '✓'
+            detail = t('play.checkoutProgress', {
+              done: game.successes?.[i] ?? 0,
+              target: Math.min(index + 1, total),
+              total,
+            })
+            break
+          }
+          case 'doubles_training':
+            big = game.hits?.[i] ?? 0
+            detail = t('play.hits')
+            break
+        }
+        return (
+          <article key={i} className={`card ${styles.player} ${active ? styles.active : ''}`}>
+            <PlayerHeader game={game} player={p} />
+            <div className={styles.remaining}>{big}</div>
+            <div className={styles.playerStats}>
+              <span>{detail}</span>
+              <span>
+                {t('play.darts')}: {p.stats.darts}
+              </span>
+            </div>
+          </article>
+        )
+      })}
     </div>
   )
 }
@@ -456,7 +538,17 @@ function Finished({ game }: { game: GameState }) {
             </tr>
           </thead>
           <tbody>
-            {(x01
+            {(!x01 && game.mode !== 'cricket'
+              ? ([
+                  ['play.stats.score', (p: GamePlayer) => p.stats.score ?? '–'],
+                  ['play.stats.hits', (p: GamePlayer) => p.stats.hits],
+                  [
+                    'play.stats.hitRate',
+                    (p: GamePlayer) => (p.stats.hit_rate === null ? '–' : `${Math.round(p.stats.hit_rate * 100)} %`),
+                  ],
+                  ['play.stats.darts', (p: GamePlayer) => p.stats.darts],
+                ] as const)
+              : x01
               ? ([
                   ['play.stats.legs', (p: GamePlayer) => p.stats.legs_won],
                   ['play.stats.average', (p: GamePlayer) => p.stats.average?.toFixed(2) ?? '–'],

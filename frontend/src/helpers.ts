@@ -1,7 +1,7 @@
 import type { TFunction } from 'i18next'
 import { useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
-import { ApiError, type CricketVariant } from './api'
+import { ApiError, type CricketVariant, type GameMode } from './api'
 
 export const PLAYER_COLORS = [
   '#e53935', '#1e88e5', '#43a047', '#fb8c00', '#8e24aa', '#00acc1', '#fdd835', '#6d4c41', '#546e7a', '#d81b60',
@@ -19,8 +19,8 @@ export function useErrorText() {
   )
 }
 
-export function gameTitle(t: TFunction, mode: string, settings: Record<string, string | number>) {
-  return mode === 'x01'
-    ? String(settings.start_score)
-    : `Cricket · ${t(`newGame.variants.${settings.variant as CricketVariant}`)}`
+export function gameTitle(t: TFunction, mode: GameMode, settings: Record<string, string | number>) {
+  if (mode === 'x01') return String(settings.start_score)
+  if (mode === 'cricket') return `Cricket · ${t(`newGame.variants.${settings.variant as CricketVariant}`)}`
+  return t(`modes.${mode}`)
 }

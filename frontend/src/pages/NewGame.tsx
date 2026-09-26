@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router'
-import { ApiError, getJson, sendJson, type GameMode, type GameState, type Player } from '../api'
+import { ApiError, getJson, sendJson, TRAINING_MODES, type GameMode, type GameState, type Player } from '../api'
 import { useLiveGame } from '../LiveGame'
 import { useErrorText } from '../helpers'
 import { PlayerForm } from './Players'
@@ -19,9 +19,50 @@ type Saved = {
   inRule: InOut
   outRule: InOut
   variant: 'standard' | 'cut_throat' | 'no_score'
+  training: TrainingOptions
   legs: number
   sets: number
   playerIds: number[]
+}
+
+type TrainingOptions = {
+  atcVariant: 'single' | 'double' | 'triple'
+  skipMultiples: boolean
+  includeBull: boolean
+  shanghaiRounds: number
+  checkoutCount: number
+  checkoutRange: string
+  dartsPerTarget: number
+  doublesOrder: 'sequential' | 'random'
+}
+
+const DEFAULT_TRAINING: TrainingOptions = {
+  atcVariant: 'single',
+  skipMultiples: false,
+  includeBull: true,
+  shanghaiRounds: 7,
+  checkoutCount: 10,
+  checkoutRange: '41-100',
+  dartsPerTarget: 9,
+  doublesOrder: 'sequential',
+}
+const CHECKOUT_RANGES = ['2-40', '41-100', '61-120', '101-170']
+
+function trainingSettings(mode: GameMode, o: TrainingOptions): Record<string, unknown> {
+  switch (mode) {
+    case 'around_the_clock':
+      return { variant: o.atcVariant, skip_multiples: o.skipMultiples, include_bull: o.includeBull }
+    case 'shanghai':
+      return { rounds: o.shanghaiRounds }
+    case 'checkout_training': {
+      const [min, max] = o.checkoutRange.split('-').map(Number)
+      return { count: o.checkoutCount, min_score: min, max_score: max, darts_per_target: o.dartsPerTarget }
+    }
+    case 'doubles_training':
+      return { order: o.doublesOrder, include_bull: o.includeBull }
+    default:
+      return {}
+  }
 }
 
 function loadSaved(): Partial<Saved> {
@@ -44,6 +85,10 @@ export default function NewGame() {
   const [inRule, setInRule] = useState<InOut>(saved.inRule ?? 'single')
   const [outRule, setOutRule] = useState<InOut>(saved.outRule ?? 'double')
   const [variant, setVariant] = useState<Saved['variant']>(saved.variant ?? 'standard')
+  const [training, setTraining] = useState<TrainingOptions>({ ...DEFAULT_TRAINING, ...saved.training })
+  const setOption = <K extends keyof TrainingOptions>(key: K) => (value: TrainingOptions[K]) =>
+    setTraining((o) => ({ ...o, [key]: value }))
+  const isTraining = TRAINING_MODES.includes(mode)
   const [legs, setLegs] = useState(saved.legs ?? 1)
   const [sets, setSets] = useState(saved.sets ?? 1)
   const [players, setPlayers] = useState<Player[]>([])
@@ -100,9 +145,11 @@ export default function NewGame() {
     const settings =
       mode === 'x01'
         ? { start_score: startScore, in_rule: inRule, out_rule: outRule, legs_to_win: legs, sets_to_win: sets }
-        : { variant, legs_to_win: legs, sets_to_win: sets }
+        : mode === 'cricket'
+          ? { variant, legs_to_win: legs, sets_to_win: sets }
+          : trainingSettings(mode, training)
     const toStore: Saved = {
-      mode, startScore, inRule, outRule, variant, legs, sets,
+      mode, startScore, inRule, outRule, variant, training, legs, sets,
       playerIds: participants.flatMap((p) => (p.playerId === null ? [] : [p.playerId])),
     }  // prettier-ignore
     try {
@@ -146,8 +193,12 @@ export default function NewGame() {
             {choice<GameMode>('x01', mode, setMode, 'X01')}
             {choice<GameMode>('cricket', mode, setMode, 'Cricket')}
           </div>
+          <h3 className={styles.label}>{t('newGame.training')}</h3>
+          <div className={styles.chips}>
+            {TRAINING_MODES.map((m) => choice<GameMode>(m, mode, setMode, t(`modes.${m}`)))}
+          </div>
 
-          {mode === 'x01' ? (
+          {mode === 'x01' && (
             <>
               <h3 className={styles.label}>{t('newGame.startScore')}</h3>
               <div className={styles.chips}>{START_SCORES.map((s) => choice(s, startScore, setStartScore, String(s)))}</div>
@@ -160,7 +211,8 @@ export default function NewGame() {
                 {(['single', 'double', 'master'] as InOut[]).map((r) => choice(r, outRule, setOutRule, t(`newGame.rule.${r}`)))}
               </div>
             </>
-          ) : (
+          )}
+          {mode === 'cricket' && (
             <>
               <h3 className={styles.label}>{t('newGame.variant')}</h3>
               <div className={styles.chips}>
@@ -170,7 +222,58 @@ export default function NewGame() {
               </div>
             </>
           )}
+          {mode === 'around_the_clock' && (
+            <>
+              <h3 className={styles.label}>{t('newGame.ring')}</h3>
+              <div className={styles.chips}>
+                {(['single', 'double', 'triple'] as const).map((v) =>
+                  choice(v, training.atcVariant, setOption('atcVariant'), t(`newGame.rings.${v}`)),
+                )}
+              </div>
+              <Toggle checked={training.skipMultiples} onChange={setOption('skipMultiples')} label={t('newGame.skipMultiples')} />
+              <Toggle checked={training.includeBull} onChange={setOption('includeBull')} label={t('newGame.includeBull')} />
+            </>
+          )}
+          {mode === 'shanghai' && (
+            <>
+              <h3 className={styles.label}>{t('newGame.rounds')}</h3>
+              <div className={styles.chips}>
+                {[7, 20].map((r) => choice(r, training.shanghaiRounds, setOption('shanghaiRounds'), String(r)))}
+              </div>
+            </>
+          )}
+          {mode === 'checkout_training' && (
+            <>
+              <h3 className={styles.label}>{t('newGame.checkoutRange')}</h3>
+              <div className={styles.chips}>
+                {CHECKOUT_RANGES.map((r) => choice(r, training.checkoutRange, setOption('checkoutRange'), r))}
+              </div>
+              <h3 className={styles.label}>{t('newGame.dartsPerTarget')}</h3>
+              <div className={styles.chips}>
+                {[3, 6, 9].map((d) => choice(d, training.dartsPerTarget, setOption('dartsPerTarget'), String(d)))}
+              </div>
+              <div className={styles.numbers}>
+                <label>
+                  {t('newGame.targetCount')}
+                  <Stepper value={training.checkoutCount} min={1} max={50} onChange={setOption('checkoutCount')} />
+                </label>
+              </div>
+            </>
+          )}
+          {mode === 'doubles_training' && (
+            <>
+              <h3 className={styles.label}>{t('newGame.order')}</h3>
+              <div className={styles.chips}>
+                {(['sequential', 'random'] as const).map((o) =>
+                  choice(o, training.doublesOrder, setOption('doublesOrder'), t(`newGame.orders.${o}`)),
+                )}
+              </div>
+              <Toggle checked={training.includeBull} onChange={setOption('includeBull')} label={t('newGame.includeBull')} />
+            </>
+          )}
+          {mode === 'bobs_27' && <p className="muted">{t('newGame.bobsHint')}</p>}
 
+          {!isTraining && (
           <div className={styles.numbers}>
             <label>
               {t('newGame.legs')}
@@ -181,6 +284,7 @@ export default function NewGame() {
               <Stepper value={sets} min={1} max={13} onChange={setSets} />
             </label>
           </div>
+          )}
         </section>
 
         <section className={`card ${styles.section}`}>
@@ -273,6 +377,15 @@ export default function NewGame() {
         {t('newGame.start')}
       </button>
     </>
+  )
+}
+
+function Toggle({ checked, onChange, label }: { checked: boolean; onChange: (v: boolean) => void; label: string }) {
+  return (
+    <label className={styles.toggle}>
+      <input type="checkbox" checked={checked} onChange={(e) => onChange(e.target.checked)} />
+      {label}
+    </label>
   )
 }
 

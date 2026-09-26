@@ -334,7 +334,8 @@ Aggregierte Statistiken können als Cache-Tabelle (z. B. `player_stats`) gehalte
 - [x] Drift-Erkennung: Verschiebung ggü. Referenzbild (Phasenkorrelation) → Warnung
 - [x] Board-Rotation: ergibt sich aus den benannten Kalibrierpunkten, keine eigene Einstellung nötig
 - [x] Alle 3 Kameras auf dem Mac mini kalibrieren (erst 4 Punkte je Kamera – 9 Punkte + Linsenkalibrierung empfohlen)
-- [ ] Auto-Kalibrierung per Linien-/Ellipsenerkennung bzw. Kalibrierpunkt-Modell (Epic 3b)
+- [x] Automatisches Nachkalibrieren bei verschobener Kamera: SIFT-Abgleich mit dem Kalibrierbild, minütliche Prüfung im Hintergrund + Knopf (gemessen: bis 28 px Versatz auf < 0,3 px genau wiedergefunden)
+- [ ] Erstkalibrierung ohne Klicks über das Modell (Kalibrierpunkte werden bereits mitgelernt). Klassischer Versuch (Ellipse + Bullseye + Kantenabgleich) verworfen: nur 6/18 Bilder korrekt – das Board-Muster wiederholt sich alle 36°, die Kantensuche rastet auf Nachbarringen ein
 
 ### Epic 3 – Wurferkennung (Vision)
 - [x] Referenzbild-Management je Kamera (Hintergrund vor jedem Wurf, leere Scheibe pro Aufnahme, folgt langsamen Lichtänderungen)

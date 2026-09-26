@@ -159,3 +159,17 @@ def test_tip_is_lowest_point_of_the_dart() -> None:
     assert abs(tx - 100) < 3
     assert abs(ty - 150) < 3
     assert board.score_at(0, 0).label == "BULL"
+
+
+def test_recovers_after_light_change(rig: Rig) -> None:
+    # the light changes for good: a big lasting change without motion afterwards
+    rig.board.light = 0.8
+    rig.step(1.0)
+    blocked = rig.detector.state
+    rig.step(9.0)
+    recovered = rig.detector.state
+    assert (blocked, recovered) == (DetectorState.BLOCKED, DetectorState.IDLE)
+    # the new view is the empty board: throwing works again (on a dark field: the simulated
+    # dart is light and hard to see on cream fields in dimmed light)
+    events = rig.throw(0, 60)
+    assert [e.label for e in events if isinstance(e, DartDetection)] == ["S20"]

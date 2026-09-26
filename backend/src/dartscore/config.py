@@ -75,12 +75,19 @@ class DetectionConfig(BaseModel):
     min_dart_area: float = Field(default=0.00025, gt=0, lt=1)
     # larger changes are a hand, a person or darts being pulled
     max_dart_area: float = Field(default=0.03, gt=0, lt=1)
+    # waiting for a big change to go away (hand, light switched on/off) ends after this many
+    # quiet seconds: the current view becomes the new empty board
+    blocked_timeout: float = Field(default=8.0, ge=1)
     # camera estimates farther apart than this (mm) are treated as outliers
     max_spread_mm: float = Field(default=12.0, gt=0)
     # save images of every detection (training data for the model, debugging)
     record: bool = True
     # trained dart tip model (ONNX); default: <data_dir>/models/darts.onnx if it exists
     model_path: Path | None = None
+    # follow a bumped camera automatically: re-align its calibration (checked once a minute
+    # while nothing moves at the board) when it moved by more than realign_threshold_px
+    auto_realign: bool = True
+    realign_threshold_px: float = Field(default=2.0, gt=0)
 
 
 class LoggingConfig(BaseModel):

@@ -304,6 +304,16 @@ class DartDetector:
             return []
         if self.state == DetectorState.IDLE or now - self._last_motion < cfg.settle_time:
             return []
+        if self.state == DetectorState.BLOCKED and now - self._last_motion > cfg.blocked_timeout:
+            # nothing moves but the view differs for good (light changed, board cleared by
+            # hand): start over with the current view as the empty board
+            self._absorb_current(empty=True)
+            self._board_dirty = False
+            self.darts_in_turn = 0
+            self.board_darts = []
+            self.state = DetectorState.IDLE
+            self.last_evaluation = Evaluation({}, "recovered")
+            return []
         return self._evaluate()
 
     # --- internals ----------------------------------------------------------------------

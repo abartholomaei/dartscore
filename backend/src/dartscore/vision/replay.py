@@ -12,6 +12,7 @@ from pathlib import Path
 
 import cv2
 import numpy as np
+from numpy.typing import NDArray
 
 from dartscore.config import DetectionConfig
 from dartscore.game.dart import Dart
@@ -30,8 +31,11 @@ class ReplayResult:
 
 
 def replay_recording(
-    folder: Path, config: DetectionConfig
+    folder: Path,
+    config: DetectionConfig,
+    homographies: dict[str, NDArray[np.float64]] | None = None,
 ) -> tuple[str | None, tuple[CameraHit, ...]]:
+    """``homographies`` replaces the recorded calibrations (to compare calibrations)."""
     meta = json.loads((folder / "meta.json").read_text())
     hits: list[CameraHit] = []
     for cid, cal_info in meta.get("calibrations", {}).items():
@@ -43,7 +47,9 @@ def replay_recording(
         calibration = BoardCalibration(
             cid,
             {},
-            np.array(cal_info["homography"], dtype=np.float64),
+            homographies[cid]
+            if homographies and cid in homographies
+            else np.array(cal_info["homography"], dtype=np.float64),
             (w, h),
             bool(cal_info["undistorted"]),
             None,
@@ -89,7 +95,10 @@ def _truth(db: sqlite3.Connection | None, meta: dict[str, object]) -> str | None
 
 
 def replay_all(
-    recordings_dir: Path, database: Path | None, config: DetectionConfig
+    recordings_dir: Path,
+    database: Path | None,
+    config: DetectionConfig,
+    homographies: dict[str, NDArray[np.float64]] | None = None,
 ) -> list[ReplayResult]:
     db = (
         sqlite3.connect(f"file:{database}?mode=ro", uri=True)
@@ -102,7 +111,7 @@ def replay_all(
             meta = json.loads(meta_path.read_text())
             if "calibrations" not in meta:
                 continue
-            replayed, hits = replay_recording(meta_path.parent, config)
+            replayed, hits = replay_recording(meta_path.parent, config, homographies)
             results.append(
                 ReplayResult(
                     folder=f"{meta_path.parent.parent.name}/{meta_path.parent.name}",

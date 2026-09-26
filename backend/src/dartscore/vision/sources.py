@@ -146,10 +146,16 @@ class SimulatedBoard:
     def __init__(self) -> None:
         self.darts: list[tuple[float, float]] = []
         self.hand = False
+        # simulates a bumped camera: the whole image moves by (dx, dy) pixels
+        self.camera_shift = (0.0, 0.0)
+        # simulates the light: 1.0 = normal, smaller = darker
+        self.light = 1.0
 
     def clear(self) -> None:
         self.darts.clear()
         self.hand = False
+        self.camera_shift = (0.0, 0.0)
+        self.light = 1.0
 
 
 SIMULATED_BOARD = SimulatedBoard()
@@ -197,6 +203,13 @@ class SyntheticSource:
             h, w = frame.shape[:2]
             center, axes = (w // 2, int(h * 0.75)), (w // 4, h // 3)
             cv2.ellipse(frame, center, axes, 0, 0, 360, (140, 170, 220), -1)
+        if self._board.light != 1.0:
+            frame = cv2.convertScaleAbs(frame, alpha=self._board.light)
+        dx, dy = self._board.camera_shift
+        if dx or dy:
+            h, w = frame.shape[:2]
+            shift = np.array([[1, 0, dx], [0, 1, dy]], dtype=np.float64)
+            frame = cv2.warpAffine(frame, shift, (w, h), borderValue=(40, 40, 40))
         return frame
 
     def board_homography(self) -> NDArray[np.float64]:

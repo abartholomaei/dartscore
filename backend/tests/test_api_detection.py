@@ -123,3 +123,28 @@ def test_detection_can_be_switched_off(client: TestClient) -> None:
 def test_simulator_requires_synthetic_cameras(tmp_path: Path) -> None:
     with TestClient(create_app(Settings(data_dir=tmp_path / "d"))) as c:
         assert c.post("/api/simulator", json={"action": "clear"}).status_code == 404
+
+
+def test_bumped_camera_is_realigned(
+    client: TestClient, synthetic_cameras: list[CameraConfig]
+) -> None:
+    cam = synthetic_cameras[0]
+    before = client.get(f"/api/cameras/{cam.id}/calibration").json()
+    SIMULATED_BOARD.camera_shift = (9.0, -6.0)
+    time.sleep(0.5)  # shifted frames arrive
+    wait_for(lambda: client.get("/api/detection").json()["state"] != "motion")
+
+    # the periodic check notices the movement and follows it
+    monitor = client.app.state.calibration_monitor  # type: ignore[attr-defined]
+    updated = dict(monitor.check())
+    assert updated[cam.id] == pytest.approx(10.8, abs=1.0)
+
+    after = client.get(f"/api/cameras/{cam.id}/calibration").json()
+    x0, y0 = before["points"]["bull"]
+    x1, y1 = after["points"]["bull"]
+    assert (x1 - x0, y1 - y0) == pytest.approx((9.0, -6.0), abs=0.5)
+
+    # nothing moved since: the manual endpoint reports (almost) no movement
+    response = client.post(f"/api/cameras/{cam.id}/calibration/realign")
+    assert response.status_code == 200
+    assert response.json()["moved_px"] < 0.5

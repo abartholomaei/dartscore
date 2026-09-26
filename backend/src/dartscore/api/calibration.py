@@ -27,6 +27,7 @@ from dartscore.vision.calibration import (
     save_board,
 )
 from dartscore.vision.intrinsics import Undistorter
+from dartscore.vision.realign import RealignError, displacement, realign
 from dartscore.vision.sources import Image
 
 router = APIRouter(prefix="/api", tags=["calibration"])
@@ -76,6 +77,52 @@ class CalibrationStore:
             self._references.pop(camera_id, None)
             self._drift_cache.pop(camera_id, None)
         self._changed()
+
+    def realign(
+        self, camera_id: str, current: Image, min_move_px: float = 0.0
+    ) -> tuple[BoardCalibration, float]:
+        """Carries the calibration over to the current camera pose (see vision.realign).
+        Returns the (new) calibration and how far the camera moved (px); below
+        ``min_move_px`` nothing is changed."""
+        calibration = self.get(camera_id)
+        reference = self.reference(camera_id)
+        if calibration is None or reference is None:
+            raise RealignError("not_calibrated", f"Camera {camera_id} has no calibration")
+        result = realign(reference, current)
+        points = np.array(list(calibration.points.values()), dtype=np.float64)
+        if len(points) == 0:
+            points = calibration.board_to_image(np.array([[0.0, 0.0], [170.0, 0.0], [0.0, 170.0]]))
+        moved = displacement(result.homography, points)
+        if moved < min_move_px:
+            return calibration, moved
+        new_points = (
+            {
+                pid: (round(float(x), 1), round(float(y), 1))
+                for pid, (x, y) in zip(
+                    calibration.points,
+                    cv2.perspectiveTransform(
+                        np.array(list(calibration.points.values()), dtype=np.float64).reshape(
+                            -1, 1, 2
+                        ),
+                        result.homography,
+                    ).reshape(-1, 2),
+                    strict=True,
+                )
+            }
+            if calibration.points
+            else {}
+        )
+        updated = BoardCalibration(
+            camera_id=camera_id,
+            points=new_points,
+            homography=result.homography @ calibration.homography,
+            image_size=calibration.image_size,
+            undistorted=calibration.undistorted,
+            lens_created_at=calibration.lens_created_at,
+            rms_px=calibration.rms_px,
+        )
+        self.save(updated, current)
+        return updated, moved
 
     def reference(self, camera_id: str) -> Image | None:
         with self._lock:
@@ -273,6 +320,28 @@ async def save_calibration(
     )
     await run_in_threadpool(_store(request).save, calibration, reference)
     return await run_in_threadpool(_response, request, calibration)
+
+
+class RealignResponse(BaseModel):
+    moved_px: float
+    calibration: CalibrationResponse
+
+
+@router.post("/cameras/{camera_id}/calibration/realign")
+async def realign_calibration(request: Request, camera_id: str) -> RealignResponse:
+    """Follows a bumped camera: re-aligns the saved calibration to the current image."""
+    calibration = _calibration_or_404(request, camera_id)
+    current = await run_in_threadpool(_current_image, request, camera_id, calibration.undistorted)
+    if current is None:
+        raise HTTPException(status_code=503, detail=f"Camera {camera_id} is not delivering images")
+    try:
+        updated, moved = await run_in_threadpool(_store(request).realign, camera_id, current)
+    except RealignError as exc:
+        raise HTTPException(
+            status_code=422, detail={"code": exc.code, "message": str(exc)}
+        ) from exc
+    response = await run_in_threadpool(_response, request, updated)
+    return RealignResponse(moved_px=round(moved, 1), calibration=response)
 
 
 @router.delete("/cameras/{camera_id}/calibration", status_code=204)

@@ -15,6 +15,7 @@ from dartscore import __version__
 from dartscore.api import calibration, cameras, detection, games, players, stats, ws
 from dartscore.config import Settings
 from dartscore.game import GameError
+from dartscore.services.calibration_monitor import CalibrationMonitor
 from dartscore.services.detection import DetectionService
 from dartscore.services.games import GameService
 from dartscore.services.hub import EventHub
@@ -85,9 +86,11 @@ def create_app(settings: Settings, camera_manager: CameraManager | None = None) 
         manager.start()
         detection_service.start()
         backups.start()
+        monitor.start()
         try:
             yield
         finally:
+            monitor.stop()
             backups.stop()
             detection_service.stop()
             manager.stop()
@@ -122,6 +125,16 @@ def create_app(settings: Settings, camera_manager: CameraManager | None = None) 
 
     app.state.calibrations.on_change = reconfigure_detection
     reconfigure_detection()
+    monitor = CalibrationMonitor(
+        settings.detection,
+        app.state.calibrations.all,
+        app.state.calibrations.realign,
+        manager,
+        app.state.undistorters,
+        detection_service.status,
+        hub,
+    )
+    app.state.calibration_monitor = monitor
     for module in (cameras, calibration, players, games, stats, detection, ws):
         app.include_router(module.router)
 

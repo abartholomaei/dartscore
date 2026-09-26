@@ -250,6 +250,29 @@ function CameraCalibration({ camera, catalog }: { camera: CameraStatus; catalog:
     }
   }
 
+  const realign = async () => {
+    setBusy(true)
+    setError(null)
+    try {
+      const result = await sendJson<{ moved_px: number; calibration: CalibrationData }>(
+        'POST',
+        `/api/cameras/${camera.id}/calibration/realign`,
+      )
+      setSaved(result.calibration)
+      setPoints(result.calibration.points)
+      newSnapshot()
+      setMessage(
+        result.moved_px < 1
+          ? t('calibration.realignNoMove')
+          : t('calibration.realigned', { value: result.moved_px }),
+      )
+    } catch (err) {
+      setError(errorText(err))
+    } finally {
+      setBusy(false)
+    }
+  }
+
   const remove = async () => {
     if (!window.confirm(t('calibration.confirmDelete'))) return
     setBusy(true)
@@ -347,7 +370,12 @@ function CameraCalibration({ camera, catalog }: { camera: CameraStatus; catalog:
         <div className={styles.actions}>
           <button onClick={newSnapshot}>{t('calibration.newSnapshot')}</button>
           {mode === 'test' ? (
-            <button onClick={() => startEditing()}>{t('calibration.edit')}</button>
+            <>
+              <button onClick={() => startEditing()}>{t('calibration.edit')}</button>
+              <button onClick={() => void realign()} disabled={busy} title={t('calibration.realignHint')}>
+                {t('calibration.realign')}
+              </button>
+            </>
           ) : (
             <>
               <button onClick={() => { setPoints({}); setActiveId(catalog.points[0].id) }}>

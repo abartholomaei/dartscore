@@ -47,6 +47,10 @@ const de: Translations = {
     overlay: 'Board-Raster anzeigen',
   },
   calibration: {
+    realign: 'Automatisch nachkalibrieren',
+    realignHint: 'Falls die Kamera angestoßen wurde: folgt der neuen Kameraposition anhand des Bildes vom Kalibrieren.',
+    realigned: 'Die Kamera hatte sich um {{value}} px verschoben – Kalibrierung nachgeführt.',
+    realignNoMove: 'Die Kamera hat sich nicht bewegt – die Kalibrierung ist aktuell.',
     onlyRequiredSaved: 'Nur die 4 Pflichtpunkte sind gesetzt. Die 5 Zusatzpunkte ergänzen (Punkte bearbeiten) – das macht die Erkennung spürbar genauer, besonders am Rand.',
     outlier: 'diese Kamera wurde als Ausreißer ignoriert',
     title: 'Board-Kalibrierung',
@@ -79,6 +83,10 @@ const de: Translations = {
       unknown_points: 'Unbekannter Kalibrierpunkt.',
       invalid_plane: 'Die Punkte ergeben keine gültige Scheibe – liegen zwei Punkte übereinander?',
       mirrored: 'Die Scheibe erscheint gespiegelt – prüfen, ob jeder Punkt auf dem richtigen Draht liegt.',
+      not_calibrated: 'Diese Kamera ist noch nicht kalibriert.',
+      too_few_features: 'Zu wenig Details im Bild – ist die Scheibe beleuchtet?',
+      too_few_matches: 'Das aktuelle Bild passt nicht zum Kalibrierbild – bitte neu kalibrieren.',
+      no_consistent_motion: 'Die Kamerabewegung ließ sich nicht bestimmen – bitte neu kalibrieren.',
     },
   },
   common: {

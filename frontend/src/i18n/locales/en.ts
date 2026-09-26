@@ -46,6 +46,10 @@ const en = {
     overlay: 'Show board overlay',
   },
   calibration: {
+    realign: 'Re-align automatically',
+    realignHint: 'If the camera was bumped: follows the new camera position using the image from calibration time.',
+    realigned: 'The camera had moved by {{value}} px - calibration re-aligned.',
+    realignNoMove: 'The camera has not moved - calibration is up to date.',
     onlyRequiredSaved: 'Only the 4 required points are set. Add the 5 extra points (Edit points) - it makes the detection noticeably more accurate, especially near the board edge.',
     outlier: 'this camera was ignored as an outlier',
     title: 'Board calibration',
@@ -78,6 +82,10 @@ const en = {
       unknown_points: 'Unknown calibration point.',
       invalid_plane: 'The points do not form a valid board - are two points on top of each other?',
       mirrored: 'The board appears mirrored - check that each point is on the right wire.',
+      not_calibrated: 'This camera is not calibrated yet.',
+      too_few_features: 'Too little detail in the image - is the board lit?',
+      too_few_matches: 'The current image does not match the calibration image - please calibrate again.',
+      no_consistent_motion: 'The camera movement could not be determined - please calibrate again.',
     },
   },
   common: {

@@ -41,13 +41,13 @@
 }
 
 .cornerNew {
-  fill: #43a047;
+  fill: var(--accent);
 }
 
 .flash {
   position: absolute;
   inset: 0;
-  border: 6px solid #43a047;
+  border: 6px solid var(--accent);
   border-radius: 12px;
   pointer-events: none;
   animation: flash 0.6s ease-out forwards;
@@ -72,7 +72,7 @@
 .progress span {
   display: block;
   height: 100%;
-  background: #43a047;
+  background: var(--accent);
   transition: width 0.3s;
 }
 
@@ -81,7 +81,7 @@
 }
 
 .found {
-  color: #43a047;
+  color: var(--accent);
   font-weight: 600;
 }
 
@@ -109,16 +109,16 @@
 }
 
 .good {
-  color: #43a047;
+  color: var(--accent);
   font-weight: 600;
 }
 
 .ok {
-  color: #fb8c00;
+  color: var(--warn);
   font-weight: 600;
 }
 
 .bad {
-  color: #e53935;
+  color: var(--error);
   font-weight: 600;
 }

@@ -23,7 +23,7 @@
 }
 
 .tabActive {
-  border-color: var(--text);
+  border-color: var(--accent);
   font-weight: 600;
 }
 
@@ -173,9 +173,9 @@
 }
 
 .actions .primary {
-  background: var(--text);
-  color: var(--surface);
-  border-color: var(--text);
+  background: var(--accent);
+  color: var(--on-accent);
+  border-color: var(--accent);
   font-weight: 600;
 }
 

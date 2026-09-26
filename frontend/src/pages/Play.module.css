@@ -333,7 +333,7 @@
 .multiplierActive {
   border-color: var(--accent);
   background: var(--accent);
-  color: #fff;
+  color: var(--on-accent);
 }
 
 .numbers {
@@ -529,11 +529,11 @@
 }
 
 .celebration_180 {
-  background: linear-gradient(135deg, #e53935, #fb8c00);
+  background: linear-gradient(135deg, #16a34a, #84cc16);
 }
 
 .celebration_checkout {
-  background: linear-gradient(135deg, #2e7d32, #00897b);
+  background: linear-gradient(135deg, #15803d, #0f766e);
   font-size: clamp(2rem, 8vw, 5rem);
 }
 

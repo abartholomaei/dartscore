@@ -32,6 +32,9 @@ class PlayerGameStats:
     tons: dict[str, int] = field(default_factory=lambda: {"60": 0, "100": 0, "140": 0, "180": 0})
     # Cricket
     marks: int = 0
+    # training modes: the mode's own score (e.g. Shanghai points, successful checkouts) and hits
+    score: int | None = None
+    hits: int = 0
 
     @property
     def average(self) -> float | None:
@@ -47,6 +50,10 @@ class PlayerGameStats:
         return round(self.checkouts / self.checkout_attempts, 4) if self.checkout_attempts else None
 
     @property
+    def hit_rate(self) -> float | None:
+        return round(self.hits / self.darts, 4) if self.darts and self.score is not None else None
+
+    @property
     def mpr(self) -> float | None:
         """Marks per round (Cricket), a round being three darts."""
         return round(self.marks / self.darts * 3, 2) if self.darts else None
@@ -58,6 +65,7 @@ class PlayerGameStats:
             first9_average=self.first9_average,
             checkout_rate=self.checkout_rate,
             mpr=self.mpr,
+            hit_rate=self.hit_rate,
         )
         return data
 
@@ -135,6 +143,19 @@ def _leg_results(leg: Leg, stats: list[PlayerGameStats], darts: list[int], playe
         w.best_leg_darts = darts[leg.winner]
 
 
+def _generic_leg(game: Game, leg: Leg, stats: list[PlayerGameStats]) -> None:
+    darts_in_leg = [0] * game.player_count
+    for turn in leg.turns:
+        stats[turn.player].turns += 1
+        stats[turn.player].darts += len(turn.darts)
+        darts_in_leg[turn.player] += len(turn.darts)
+    for p in range(game.player_count):
+        result = game.player_result(p)
+        stats[p].score = result.get("score")
+        stats[p].hits = result.get("hits", 0)
+    _leg_results(leg, stats, darts_in_leg, game.player_count)
+
+
 def game_stats(game: Game) -> list[PlayerGameStats]:
     stats = [PlayerGameStats() for _ in range(game.player_count)]
     for leg in game.legs:
@@ -142,6 +163,8 @@ def game_stats(game: Game) -> list[PlayerGameStats]:
             _x01_leg(game, leg, stats)
         elif isinstance(game, CricketGame):
             _cricket_leg(game, leg, stats)
+        elif leg.turns or leg is game.legs[0]:
+            _generic_leg(game, leg, stats)
     if game.winner is not None:
         stats[game.winner].won = True
     return stats

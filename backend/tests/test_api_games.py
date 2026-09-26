@@ -202,3 +202,16 @@ def test_bounce_scores_nothing_and_is_marked(client: TestClient) -> None:
     assert state["turn"]["darts"] == ["S20", "MISS"]
     assert state["remaining"] == [481]
     assert state["turn_sources"] == ["manual", "bounce"]
+
+
+@pytest.mark.parametrize(
+    "mode", ["around_the_clock", "shanghai", "bobs_27", "checkout_training", "doubles_training"]
+)
+def test_training_modes_via_api(client: TestClient, mode: str) -> None:
+    created = client.post(
+        "/api/games", json={"mode": mode, "players": [{"guest_name": "A"}], "abort_active": True}
+    )
+    assert created.status_code == 201, created.text
+    state = throw(client, "D1", "MISS", "MISS")
+    assert state["mode"] == mode
+    assert "score" in state["players"][0]["stats"]

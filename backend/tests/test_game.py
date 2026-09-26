@@ -282,3 +282,12 @@ def test_cricket_mpr() -> None:
     assert p0.marks == 4
     assert p0.mpr == 4.0
     assert p1.mpr == 0.0
+
+
+def test_identical_turns_are_distinguished() -> None:
+    # two turns with the same darts: correcting the second must not touch the first
+    game = x01()
+    throw(game, "S1", "S1", "S1", "NEXT", "S5", "S5", "S5", "NEXT", "S1", "S1", "S1")
+    game.replace_dart(-1, 0, Dart.parse("S20"))
+    assert [d.label for d in game.legs[0].turns[0].darts] == ["S1", "S1", "S1"]
+    assert [d.label for d in game.legs[0].turns[2].darts] == ["S20", "S1", "S1"]

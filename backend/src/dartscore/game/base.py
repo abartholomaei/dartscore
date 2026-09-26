@@ -38,7 +38,9 @@ class NextEvent:
 Event = DartEvent | NextEvent
 
 
-@dataclass
+# eq=False: turns are compared by identity; two turns with the same darts are still different
+# turns (list.index() would otherwise find the wrong one)
+@dataclass(eq=False)
 class Turn:
     player: int
     darts: list[Dart] = field(default_factory=list)
@@ -49,6 +51,8 @@ class Turn:
     bust: bool = False
     # this turn won the leg
     checkout: bool = False
+    # the turn ends before three darts without winning (training modes, e.g. target reached)
+    stop: bool = False
     # no further darts accepted until the next player
     closed: bool = False
 
@@ -102,6 +106,18 @@ class Game(ABC):
     def _score_dart(self, turn: Turn, dart: Dart) -> None:
         """Apply a dart to the leg state: append the value to ``turn.values`` and set
         ``turn.bust`` / ``turn.checkout`` as needed."""
+
+    def _after_turn(self, turn: Turn) -> int | None:
+        """Called when a turn is complete (three darts, bust or next player). Modes can settle
+        per-turn scores here; returning a player index ends the leg with that winner."""
+        return None
+
+    def player_result(self, player: int) -> dict[str, int]:
+        """Mode specific result of a player for statistics (score, hits); empty by default."""
+        return {}
+
+    def turns_of(self, player: int, leg: Leg | None = None) -> list[Turn]:
+        return [t for t in (leg or self.legs[-1]).turns if t.player == player]
 
     @abstractmethod
     def _leg_state(self) -> dict[str, Any]:
@@ -242,9 +258,13 @@ class Game(ABC):
             self._score_dart(turn, event.dart)
             if turn.checkout:
                 leg.winner = turn.player
-            if turn.bust or turn.checkout or len(turn.darts) >= DARTS_PER_TURN:
+            if turn.bust or turn.checkout or turn.stop or len(turn.darts) >= DARTS_PER_TURN:
                 turn.closed = True
                 self._awaiting_next = True
+                if leg.winner is None:
+                    winner = self._after_turn(turn)
+                    if winner is not None:
+                        leg.winner = winner
             if leg.winner is not None:
                 self._awaiting_next = False
                 self._finish_leg(leg)
@@ -261,9 +281,16 @@ class Game(ABC):
                 turn.darts.append(Dart.miss())
                 turn.implicit_misses += 1
                 self._score_dart(turn, Dart.miss())
-                if turn.bust or turn.checkout:
+                if turn.bust or turn.checkout or turn.stop:
                     break
-            turn.closed = True
+            if not turn.closed:
+                turn.closed = True
+                winner = turn.player if turn.checkout else self._after_turn(turn)
+                if winner is not None:
+                    leg.winner = winner
+                    self._awaiting_next = False
+                    self._finish_leg(leg)
+                    return
         self._awaiting_next = False
         self.current_player = (self.current_player + 1) % self.player_count
 

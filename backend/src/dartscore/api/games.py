@@ -25,7 +25,15 @@ class Participant(BaseModel):
 
 
 class GameCreate(BaseModel):
-    mode: Literal["x01", "cricket"]
+    mode: Literal[
+        "x01",
+        "cricket",
+        "around_the_clock",
+        "shanghai",
+        "bobs_27",
+        "checkout_training",
+        "doubles_training",
+    ]
     settings: dict[str, Any] = {}
     players: list[Participant] = Field(min_length=1, max_length=8)
     # end a running game instead of failing with 409

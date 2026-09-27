@@ -98,3 +98,23 @@ class GameEventRecord(Base):
     created_at: Mapped[datetime] = mapped_column(default=utcnow)
 
     game: Mapped[GameRecord] = relationship(back_populates="events")
+
+
+class Tournament(Base):
+    """A local tournament on the one board; matches are stored as JSON (see
+    services.tournaments), each played as a normal game."""
+
+    __tablename__ = "tournaments"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(String(60))
+    # knockout | round_robin
+    format: Mapped[str] = mapped_column(String(20))
+    mode: Mapped[str] = mapped_column(String(20))
+    settings: Mapped[dict[str, Any]] = mapped_column(default=dict)
+    # [{"player_id": 1} | {"guest_name": "Tom"}] in seeding order
+    entries: Mapped[list[dict[str, Any]]] = mapped_column(JSON, default=list)
+    matches: Mapped[list[dict[str, Any]]] = mapped_column(JSON, default=list)
+    # active | finished
+    status: Mapped[str] = mapped_column(String(10), default="active")
+    created_at: Mapped[datetime] = mapped_column(default=utcnow)

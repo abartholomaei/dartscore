@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useNavigate } from 'react-router'
-import { sendJson, type CricketVariant, type GamePlayer, type GameState, type InOutRule } from '../api'
+import { getJson, sendJson, type CricketVariant, type GamePlayer, type GameState, type InOutRule } from '../api'
 import Avatar from '../components/Avatar'
 import Particles from '../components/Particles'
 import RulesDialog, { RulesButton } from '../components/RulesDialog'
@@ -696,6 +696,13 @@ function Finished({ game }: { game: GameState }) {
 
   const errorText = useErrorText()
   const [error, setError] = useState<string | null>(null)
+  // a finished tournament match leads back to the bracket
+  const [tournament, setTournament] = useState<{ id: number; name: string } | null>(null)
+  useEffect(() => {
+    getJson<{ id: number; name: string } | null>(`/api/tournaments/by-game/${game.id}`)
+      .then(setTournament)
+      .catch(() => undefined)
+  }, [game.id])
   const rematch = async () => {
     setGame(await sendJson<GameState>('POST', '/api/games/rematch'))
   }
@@ -778,10 +785,15 @@ function Finished({ game }: { game: GameState }) {
         </table>
       </div>
       <div className={styles.actions}>
-        <button className="button primary large" onClick={() => void rematch()}>
+        {tournament && (
+          <Link to={`/tournaments/${tournament.id}`} className="button primary large">
+            {t('tournaments.back')}
+          </Link>
+        )}
+        <button className={tournament ? 'button large' : 'button primary large'} onClick={() => void rematch()}>
           {t('play.rematch')}
         </button>
-        {canPlayOn && (
+        {canPlayOn && !tournament && (
           <button className="button large" onClick={() => void playOn()}>
             {sets > 1
               ? t('play.playOnSets', { count: next.sets_to_win })

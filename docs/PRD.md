@@ -578,7 +578,7 @@ Priorität für V2: **M** = zuerst, **S** = danach, **C** = bei Gelegenheit.
 - [x] V2-5 Segment-Training
 - [x] V2-6 121-Checkout
 - [ ] V2-7 Zweiter Bildschirm / Handy als Fernbedienung / Zuschauer-Ansicht
-- [ ] V2-8 Lokale Turniere
+- [x] V2-8 Lokale Turniere (K.-o. mit Freilosen, Jeder-gegen-jeden mit Tabelle)
 - [ ] V2-9 Trainingspläne
 - [ ] V2-10 LED-/WLED-Anbindung
 - [x] V2-11 Statistik-Verläufe für alle Modi

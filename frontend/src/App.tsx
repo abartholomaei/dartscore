@@ -10,6 +10,7 @@ import Play from './pages/Play'
 import Players from './pages/Players'
 import PlayerStats from './pages/PlayerStats'
 import Settings from './pages/Settings'
+import { TournamentDetail, TournamentList } from './pages/Tournaments'
 
 export default function App() {
   return (
@@ -22,6 +23,8 @@ export default function App() {
             <Route path="play/new" element={<NewGame />} />
             <Route path="players" element={<Players />} />
             <Route path="players/:id" element={<PlayerStats />} />
+            <Route path="tournaments" element={<TournamentList />} />
+            <Route path="tournaments/:id" element={<TournamentDetail />} />
             <Route path="settings" element={<Settings />} />
             <Route path="cameras" element={<Cameras />} />
             <Route path="calibration" element={<Calibration />} />

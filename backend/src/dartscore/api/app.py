@@ -22,6 +22,7 @@ from dartscore.api import (
     lens,
     players,
     stats,
+    tournaments,
     ws,
 )
 from dartscore.config import Settings
@@ -37,6 +38,7 @@ from dartscore.services.hub import EventHub
 from dartscore.services.players import PlayerService
 from dartscore.services.recordings import RecordingIndex
 from dartscore.services.stats import StatsService
+from dartscore.services.tournaments import TournamentService
 from dartscore.storage.backup import DailyBackup
 from dartscore.storage.db import create_db_engine, database_url, migrate, session_factory
 from dartscore.vision.camera import CameraManager
@@ -59,7 +61,13 @@ class SPAStaticFiles(StaticFiles):
 
 
 # error codes that mean "does not exist" or "conflicts with the current state"
-_NOT_FOUND = {"player_not_found", "game_not_found", "no_active_game", "no_game"}
+_NOT_FOUND = {
+    "player_not_found",
+    "game_not_found",
+    "no_active_game",
+    "no_game",
+    "tournament_not_found",
+}
 _CONFLICT = {"game_active", "name_taken"}
 _FORBIDDEN = {"pin_required", "wrong_pin"}
 
@@ -161,6 +169,7 @@ def create_app(settings: Settings, camera_manager: CameraManager | None = None) 
     app.state.stats = StatsService(sessions)
     app.state.exports = ExportService(sessions)
     app.state.achievements = AchievementService(sessions)
+    app.state.tournaments = TournamentService(sessions, app.state.games)
     detection_service = DetectionService(
         settings.detection,
         manager,
@@ -191,7 +200,18 @@ def create_app(settings: Settings, camera_manager: CameraManager | None = None) 
         hub,
     )
     app.state.calibration_monitor = monitor
-    for module in (cameras, calibration, lens, players, games, stats, detection, diagnostics, ws):
+    for module in (
+        cameras,
+        calibration,
+        lens,
+        players,
+        games,
+        stats,
+        detection,
+        diagnostics,
+        tournaments,
+        ws,
+    ):
         app.include_router(module.router)
     app.include_router(stats.export_router)
 

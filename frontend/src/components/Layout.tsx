@@ -10,6 +10,7 @@ export default function Layout() {
     { to: '/', label: t('nav.home'), end: true },
     { to: '/play', label: t('nav.play'), end: false },
     { to: '/players', label: t('nav.players'), end: false },
+    { to: '/tournaments', label: t('nav.tournaments'), end: false },
     { to: '/settings', label: t('nav.settings'), end: false },
   ]
 

@@ -207,7 +207,7 @@ const de: Translations = {
         goal: 'Die Zahlen 15 bis 20 und das Bull schließen - und mehr Punkte sammeln als die Gegner.',
         play: 'Ein Single zählt eine Markierung, ein Doppel zwei, ein Triple drei. Mit drei Markierungen ist die Zahl für dich geschlossen.',
         scoring: 'Standard: Weitere Treffer auf deine geschlossene Zahl bringen Punkte, solange ein Gegner sie noch offen hat. Cut-Throat: Die Punkte bekommen stattdessen die Gegner (wenig Punkte gewinnt). No Score: Nur das Schließen zählt.',
-        win: 'Wer alles geschlossen hat und die meisten Punkte hat (Cut-Throat: die wenigsten), gewinnt. Zufällige Zahlen: Statt 15-20 werden sechs Zahlen ausgelost.',
+        win: 'Wer alles geschlossen hat und die meisten Punkte hat (Cut-Throat: die wenigsten), gewinnt. Zufällige Zahlen: Statt 15-20 werden sechs Zahlen ausgelost. Verdeckte Zahlen: Die gelosten Zahlen bleiben geheim (?), bis jemand sie trifft.',
         example: 'T20 schließt die 20 sofort; ein weiteres S20 bringt dann 20 Punkte.',
       },
       around_the_clock: {
@@ -235,7 +235,7 @@ const de: Translations = {
         goal: 'Finishes üben: eine Reihe zufälliger Punktzahlen auschecken.',
         play: 'Jedes Ziel (z. B. 81) muss innerhalb der eingestellten Darts mit einem Doppel ausgecheckt werden. Ein Bust setzt auf den Stand vor der Aufnahme zurück.',
         scoring: 'Jeder geschaffte Checkout zählt; der vorgeschlagene Weg wird angezeigt.',
-        win: 'Die meisten Checkouts gewinnen.',
+        win: 'Die meisten Checkouts gewinnen. Die Serie zählt Checkouts in Folge - mit 3 Darts pro Ziel ist das die „Checkout-Serie“-Übung.',
         example: '81: T19, D12.',
       },
       doubles_training: {
@@ -428,7 +428,7 @@ const de: Translations = {
     sequences: { halve_it: 'Halve-It (8 Runden)', bermuda: 'Bermuda (12 Runden)' },
     bermudaHint: 'Zwölf Runden: 12, 13, 14, beliebiges Doppel, 15, 16, 17, beliebiges Triple, 18, 19, 20, Bull. Gleiche Regeln wie Halve-It: Eine Runde ohne Treffer halbiert den Punktestand.',
     cricketNumbers: 'Zahlen',
-    cricketNumberSets: { standard: '15-20', random: 'Zufällige Zahlen' },
+    cricketNumberSets: { standard: '15-20', random: 'Zufällige Zahlen', hidden: 'Verdeckte Zahlen' },
     atcOrder: 'Reihenfolge',
     atcOrders: { numbers: '1 bis 20', board: 'Round the World (Board-Reihenfolge)' },
     botOf: 'Bot wie {{name}}',
@@ -498,6 +498,7 @@ const de: Translations = {
     confirmAbort: 'Es läuft noch ein Spiel. Abbrechen und ein neues starten?',
   },
   play: {
+    streak: 'Serie {{streak}} (beste {{best}})',
     displayModeOn: 'Anzeige-Modus',
     displayModeOff: 'Anzeige-Modus beenden',
     displayModeHint: 'Nur die Punkteanzeige, so groß wie möglich (für kleine Monitore und TVs). Die Kameras erkennen die Darts weiterhin.',

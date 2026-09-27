@@ -110,3 +110,24 @@ def test_bull_off_closest_starts_and_ties_rethrow() -> None:
     play(game, "NEXT", "T20", "NEXT", "BULL", "NEXT", "MISS")
     assert game.finished
     assert game.winner == 1
+
+
+def test_checkout_streak_and_hidden_cricket() -> None:
+    game = create_game(
+        "checkout_training",
+        1,
+        {"count": 3, "min_score": 40, "max_score": 40, "darts_per_target": 3},
+    )
+    play(game, "D20", "NEXT", "D20", "NEXT")
+    assert game.state()["streak"] == [2]
+    play(game, "MISS", "MISS", "MISS")
+    assert game.state()["streak"] == [0]
+    assert game.state()["best_streak"] == [2]
+
+    cricket = create_game("cricket", 2, {"numbers": "hidden", "seed": 4})
+    state = cricket.state()
+    assert state["hidden"] == [True] * 6 + [False]  # the bull is always shown
+    number = state["targets"][2]
+    play(cricket, f"S{number}")
+    assert cricket.state()["hidden"][2] is False
+    assert cricket.state()["hidden"][0] is True

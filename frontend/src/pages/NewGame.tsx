@@ -39,7 +39,7 @@ type TrainingOptions = {
   killerLives: number
   atcOrder: 'numbers' | 'board'
   halveItTargets: 'halve_it' | 'bermuda'
-  cricketNumbers: 'standard' | 'random'
+  cricketNumbers: 'standard' | 'random' | 'hidden'
   segNumber: number
   segRing: 'any' | 'single' | 'double' | 'triple'
   segEnd: 'darts' | 'hits'
@@ -330,7 +330,7 @@ export default function NewGame() {
               </div>
               <h3 className={styles.label}>{t('newGame.cricketNumbers')}</h3>
               <div className={styles.chips}>
-                {(['standard', 'random'] as const).map((v) =>
+                {(['standard', 'random', 'hidden'] as const).map((v) =>
                   choice(v, training.cricketNumbers, setOption('cricketNumbers'), t(`newGame.cricketNumberSets.${v}`)),
                 )}
               </div>

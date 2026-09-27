@@ -326,6 +326,10 @@ export type GameState = {
   attempt?: number[]
   attempts?: number
   best?: number[]
+  // cricket: numbers kept secret until hit; checkout training: checkouts in a row
+  hidden?: boolean[]
+  streak?: number[]
+  best_streak?: number[]
   // party modes
   numbers?: number[]
   lives?: number[]

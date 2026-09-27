@@ -206,7 +206,7 @@ const en = {
         goal: 'Close the numbers 15 to 20 and the bull - and score more points than your opponents.',
         play: 'A single counts one mark, a double two, a triple three. Three marks close a number for you.',
         scoring: 'Standard: extra marks on a number you closed score its value while an opponent still has it open. Cut-throat: the points go to the opponents instead (lowest score wins). No score: only closing counts.',
-        win: 'Whoever has closed everything and has the most points (cut-throat: the fewest) wins. Random numbers: six numbers are drawn at random instead of 15-20.',
+        win: 'Whoever has closed everything and has the most points (cut-throat: the fewest) wins. Random numbers: six numbers are drawn at random instead of 15-20. Hidden numbers: the drawn numbers stay secret (?) until somebody hits them.',
         example: 'T20 closes the 20 at once; another S20 then scores 20 points.',
       },
       around_the_clock: {
@@ -234,7 +234,7 @@ const en = {
         goal: 'Practise finishes: check out a series of random scores.',
         play: 'Each target (e.g. 81) must be checked out with a double within the set number of darts. Busts reset the score to the start of the turn.',
         scoring: 'Every successful checkout counts; the suggested route is shown.',
-        win: 'Most successful checkouts win.',
+        win: 'Most successful checkouts win. The streak counts checkouts in a row - with 3 darts per target this is the “checkout streak” drill.',
         example: '81: T19, D12.',
       },
       doubles_training: {
@@ -427,7 +427,7 @@ const en = {
     sequences: { halve_it: 'Halve-It (8 rounds)', bermuda: 'Bermuda (12 rounds)' },
     bermudaHint: 'Twelve rounds: 12, 13, 14, any double, 15, 16, 17, any treble, 18, 19, 20, bull. Same rules as Halve-It: a round without a hit halves your score.',
     cricketNumbers: 'Numbers',
-    cricketNumberSets: { standard: '15-20', random: 'Random numbers' },
+    cricketNumberSets: { standard: '15-20', random: 'Random numbers', hidden: 'Hidden numbers' },
     atcOrder: 'Order',
     atcOrders: { numbers: '1 to 20', board: 'Round the World (board order)' },
     botOf: 'Bot like {{name}}',
@@ -497,6 +497,7 @@ const en = {
     confirmAbort: 'A game is still running. Abort it and start a new one?',
   },
   play: {
+    streak: 'streak {{streak}} (best {{best}})',
     displayModeOn: 'Display mode',
     displayModeOff: 'Leave display mode',
     displayModeHint: 'Scoreboard only, as large as possible (for small monitors and TVs). Darts are still detected by the cameras.',

@@ -382,7 +382,7 @@ function CricketScores({ game }: { game: GameState }) {
             const closedByAll = marks.every((m) => m[ti] >= 3)
             return (
               <tr key={target} className={closedByAll ? styles.closedRow : undefined}>
-                <th scope="row">{target === 25 ? 'B' : target}</th>
+                <th scope="row">{game.hidden?.[ti] ? '?' : target === 25 ? 'B' : target}</th>
                 {game.players.map((p) => (
                   <td key={p.position} className={p.position === game.current_player ? styles.activeCol : undefined}>
                     <span className={marks[p.position][ti] >= 3 ? styles.markClosed : styles.mark}>
@@ -456,6 +456,9 @@ function TrainingScores({ game }: { game: GameState }) {
               target: Math.min(index + 1, total),
               total,
             })
+            if (game.best_streak?.[i]) {
+              detail += ` · ${t('play.streak', { streak: game.streak?.[i] ?? 0, best: game.best_streak[i] })}`
+            }
             break
           }
           case 'doubles_training':

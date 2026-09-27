@@ -272,6 +272,9 @@ class CheckoutTrainingGame(Game):
         self.darts_on_target = [0] * n
         self.successes = [0] * n
         self.results: list[list[bool]] = [[] for _ in range(n)]
+        # checkouts in a row (the "checkout streak" drill: e.g. 3 darts per target)
+        self.streak = [0] * n
+        self.best_streak = [0] * n
 
     def _score_dart(self, turn: Turn, dart: Dart) -> None:
         p = turn.player
@@ -298,6 +301,8 @@ class CheckoutTrainingGame(Game):
     def _next_target(self, p: int, success: bool) -> None:
         self.results[p].append(success)
         self.successes[p] += int(success)
+        self.streak[p] = self.streak[p] + 1 if success else 0
+        self.best_streak[p] = max(self.best_streak[p], self.streak[p])
         self.index[p] += 1
         self.darts_on_target[p] = 0
         if self.index[p] < len(self.targets):
@@ -329,6 +334,8 @@ class CheckoutTrainingGame(Game):
             "results": [list(r) for r in self.results],
             "darts_on_target": list(self.darts_on_target),
             "checkout": [d.label for d in route] if route else None,
+            "streak": list(self.streak),
+            "best_streak": list(self.best_streak),
         }
 
     def settings_dict(self) -> dict[str, Any]:

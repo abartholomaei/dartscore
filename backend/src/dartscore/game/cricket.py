@@ -1,6 +1,7 @@
 """Cricket: close 15-20 and the bull, score on numbers the opponents have not closed.
 
-"Random" cricket plays six randomly drawn numbers (plus the bull) instead of 15-20.
+"Random" cricket plays six randomly drawn numbers (plus the bull) instead of 15-20; "hidden"
+draws them as well but keeps each number secret until somebody hits it.
 """
 
 import random
@@ -19,7 +20,7 @@ CricketVariant = Literal["standard", "cut_throat", "no_score"]
 @dataclass(frozen=True)
 class CricketSettings:
     variant: CricketVariant = "standard"
-    numbers: Literal["standard", "random"] = "standard"
+    numbers: Literal["standard", "random", "hidden"] = "standard"
     seed: int = field(default_factory=lambda: random.randint(1, 1_000_000))
 
 
@@ -28,7 +29,7 @@ class CricketGame(Game):
 
     def __init__(self, player_count: int, settings: CricketSettings, match: MatchSettings) -> None:
         self.settings = settings
-        if settings.numbers == "random":
+        if settings.numbers in ("random", "hidden"):
             drawn = sorted(random.Random(settings.seed).sample(range(1, 21), 6), reverse=True)
             self.targets: tuple[int, ...] = (*drawn, BULL)
         else:
@@ -83,6 +84,13 @@ class CricketGame(Game):
     def _leg_state(self) -> dict[str, Any]:
         return {
             "targets": list(self.targets),
+            # hidden cricket: numbers nobody has hit yet stay secret (the bull is always shown)
+            "hidden": [
+                self.settings.numbers == "hidden"
+                and t != BULL
+                and all(m[t] == 0 for m in self.marks)
+                for t in self.targets
+            ],
             "marks": [[m[t] for t in self.targets] for m in self.marks],
             "points": list(self.points),
         }

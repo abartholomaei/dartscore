@@ -549,6 +549,7 @@ const en = {
     dartsPerLeg: 'Darts per won leg',
     games: 'Won / played',
     winRate: 'Win rate',
+    scoreTrend: 'Score per game',
     averageTrend: 'Average per game',
     mprTrend: 'MPR per game',
     headToHead: 'Head to head',

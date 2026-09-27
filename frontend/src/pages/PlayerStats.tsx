@@ -151,6 +151,7 @@ export default function PlayerStats() {
               <Tile label={t('play.stats.hitRate')} value={pct(ms.hit_rate)} />
               <Tile label={t('stats.gamesPlayed')} value={ms.games} />
             </div>
+            <Trend stats={ms} field="score" label={t('stats.scoreTrend')} />
           </section>
         )
       })}
@@ -244,7 +245,7 @@ function Tile({ label, value, big }: { label: string; value: string | number; bi
 }
 
 /** Small line chart of the per-game value over time. */
-function Trend({ stats, field, label }: { stats: AggregateStats; field: 'average' | 'mpr'; label: string }) {
+function Trend({ stats, field, label }: { stats: AggregateStats; field: 'average' | 'mpr' | 'score'; label: string }) {
   const points = stats.trend.map((p) => p[field]).filter((v): v is number => v !== null)
   if (points.length < 2) return null
   const w = 600

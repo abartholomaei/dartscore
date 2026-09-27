@@ -581,7 +581,7 @@ Priorität für V2: **M** = zuerst, **S** = danach, **C** = bei Gelegenheit.
 - [ ] V2-8 Lokale Turniere
 - [ ] V2-9 Trainingspläne
 - [ ] V2-10 LED-/WLED-Anbindung
-- [ ] V2-11 Statistik-Verläufe für alle Modi
+- [x] V2-11 Statistik-Verläufe für alle Modi
 - [x] V2-12 Aufnahme-Verteilung, Formkurve, beste/schlechteste Spiele
 - [ ] V2-13 Automatische Bounce-out-Erkennung
 - [ ] V2-14 Diagnose-Ansicht

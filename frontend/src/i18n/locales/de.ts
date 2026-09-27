@@ -550,6 +550,7 @@ const de: Translations = {
     dartsPerLeg: 'Darts pro gewonnenem Leg',
     games: 'Gewonnen / gespielt',
     winRate: 'Siegquote',
+    scoreTrend: 'Punktzahl pro Spiel',
     averageTrend: 'Average pro Spiel',
     mprTrend: 'MPR pro Spiel',
     headToHead: 'Direkter Vergleich',

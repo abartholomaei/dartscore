@@ -25,7 +25,7 @@ from dartscore.vision.calibration import BoardCalibration
 from dartscore.vision.camera import CameraManager
 from dartscore.vision.detection import DartDetection, DartDetector, Takeout
 from dartscore.vision.intrinsics import Undistorter
-from dartscore.vision.model import load_model
+from dartscore.vision.model import TipModel, load_model
 
 log = structlog.get_logger(__name__)
 
@@ -58,6 +58,11 @@ class DetectionService:
         games.add_listener(self._on_game_event)
 
     # --- control ------------------------------------------------------------------------
+
+    @property
+    def model(self) -> TipModel | None:
+        """The optional tip model (also used by the referee)."""
+        return self._model
 
     def configure(
         self, calibrations: dict[str, BoardCalibration], undistorters: dict[str, Undistorter]

@@ -283,6 +283,34 @@ class GameService:
                 session.commit()
             return self._after_change(active)
 
+    def correct_event(self, seq: int, dart: Dart) -> dict[str, Any]:
+        """Replaces the dart with event number ``seq`` of the current game (e.g. after the
+        referee looked at it); unlike ``correct`` it can reach any leg."""
+        with self._lock:
+            active = self._require_active()
+            game = active.game
+            if not 0 <= seq < len(game.events) or not isinstance(game.events[seq], DartEvent):
+                raise GameError("no_such_dart", "No dart with this number")
+            backup = list(game.events)
+            game.events[seq] = DartEvent(dart)
+            try:
+                game._replay()
+            except GameError:
+                game.events = backup
+                game._replay()
+                raise
+            with self._sessions() as session:
+                record = session.scalars(
+                    select(GameEventRecord).where(
+                        GameEventRecord.game_id == active.id, GameEventRecord.seq == seq
+                    )
+                ).one()
+                record.segment, record.multiplier = dart.segment, dart.multiplier
+                record.source = "corrected"
+                active.meta[seq].source = "corrected"
+                session.commit()
+            return self._after_change(active)
+
     def abort(self) -> None:
         with self._lock:
             active = self._require_active()

@@ -171,6 +171,10 @@ const de: Translations = {
     hint: 'Gemessen am Feld, das getroffen werden musste (z. B. das Doppel beim Checkout). „Außen“ heißt Richtung Board-Rand. Ringe alle 10 mm.',
   },
   photos: {
+    review: 'Nachprüfen',
+    reviewing: 'prüfe…',
+    verdict: 'Schiedsrichter: {{label}}',
+    apply: 'Auf {{label}} ändern',
     show: 'Kamerafotos dieser Aufnahme zeigen',
     legTurn: 'Leg {{leg}}, Aufnahme {{turn}}',
     detectedAs: '(erkannt: {{label}})',

@@ -124,3 +124,24 @@
   color: var(--text-muted);
   text-align: center;
 }
+
+.review {
+  margin-left: 6px;
+  padding: 2px 10px;
+  border: 1px solid var(--accent);
+  border-radius: 999px;
+  background: none;
+  color: var(--accent);
+  font: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.verdict {
+  margin-left: 6px;
+}
+
+.confirmed {
+  color: var(--accent);
+  font-weight: 700;
+}

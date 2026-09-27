@@ -28,3 +28,22 @@ def test_real_recording(recording: str, expected: str) -> None:
     label, hits = replay_recording(FIXTURES / recording, DetectionConfig())
     assert label == expected
     assert sum(h.used for h in hits) >= 2
+
+
+@pytest.mark.parametrize(
+    ("recording", "expected"),
+    [
+        ("164040_069580", "D20"),
+        ("171315_322895", "S5"),
+        ("164102_141691", "MISS"),
+        ("164254_091449", "S20"),
+    ],
+)
+def test_referee_agrees_on_real_throws(recording: str, expected: str) -> None:
+    from dartscore.vision.referee import review_recording
+
+    verdict = review_recording(FIXTURES / recording, DetectionConfig())
+    assert verdict.label == expected
+    assert len(verdict.cameras) == 3
+    assert sum(c.used for c in verdict.cameras) >= 2
+    assert all(c.found > 0 for c in verdict.cameras if c.used)

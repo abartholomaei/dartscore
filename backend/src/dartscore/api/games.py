@@ -1,15 +1,19 @@
 """Game endpoints: start, throw, next, undo, correct, abort, rematch, history."""
 
+from dataclasses import asdict
 from typing import Any, Literal
 
 from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field, model_validator
+from starlette.concurrency import run_in_threadpool
 
+from dartscore.config import Settings
 from dartscore.game import Dart, GameError
 from dartscore.services.games import GameService, PlayerRef
 from dartscore.services.recordings import RecordingIndex
 from dartscore.services.stats import StatsService
+from dartscore.vision.referee import review_recording
 
 router = APIRouter(prefix="/api/games", tags=["games"])
 
@@ -181,6 +185,31 @@ def visits(request: Request, game_id: int) -> list[dict[str, Any]]:
             )
         visit["photos"] = photos
     return result
+
+
+@router.get("/{game_id}/darts/{seq}/review")
+async def review_dart(request: Request, game_id: int, seq: int) -> dict[str, Any]:
+    """Referee: re-evaluates the recorded images of a dart more thoroughly."""
+    recordings: RecordingIndex = request.app.state.recordings
+    found = recordings.get(game_id, seq)
+    if found is None:
+        raise HTTPException(status_code=404, detail="No photo for this dart")
+    settings: Settings = request.app.state.settings
+    model = getattr(request.app.state.detection, "model", None)
+    verdict = await run_in_threadpool(
+        review_recording, recordings.dir / found[0], settings.detection, model
+    )
+    return asdict(verdict)
+
+
+class EventCorrection(DartInput):
+    pass
+
+
+@router.put("/active/events/{seq}")
+def correct_event(request: Request, seq: int, body: EventCorrection) -> GameState:
+    """Corrects any dart of the running game by its event number (see /visits)."""
+    return _service(request).correct_event(seq, body.to_dart())
 
 
 @router.get("/{game_id}/darts/{seq}/{camera_id}.jpg")

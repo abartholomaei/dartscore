@@ -432,3 +432,18 @@ def test_aim_deviation_relative_to_the_target(client: TestClient) -> None:
     assert t20["radial_mm"] == 7.0
     assert t20["sideways_mm"] == 3.0
     assert result["overall"]["distance_mm"] == 7.6
+
+
+def test_correct_event_reaches_earlier_legs(client: TestClient) -> None:
+    client.post(
+        "/api/games",
+        json={"mode": "x01", "settings": {"start_score": 101, "legs_to_win": 2},
+              "players": [{"guest_name": "A"}, {"guest_name": "B"}]},
+    )  # fmt: skip
+    throw(client, "T20", "S1", "D20")  # A wins leg 1 (events 0-2)
+    throw(client, "NEXT", "S20")  # leg 2 has started
+    corrected = client.put("/api/games/active/events/1", json={"dart": "S2"})
+    assert corrected.status_code == 200, corrected.text
+    # 60 + 2 + 40 no longer checks out 101: leg 1 is open again
+    assert corrected.json()["legs_won"] == [0, 0]
+    assert client.put("/api/games/active/events/99", json={"dart": "S2"}).status_code == 422

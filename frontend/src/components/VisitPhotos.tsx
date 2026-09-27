@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { getJson, type Point } from '../api'
+import { getJson, sendJson, type GameState, type Point } from '../api'
 import { useErrorText } from '../helpers'
 import styles from './VisitPhotos.module.css'
 
@@ -17,6 +17,8 @@ export type Visit = {
   photos: (Photo | null)[]
 }
 export type VisitRef = { set: number; leg: number; turn_index: number }
+type CameraVerdict = { camera_id: string; label: string | null; found: number; used: boolean }
+type Verdict = { label: string | null; unanimous: boolean; cameras: CameraVerdict[] }
 
 /** Camera images of one visit: the view after its last detected dart, with numbered markers
  *  where the detection saw each dart's tip. */
@@ -25,11 +27,14 @@ export default function VisitPhotos({
   initial,
   playerNames,
   onClose,
+  onCorrected,
 }: {
   gameId: number
   initial: VisitRef
   playerNames: string[]
   onClose: () => void
+  // set when the game is running: referee results can then be applied
+  onCorrected?: (state: GameState) => void
 }) {
   const { t } = useTranslation()
   const errorText = useErrorText()
@@ -38,19 +43,49 @@ export default function VisitPhotos({
   const [index, setIndex] = useState<number | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [enlarged, setEnlarged] = useState<string | null>(null)
+  const [verdicts, setVerdicts] = useState<Record<number, Verdict | 'loading'>>({})
+  const [reload, setReload] = useState(0)
+
+  const review = async (seq: number) => {
+    setVerdicts((v) => ({ ...v, [seq]: 'loading' }))
+    try {
+      const verdict = await getJson<Verdict>(`/api/games/${gameId}/darts/${seq}/review`)
+      setVerdicts((v) => ({ ...v, [seq]: verdict }))
+    } catch (err) {
+      setError(errorText(err))
+      setVerdicts((v) => {
+        const next = { ...v }
+        delete next[seq]
+        return next
+      })
+    }
+  }
+
+  const apply = async (seq: number, label: string) => {
+    try {
+      const state = await sendJson<GameState>('PUT', `/api/games/active/events/${seq}`, { dart: label })
+      onCorrected?.(state)
+      setReload((r) => r + 1)
+    } catch (err) {
+      setError(errorText(err))
+    }
+  }
 
   useEffect(() => {
     dialog.current?.showModal()
+  }, [])
+
+  useEffect(() => {
     getJson<Visit[]>(`/api/games/${gameId}/visits`)
       .then((list) => {
         setVisits(list)
         const found = list.findIndex(
           (v) => v.set === initial.set && v.leg === initial.leg && v.turn_index === initial.turn_index,
         )
-        setIndex(found >= 0 ? found : list.length - 1)
+        setIndex((current) => current ?? (found >= 0 ? found : list.length - 1))
       })
       .catch((err: unknown) => setError(errorText(err)))
-  }, [gameId, initial, errorText])
+  }, [gameId, initial, errorText, reload])
 
   const visit = visits && index !== null ? visits[index] : null
   // the last dart of the visit that has photos: its "after" images show all darts of the visit
@@ -94,6 +129,8 @@ export default function VisitPhotos({
           <ol className={styles.darts}>
             {visit.darts.map((label, i) => {
               const photo = visit.photos[i]
+              const seq = visit.seqs[i]
+              const verdict = seq !== null ? verdicts[seq] : undefined
               return (
                 <li key={i}>
                   <span className={styles.number}>{i + 1}</span>
@@ -102,6 +139,26 @@ export default function VisitPhotos({
                     <span className="muted"> {t('photos.detectedAs', { label: photo.detected })}</span>
                   )}
                   {!photo && <span className="muted"> {t('photos.noPhoto')}</span>}
+                  {photo && seq !== null && verdict === undefined && (
+                    <button className={styles.review} onClick={() => void review(seq)}>
+                      {t('photos.review')}
+                    </button>
+                  )}
+                  {verdict === 'loading' && <span className="muted"> {t('photos.reviewing')}</span>}
+                  {verdict && verdict !== 'loading' && (
+                    <span className={styles.verdict}>
+                      {t('photos.verdict', { label: verdict.label ?? '–' })}{' '}
+                      <span className="muted">
+                        ({verdict.cameras.map((c) => `${c.camera_id}: ${c.label ?? '–'}`).join(', ')})
+                      </span>
+                      {verdict.label && verdict.label !== label && onCorrected && (
+                        <button className={styles.review} onClick={() => void apply(seq as number, verdict.label as string)}>
+                          {t('photos.apply', { label: verdict.label })}
+                        </button>
+                      )}
+                      {verdict.label === label && <span className={styles.confirmed}> ✓</span>}
+                    </span>
+                  )}
                 </li>
               )
             })}

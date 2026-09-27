@@ -170,6 +170,10 @@ const en = {
     hint: 'Measured against the field you had to hit (e.g. the double on a finish). "Out" means towards the edge of the board. Rings every 10 mm.',
   },
   photos: {
+    review: 'Referee',
+    reviewing: 'checking…',
+    verdict: 'Referee: {{label}}',
+    apply: 'Change to {{label}}',
     show: 'Show camera photos of this turn',
     legTurn: 'leg {{leg}}, turn {{turn}}',
     detectedAs: '(detected {{label}})',

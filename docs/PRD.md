@@ -569,8 +569,8 @@ Priorität für V2: **M** = zuerst, **S** = danach, **C** = bei Gelegenheit.
 
 ### 11.3 To-Do-Liste Version 2
 
-- [ ] V2-1 Wurf-Fotos pro Aufnahme im Spielverlauf
-- [ ] V2-2 Schiedsrichter-Nachprüfung auf Knopfdruck
+- [x] V2-1 Wurf-Fotos pro Aufnahme im Spielverlauf
+- [x] V2-2 Schiedsrichter-Nachprüfung auf Knopfdruck
 - [x] V2-3 Zielabweichung (horizontal/vertikal, mm) in der Statistik
 - [x] V2-4 Persönlicher Bot aus eigenen Wurfdaten
 - [x] V2-5 Segment-Training

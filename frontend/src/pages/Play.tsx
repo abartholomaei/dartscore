@@ -532,6 +532,7 @@ function Pad({
 
 function History({ game }: { game: GameState }) {
   const { t } = useTranslation()
+  const { setGame } = useLiveGame()
   const [photos, setPhotos] = useState<VisitRef | null>(null)
   const turns = [...game.history].reverse().slice(0, 12)
   if (turns.length === 0) return null
@@ -568,6 +569,7 @@ function History({ game }: { game: GameState }) {
           initial={photos}
           playerNames={game.players.map((p) => p.name)}
           onClose={() => setPhotos(null)}
+          onCorrected={setGame}
         />
       )}
     </section>

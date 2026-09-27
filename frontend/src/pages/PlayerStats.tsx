@@ -122,6 +122,8 @@ export default function PlayerStats() {
             <Tile label={t('stats.winRate')} value={pct(x01.win_rate)} />
           </div>
           <Trend stats={x01} field="average" label={t('stats.averageTrend')} />
+          <VisitDistribution stats={x01} />
+          <FormAndGames stats={x01} />
         </section>
       )}
 
@@ -356,5 +358,91 @@ function AimCard({ aim }: { aim: AimStats }) {
       </div>
       <p className="muted">{t(t20 ? 'aim.hintT20' : 'aim.hint')}</p>
     </section>
+  )
+}
+
+/** How the X01 visits are spread over score ranges (busts count as 0). */
+function VisitDistribution({ stats }: { stats: AggregateStats }) {
+  const { t } = useTranslation()
+  const tons = stats.tons
+  const scored = tons['60'] + tons['100'] + tons['140'] + tons['180']
+  const buckets = [
+    { label: '0–59', count: Math.max(0, stats.turns - scored) },
+    { label: '60+', count: tons['60'] },
+    { label: '100+', count: tons['100'] },
+    { label: '140+', count: tons['140'] },
+    { label: '180', count: tons['180'] },
+  ]
+  if (!stats.turns) return null
+  const max = Math.max(...buckets.map((b) => b.count), 1)
+  return (
+    <div className={styles.distribution}>
+      <h3 className={styles.subTitle}>{t('stats.visitDistribution', { count: stats.turns })}</h3>
+      {buckets.map((b) => (
+        <div key={b.label} className={styles.double}>
+          <span className={styles.doubleName}>{b.label}</span>
+          <span className={styles.bar}>
+            <span style={{ width: `${Math.round((b.count / max) * 100)}%` }} />
+          </span>
+          <span className={styles.doubleValue}>
+            {Math.round((b.count / stats.turns) * 100)} % <span className="muted">({b.count})</span>
+          </span>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+/** Recent form (last 5 games against the overall average) and the best and worst games. */
+function FormAndGames({ stats }: { stats: AggregateStats }) {
+  const { t, i18n } = useTranslation()
+  const games = stats.trend.filter((g) => g.average !== null) as (AggregateStats['trend'][number] & { average: number })[]
+  if (games.length < 2 || stats.average === null) return null
+  const recent = games.slice(-5)
+  const form = recent.reduce((sum, g) => sum + g.average, 0) / recent.length
+  const delta = form - stats.average
+  const sorted = [...games].sort((a, b) => b.average - a.average)
+  const best = sorted.slice(0, 3)
+  const worst = sorted.slice(-3).reverse().filter((g) => !best.includes(g))
+  const date = (iso: string) => new Date(iso).toLocaleDateString(i18n.language)
+  const arrow = delta > 1 ? '▲' : delta < -1 ? '▼' : '▬'
+  return (
+    <div className={styles.form}>
+      <div className={styles.tiles}>
+        <div className={`${styles.tile} ${delta > 1 ? styles.formUp : delta < -1 ? styles.formDown : ''}`}>
+          <span className={styles.tileValue}>
+            {arrow} {form.toFixed(1)}
+          </span>
+          <span className={styles.tileLabel}>
+            {t('stats.form', { count: recent.length })} ({delta >= 0 ? '+' : ''}
+            {delta.toFixed(1)})
+          </span>
+        </div>
+      </div>
+      <div className={styles.gameLists}>
+        <div>
+          <h3 className={styles.subTitle}>{t('stats.bestGames')}</h3>
+          <ol className={styles.gameList}>
+            {best.map((g) => (
+              <li key={g.game_id}>
+                <strong>{g.average.toFixed(1)}</strong> <span className="muted">{date(g.date)}</span>
+              </li>
+            ))}
+          </ol>
+        </div>
+        {worst.length > 0 && (
+          <div>
+            <h3 className={styles.subTitle}>{t('stats.worstGames')}</h3>
+            <ol className={styles.gameList}>
+              {worst.map((g) => (
+                <li key={g.game_id}>
+                  <strong>{g.average.toFixed(1)}</strong> <span className="muted">{date(g.date)}</span>
+                </li>
+              ))}
+            </ol>
+          </div>
+        )}
+      </div>
+    </div>
   )
 }

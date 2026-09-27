@@ -351,6 +351,7 @@ export type AggregateStats = {
   wins: number
   win_rate: number | null
   darts: number
+  turns: number
   legs_played: number
   legs_won: number
   average: number | null

@@ -240,3 +240,44 @@
   stroke: var(--bg);
   stroke-width: 0.8;
 }
+
+.subTitle {
+  margin: 16px 0 8px;
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+}
+
+.distribution {
+  display: grid;
+  gap: 6px;
+}
+
+.form {
+  margin-top: 8px;
+}
+
+.formUp .tileValue {
+  color: var(--accent);
+}
+
+.formDown .tileValue {
+  color: var(--warn);
+}
+
+.gameLists {
+  display: grid;
+  gap: 8px 24px;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+}
+
+.gameList {
+  margin: 0;
+  padding-left: 1.4em;
+  display: grid;
+  gap: 4px;
+  font-variant-numeric: tabular-nums;
+}

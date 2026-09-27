@@ -509,6 +509,11 @@ const de: Translations = {
     },
   },
   stats: {
+    visitDistribution: 'Aufnahmen ({{count}})',
+    form_one: 'Form (letztes Spiel)',
+    form_other: 'Form (letzte {{count}} Spiele)',
+    bestGames: 'Beste Spiele (Average)',
+    worstGames: 'Schwächste Spiele (Average)',
     period: 'Zeitraum',
     allTime: 'Gesamt',
     lastDays_one: 'Letzter Tag',

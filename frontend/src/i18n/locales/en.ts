@@ -508,6 +508,11 @@ const en = {
     },
   },
   stats: {
+    visitDistribution: 'Visits ({{count}})',
+    form_one: 'Form (last game)',
+    form_other: 'Form (last {{count}} games)',
+    bestGames: 'Best games (average)',
+    worstGames: 'Weakest games (average)',
     period: 'Period',
     allTime: 'All time',
     lastDays_one: 'Last day',

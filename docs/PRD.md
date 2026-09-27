@@ -541,13 +541,31 @@ Priorität für V2: **M** = zuerst, **S** = danach, **C** = bei Gelegenheit.
 | V2-23 | Lokale Ereignis-Schnittstelle | WebSocket/Webhook mit Spielereignissen für Home Assistant, WLED, OBS-Overlays | Autodarts-Ökosystem | mittel / gering–mittel | C |
 | V2-24 | Themes und Ansichten | Farbschemata, Board-Skins, größere TV-Darstellung, Startspieler per Münzwurf/Glücksrad | Autodarts Plus, DartCounter | gering–mittel / gering | C |
 | V2-25 | Arcade-Spiele | Animierte Party-Spiele mit Darts als Steuerung (z. B. Asteroiden, Zombies, Holzfäller) | Scolia Social | mittel / hoch | C |
+| V2-26 | Profil-Editor mit Foto | Profil am Handy bearbeiten: Foto mit der Handykamera aufnehmen oder hochladen, zuschneiden; wird überall im Spiel gezeigt | eigene Idee | hoch / gering–mittel | M |
+| V2-27 | Avatar-Galerie | Auswahl lustiger, mitgelieferter Profilbilder (z. B. Dart-Tiere, Pub-Figuren) für alle, die kein Foto wollen | eigene Idee | mittel / gering | S |
+| V2-28 | Design-Überarbeitung | Eigene Schrift (z. B. eine kräftige, gut lesbare Display-Schrift für Zahlen), klare Typo-Hierarchie, einheitliche Abstände, Icons | eigene Idee | hoch / mittel | M |
+| V2-29 | Große Anzeige für kleine Displays | Namen, Restpunkte und aktueller Wurf deutlich größer; eigener „Anzeige-Modus“ für kleine Monitore im Desktop-Modus und für TV | eigene Idee | hoch / gering–mittel | M |
+| V2-30 | Animationen und Effekte | Sprite-Animationen und Partikeleffekte (Konfetti bei 180, Feuerwerk beim Checkout, Funken beim Bull, „Staubwolke“ bei No Score); abschaltbar, reduzierte Bewegung respektieren | eigene Idee, Tools for Autodarts (GIFs) | mittel / mittel | S |
+| V2-31 | Weiterspielen nach Spielende | Beendetes Spiel verlängern: weitere Legs/Sets anhängen („Best of 5 → 7“) oder ohne Sieger weiter trainieren, Statistik läuft weiter | eigene Idee | hoch / gering | M |
+| V2-32 | Walk-on-Musik | Eigene Einlaufmusik pro Profil (lokale Audiodatei, einige Sekunden) beim Spielstart bzw. vor dem eigenen Leg | eigene Idee (Stadion-Atmosphäre) | mittel / gering | S |
+| V2-33 | Spieler-Intro | Kurzer Einlauf-Bildschirm vor dem Match: Fotos, Averages, bisherige Duelle, Caller stellt die Spieler vor | eigene Idee | mittel / gering–mittel | C |
+| V2-34 | Handicap | Unterschiedliche Startwerte oder Bonus-Darts pro Spieler, damit Kinder/Anfänger mit Geübten mithalten; optional automatisch aus dem Average | eigene Idee | mittel / gering | S |
+| V2-35 | Dart-Sets pro Profil | Eigene Darts (Gewicht, Marke, Schaft/Flight) im Profil hinterlegen und Statistik je Set vergleichen | eigene Idee | mittel / gering | C |
+| V2-36 | Tägliche Challenge und Serien | Jeden Tag ein kurzes Trainingsziel (z. B. „10× D16 in 30 Darts“), Serien-Zähler für aufeinanderfolgende Trainingstage | eigene Idee | mittel / gering | C |
+| V2-37 | Highlight-Galerie | Automatisch gesammelte Momente (180, hohe Checkouts, 9-Darter-Versuche) mit den Kamerabildern des Wurfs | eigene Idee, baut auf V2-1 auf | mittel / gering | C |
+| V2-38 | Bildschirmschoner / Leerlauf-Ansicht | Wenn kein Spiel läuft: rotierende Bestenliste, letzte Highlights, Uhr; Erkennung wacht beim ersten Dart auf und schlägt ein Spiel vor | eigene Idee | mittel / gering | C |
+| V2-39 | QR-Code zum Verbinden | QR-Code auf dem großen Bildschirm öffnet dartscore direkt am Handy (für Profil-Editor, Eingabe, Zuschauer) | eigene Idee, Tools for Autodarts | mittel / gering | S |
+| V2-40 | Deutsche Stadionstimme | Zweiter Satz Caller-Clips auf Deutsch; optional Spielernamen als Clip erzeugen | eigene Idee | mittel / gering | C |
 
 ### 11.2 Hinweise
 
 - **V2-1, V2-2 und V2-13** bauen direkt auf den vorhandenen Aufnahmen (Vorher/Nachher-Bilder je Dart) auf und verbessern das Vertrauen in die Erkennung am meisten.
 - **V2-2** ist zugleich eine Quelle für genauere Trainingsdaten (siehe Epic 3b).
 - **V2-10 und V2-23** passen gut zum vorhandenen Home Assistant auf dem Mac mini.
-- **V2-24 Themes:** Die Oberfläche soll zunächst ein schwarz-graues Grundschema mit einer Akzentfarbe bekommen (Vorschlag: Board-Grün statt Rot, um sich von Target Omni abzuheben; Rot bleibt Fehlern und Bust vorbehalten). Entscheidung steht aus.
+- **V2-24 Themes:** Entschieden und umgesetzt (2026-09-26): schwarz-graues Grundschema mit Board-Grün als Akzent; Rot nur für Fehler und Bust. Weitere Themes bleiben optional.
+- **V2-26 bis V2-29** gehören zusammen („Look & Feel“): Profilbilder erscheinen in Spielanzeige, Statistik und Intro; die Design-Überarbeitung legt Schrift, Größen und einen Anzeige-Modus für kleine Displays fest. Fotos bleiben lokal auf dem Mac mini (keine Cloud), werden verkleinert gespeichert und sind im Export/Backup enthalten.
+- **V2-30 Animationen:** leichtgewichtig im Browser (CSS/Canvas, keine großen Videos), damit auch ältere Tablets flüssig bleiben; Einstellung „Animationen: an / reduziert / aus“.
+- **V2-31 Weiterspielen:** technisch einfach, weil Spiele ereignisbasiert sind – die Match-Einstellung wird geändert und das Spiel wieder aktiv gesetzt; die Statistik rechnet automatisch neu.
 
 ### 11.3 To-Do-Liste Version 2
 
@@ -576,5 +594,20 @@ Priorität für V2: **M** = zuerst, **S** = danach, **C** = bei Gelegenheit.
 - [ ] V2-23 Lokale Ereignis-Schnittstelle
 - [ ] V2-24 Themes, Board-Skins, Startspieler per Münzwurf
 - [ ] V2-25 Arcade-Spiele
+- [ ] V2-26 Profil-Editor mit Foto (Handykamera/Upload, Zuschnitt)
+- [ ] V2-27 Avatar-Galerie
+- [ ] V2-28 Design-Überarbeitung (eigene Schrift, Typo, Icons)
+- [ ] V2-29 Große Anzeige für kleine Displays / Anzeige-Modus
+- [ ] V2-30 Animationen und Partikeleffekte (abschaltbar)
+- [ ] V2-31 Weiterspielen nach Spielende
+- [ ] V2-32 Walk-on-Musik pro Profil
+- [ ] V2-33 Spieler-Intro vor dem Match
+- [ ] V2-34 Handicap
+- [ ] V2-35 Dart-Sets pro Profil
+- [ ] V2-36 Tägliche Challenge und Serien
+- [ ] V2-37 Highlight-Galerie
+- [ ] V2-38 Bildschirmschoner / Leerlauf-Ansicht
+- [ ] V2-39 QR-Code zum Verbinden
+- [ ] V2-40 Deutsche Stadionstimme
 
 **Quellen (Auswahl):** targetdarts.com/omni, dartcounter.net (Spiele, Ultimate, Release Notes v8.4/v9.0/v9.7), scoliadarts.com (Home 2, Vergleich, Software, FAQ, Social), autodarts.com (Preise, Updates), autodarts.diy (Spieleinstellungen, Desktop, AI Referee, Statistik), github.com/creazy231/tools-for-autodarts.

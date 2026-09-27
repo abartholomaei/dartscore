@@ -3,7 +3,7 @@ import { Link } from 'react-router'
 import { sendJson, type CameraStatus, type DetectionStatus, type Health } from '../api'
 import DetectionBadge from '../components/DetectionBadge'
 import { useLiveGame } from '../LiveGame'
-import { setAudioPref, speechAvailable, useAudioPrefs } from '../caller'
+import { setAudioPref, speechAvailable, stadiumVoiceAvailable, useAudioPrefs, type CallerVoice } from '../caller'
 import { LANGUAGES } from '../i18n'
 import { usePolling } from '../usePolling'
 import styles from './Settings.module.css'
@@ -67,6 +67,19 @@ export default function Settings() {
             />
             {t('settings.caller')}
           </label>
+          {stadiumVoiceAvailable() && (
+            <label className={styles.check}>
+              {t('settings.voice')}
+              <select
+                value={audio.voice}
+                disabled={!audio.caller}
+                onChange={(e) => setAudioPref('voice', e.target.value as CallerVoice)}
+              >
+                <option value="stadium">{t('settings.voiceStadium')}</option>
+                <option value="browser">{t('settings.voiceBrowser')}</option>
+              </select>
+            </label>
+          )}
           <label className={styles.check}>
             <input type="checkbox" checked={audio.sounds} onChange={(e) => setAudioPref('sounds', e.target.checked)} />
             {t('settings.sounds')}

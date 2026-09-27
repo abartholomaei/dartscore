@@ -4,9 +4,10 @@ import type { GameState } from './api'
 
 /** Caller voice (Web Speech API), short sounds and celebration banners for the running game. */
 
-export type AudioPrefs = { caller: boolean; sounds: boolean }
+export type CallerVoice = 'stadium' | 'browser'
+export type AudioPrefs = { caller: boolean; sounds: boolean; voice: CallerVoice }
 const STORAGE_KEY = 'dartscore.audio'
-const DEFAULTS: AudioPrefs = { caller: true, sounds: true }
+const DEFAULTS: AudioPrefs = { caller: true, sounds: true, voice: 'stadium' }
 
 function load(): AudioPrefs {
   try {
@@ -19,7 +20,7 @@ function load(): AudioPrefs {
 let prefs = load()
 const subscribers = new Set<() => void>()
 
-export function setAudioPref(key: keyof AudioPrefs, value: boolean) {
+export function setAudioPref<K extends keyof AudioPrefs>(key: K, value: AudioPrefs[K]) {
   prefs = { ...prefs, [key]: value }
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(prefs))
@@ -49,6 +50,52 @@ function speak(text: string, language: string) {
   window.speechSynthesis.cancel()
   window.speechSynthesis.speak(utterance)
 }
+
+// Stadium voice: clips pre-generated once (tools/caller/generate.py) and played offline.
+const CLIP_DIR = '/caller/en'
+let clips: Set<string> | null = null
+const clipsLoaded: Promise<void> =
+  typeof window === 'undefined'
+    ? Promise.resolve()
+    : fetch(`${CLIP_DIR}/manifest.json`)
+        .then((r) => (r.ok ? (r.json() as Promise<{ clips: string[] }>) : { clips: [] }))
+        .then((m) => {
+          clips = new Set(m.clips)
+          subscribers.forEach((notify) => notify())
+        })
+        .catch(() => {
+          clips = new Set()
+        })
+
+export function stadiumVoiceAvailable(): boolean {
+  return (clips?.size ?? 0) > 0
+}
+
+let playing: HTMLAudioElement | null = null
+
+/** Plays the clips one after another; false if the stadium voice cannot say this. */
+function playClips(keys: string[]): boolean {
+  if (prefs.voice !== 'stadium' || !clips || !keys.every((k) => clips?.has(k))) return false
+  playing?.pause()
+  window.speechSynthesis?.cancel()
+  const next = (index: number) => {
+    if (index >= keys.length) return
+    const element = new Audio(`${CLIP_DIR}/${keys[index]}.mp3`)
+    playing = element
+    element.onended = () => next(index + 1)
+    void element.play().catch(() => undefined)
+  }
+  next(0)
+  return true
+}
+
+/** Says something with the stadium clips, or with the browser voice as a fallback. */
+function call(keys: string[], text: string, language: string) {
+  if (!prefs.caller) return
+  if (!playClips(keys)) speak(text, language)
+}
+
+void clipsLoaded
 
 let audio: AudioContext | null = null
 
@@ -114,7 +161,7 @@ export function useCaller(game: GameState | null): Celebration | null {
       const winner = game.players[game.winner ?? game.leg_winner ?? 0]
       beep('win')
       const text = game.finished ? t('caller.gameShotMatch', { name: winner.name }) : t('caller.gameShot')
-      speak(text, lang)
+      call([game.finished ? 'game_shot_match' : 'game_shot'], text, lang)
       celebrate('checkout', game.finished ? t('caller.winner', { name: winner.name }) : t('caller.gameShot'))
       return
     }
@@ -128,13 +175,14 @@ export function useCaller(game: GameState | null): Celebration | null {
       const total = turn.values.reduce((sum, v) => sum + v, 0)
       if (turn.bust) {
         beep('bust')
-        speak(t('caller.noScore'), lang)
+        call(['no_score'], t('caller.noScore'), lang)
         celebrate('bust', t('caller.bust'))
       } else if (total === 180) {
-        speak(t('caller.oneEighty'), lang)
+        call(['hl_180'], t('caller.oneEighty'), lang)
         celebrate('180', '180!')
       } else {
-        speak(total === 0 ? t('caller.noScore') : String(total), lang)
+        if (total === 0) call(['no_score'], t('caller.noScore'), lang)
+        else call([total >= 140 ? `hl_${total}` : `num_${total}`], String(total), lang)
       }
       return
     }
@@ -143,7 +191,12 @@ export function useCaller(game: GameState | null): Celebration | null {
     if (x01 && game.current_player !== prev.current_player && game.checkout && !game.awaiting_next) {
       const remaining = game.remaining?.[game.current_player]
       window.setTimeout(
-        () => speak(t('caller.require', { name: game.players[game.current_player].name, score: remaining }), lang),
+        () =>
+          call(
+            ['you_require', `num_${remaining}`],
+            t('caller.require', { name: game.players[game.current_player].name, score: remaining }),
+            lang,
+          ),
         1200,
       )
     }

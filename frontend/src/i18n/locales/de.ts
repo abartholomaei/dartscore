@@ -355,6 +355,9 @@ const de: Translations = {
     gamesCount_other: '{{count}} Spiele',
   },
   settings: {
+    voice: 'Stimme',
+    voiceStadium: 'Stadionsprecher (Englisch, Stimme von ElevenLabs)',
+    voiceBrowser: 'Browser-Stimme',
     audio: 'Ton',
     caller: 'Caller sagt die Punkte an',
     sounds: 'Töne für Darts und Siege',

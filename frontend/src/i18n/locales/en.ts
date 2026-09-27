@@ -354,6 +354,9 @@ const en = {
     gamesCount_other: '{{count}} games',
   },
   settings: {
+    voice: 'Voice',
+    voiceStadium: 'Stadium announcer (English, voice by ElevenLabs)',
+    voiceBrowser: 'Browser voice',
     audio: 'Sound',
     caller: 'Caller announces scores',
     sounds: 'Sounds for darts and wins',

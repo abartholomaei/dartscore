@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react'
 import { useTranslation } from 'react-i18next'
+import type { TFunction } from 'i18next'
 import type { GameState } from './api'
+import { targetClips, targetSpeech, trainingTarget } from './target'
 
 /** Caller voice (Web Speech API), short sounds and celebration banners for the running game. */
 
@@ -75,7 +77,7 @@ let playing: HTMLAudioElement | null = null
 
 /** Plays the clips one after another; false if the stadium voice cannot say this. */
 function playClips(keys: string[]): boolean {
-  if (prefs.voice !== 'stadium' || !clips || !keys.every((k) => clips?.has(k))) return false
+  if (prefs.voice !== 'stadium' || !clips || keys.length === 0 || !keys.every((k) => clips?.has(k))) return false
   playing?.pause()
   window.speechSynthesis?.cancel()
   const next = (index: number) => {
@@ -138,6 +140,14 @@ function beep(kind: 'dart' | 'bust' | 'win') {
   }
 }
 
+/** "Your target... double... sixteen" at the start of a training turn. */
+function announceTarget(state: GameState, lang: string, t: TFunction) {
+  const target = trainingTarget(state)
+  if (!target) return
+  const clips = targetClips(target)
+  call(clips ? ['your_target', ...clips] : [], t('caller.target', { target: targetSpeech(target, t) }), lang)
+}
+
 export type Celebration = { key: number; kind: '180' | 'checkout' | 'bust'; text: string }
 
 /** Watches the game state and calls scores, plays sounds and returns a banner to show. */
@@ -149,9 +159,14 @@ export function useCaller(game: GameState | null): Celebration | null {
   useEffect(() => {
     const prev = previous.current
     previous.current = game
+    const lang = i18n.language
+    // a new game with a target: announce the first one
+    if (game && game.event_count === 0 && (!prev || prev.id !== game.id)) {
+      announceTarget(game, lang, t)
+      return
+    }
     // only react to one new event of the same game (not to loading, undo or corrections)
     if (!game || !prev || prev.id !== game.id || game.event_count !== prev.event_count + 1) return
-    const lang = i18n.language
     const celebrate = (kind: Celebration['kind'], text: string) => setCelebration({ key: Date.now(), kind, text })
     const x01 = game.mode === 'x01'
     const newDart = (game.turn?.darts.length ?? 0) > (prev.turn?.player === game.turn?.player ? (prev.turn?.darts.length ?? 0) : 0)
@@ -184,6 +199,14 @@ export function useCaller(game: GameState | null): Celebration | null {
         if (total === 0) call(['no_score'], t('caller.noScore'), lang)
         else call([total >= 140 ? `hl_${total}` : `num_${total}`], String(total), lang)
       }
+      return
+    }
+
+    // a new turn begins (next player, or the same player after "next"): announce its target
+    const turnStarted =
+      !game.awaiting_next && game.leg_winner === null && (prev.awaiting_next || prev.current_player !== game.current_player)
+    if (turnStarted && trainingTarget(game)) {
+      window.setTimeout(() => announceTarget(game, lang, t), turn ? 1400 : 0)
       return
     }
 

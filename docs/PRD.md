@@ -557,6 +557,7 @@ Priorität für V2: **M** = zuerst, **S** = danach, **C** = bei Gelegenheit.
 | V2-39 | QR-Code zum Verbinden | QR-Code auf dem großen Bildschirm öffnet dartscore direkt am Handy (für Profil-Editor, Eingabe, Zuschauer) | eigene Idee, Tools for Autodarts | mittel / gering | S |
 | V2-40 | Deutsche Stadionstimme | Zweiter Satz Caller-Clips auf Deutsch; optional Spielernamen als Clip erzeugen | eigene Idee | mittel / gering | C |
 | V2-41 | Hilfe mit Spielregeln | Zu jedem Spielmodus eine Regel-Erklärung (Ablauf, Wertung, Sieg, Varianten, Beispiel), aufrufbar beim Spiel-Setup und während des Spiels über ein „?“; EN/DE | Wunsch des Nutzers | hoch / gering | S |
+| V2-42 | Checkout-Vorschlag in den Wurffeldern | Der Checkout-Weg wird direkt in den drei Dart-Feldern der laufenden Aufnahme als grüne Zahlen vorgeschlagen (z. B. „T20 · T20 · D20“); geworfene Darts ersetzen den Vorschlag, der Rest passt sich an | Wunsch des Nutzers | hoch / gering | S |
 
 ### 11.2 Hinweise
 
@@ -611,5 +612,6 @@ Priorität für V2: **M** = zuerst, **S** = danach, **C** = bei Gelegenheit.
 - [ ] V2-39 QR-Code zum Verbinden
 - [ ] V2-40 Deutsche Stadionstimme
 - [ ] V2-41 Hilfe mit Spielregeln für alle Spielmodi (Setup und im Spiel)
+- [ ] V2-42 Checkout-Vorschlag als grüne Zahlen in den Wurffeldern
 
 **Quellen (Auswahl):** targetdarts.com/omni, dartcounter.net (Spiele, Ultimate, Release Notes v8.4/v9.0/v9.7), scoliadarts.com (Home 2, Vergleich, Software, FAQ, Social), autodarts.com (Preise, Updates), autodarts.diy (Spieleinstellungen, Desktop, AI Referee, Statistik), github.com/creazy231/tools-for-autodarts.

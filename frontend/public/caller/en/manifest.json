@@ -2,6 +2,10 @@
  "voice": "George (ElevenLabs)",
  "model": "eleven_v3",
  "clips": [
+  "any_double",
+  "any_treble",
+  "bullseye",
+  "double",
   "game_shot",
   "game_shot_match",
   "hl_140",
@@ -217,6 +221,8 @@
   "num_97",
   "num_98",
   "num_99",
-  "you_require"
+  "treble",
+  "you_require",
+  "your_target"
  ]
 }

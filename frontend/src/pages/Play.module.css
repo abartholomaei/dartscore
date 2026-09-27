@@ -644,3 +644,45 @@
 .unsure {
   font-family: var(--font-display);
 }
+
+/* --- training target, readable from the oche ----------------------------------------- */
+
+.targetBanner {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px 20px;
+  padding: 12px 20px;
+  border: 2px solid var(--accent);
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--accent) 12%, var(--surface));
+}
+
+.targetLabel {
+  font-family: var(--font-display);
+  font-size: clamp(1rem, 2vw, 1.5rem);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+}
+
+.targetValue {
+  flex: 1;
+  font-family: var(--font-display);
+  font-size: clamp(3rem, 9vw, 7.5rem);
+  font-weight: 800;
+  line-height: 1;
+  color: var(--accent);
+}
+
+.targetRound {
+  font-family: var(--font-display);
+  font-size: clamp(1rem, 2vw, 1.75rem);
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.displayMode .targetValue {
+  font-size: clamp(5rem, 15vw, 13rem);
+}

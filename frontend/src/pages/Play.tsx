@@ -10,6 +10,7 @@ import { dartLabel, dartPoints } from '../dart'
 import { useLiveGame } from '../LiveGame'
 import { useCaller } from '../caller'
 import { PENDING_KEY, useErrorText, type PendingGame } from '../helpers'
+import { trainingTarget, useTargetText } from '../target'
 import styles from './Play.module.css'
 
 type InputMode = 'pad' | 'board'
@@ -147,6 +148,7 @@ function Running({ game }: { game: GameState }) {
     <div className={displayMode ? `${styles.layout} ${styles.displayMode}` : styles.layout}>
       <section className={styles.scores}>
         <MatchInfo game={game} />
+        <TargetBanner game={game} />
         {game.mode === 'x01' ? (
           <X01Scores game={game} />
         ) : game.mode === 'cricket' ? (
@@ -160,11 +162,6 @@ function Running({ game }: { game: GameState }) {
         <div className={styles.turnHeader}>
           <span className={styles.dot} style={{ background: current.color }} />
           <strong>{current.name}</strong>
-          {trainingTarget(game) && !game.awaiting_next && (
-            <span className={styles.target}>
-              {t('play.target')}: {trainingTarget(game)}
-            </span>
-          )}
           {(game.mode === 'x01' || game.mode === 'checkout_training' || game.mode === 'checkout_121') && game.checkout && !game.awaiting_next && (
             <span className={styles.checkout}>
               {t('play.checkout')}: {game.checkout.join(' · ')}
@@ -390,26 +387,25 @@ function CricketScores({ game }: { game: GameState }) {
   )
 }
 
-/** What the current player aims at in a training mode (null for X01/Cricket). */
-function trainingTarget(game: GameState): string | null {
-  switch (game.mode) {
-    case 'around_the_clock':
-      return game.current_targets?.[game.current_player] ?? null
-    case 'shanghai':
-      return game.round ? String(game.round) : null
-    case 'bobs_27':
-    case 'doubles_training':
-      return game.target ?? null
-    case 'halve_it':
-    case 'segment_training':
-      return game.target ?? null
-    case 'killer': {
-      const p = game.current_player
-      return game.killer?.[p] ? null : game.numbers ? `D${game.numbers[p]}` : null
-    }
-    default:
-      return null
-  }
+/** The field to aim at in training modes, as large as the scores (Halve-It etc.). */
+function TargetBanner({ game }: { game: GameState }) {
+  const { t } = useTranslation()
+  const targetText = useTargetText()
+  const target = trainingTarget(game)
+  if (!target || game.finished) return null
+  const player = game.players[game.current_player]
+  return (
+    <div className={styles.targetBanner} aria-live="polite">
+      <span className={styles.targetLabel}>
+        {t('play.target')}
+        {game.player_count > 1 && <span className="muted"> · {player.name}</span>}
+      </span>
+      <strong className={styles.targetValue}>{targetText(target)}</strong>
+      {game.round && game.rounds ? (
+        <span className={styles.targetRound}>{t('play.roundOf', { round: game.round, total: game.rounds })}</span>
+      ) : null}
+    </div>
+  )
 }
 
 function TrainingScores({ game }: { game: GameState }) {

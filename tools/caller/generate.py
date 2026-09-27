@@ -48,6 +48,13 @@ def clips() -> dict[str, str]:
         "you_require": "[confident] You require...",
         "game_shot": "[excited] Game shot!",
         "game_shot_match": "[excited] [shouting] Game shot, and the match!",
+        # training targets (e.g. Halve-It): "your target ... double ... sixteen"
+        "your_target": "[confident] Your target...",
+        "any_double": "[confident] Any double!",
+        "any_treble": "[confident] Any treble!",
+        "bullseye": "[confident] The bullseye!",
+        "double": "[confident] Double...",
+        "treble": "[confident] Treble...",
     }
     for n in range(1, 181):
         # calm but strong: normal visits and "you require ..."

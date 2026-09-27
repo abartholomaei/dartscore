@@ -180,6 +180,12 @@ const de: Translations = {
     cropHint: 'Bild verschieben, um den Ausschnitt zu wählen.',
     use: 'Bild übernehmen',
   },
+  target: {
+    anyDouble: 'Beliebiges Doppel',
+    anyTriple: 'Beliebiges Triple',
+    double: 'Doppel',
+    triple: 'Triple',
+  },
   photos: {
     review: 'Nachprüfen',
     reviewing: 'prüfe…',
@@ -193,6 +199,7 @@ const de: Translations = {
     hint: 'Die Zahlen zeigen, wo die Erkennung die Spitze jedes Darts gesehen hat; gestrichelt = Kamera wurde überstimmt. Foto antippen zum Vergrößern.',
   },
   caller: {
+    target: 'Dein Ziel: {{target}}',
     gameShot: 'Game shot!',
     gameShotMatch: 'Game shot und das Match! {{name}}',
     winner: '{{name}} gewinnt!',

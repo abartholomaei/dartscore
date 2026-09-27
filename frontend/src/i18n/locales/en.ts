@@ -179,6 +179,12 @@ const en = {
     cropHint: 'Drag the picture to position it.',
     use: 'Use picture',
   },
+  target: {
+    anyDouble: 'Any double',
+    anyTriple: 'Any treble',
+    double: 'double',
+    triple: 'treble',
+  },
   photos: {
     review: 'Referee',
     reviewing: 'checking…',
@@ -192,6 +198,7 @@ const en = {
     hint: 'Numbers mark where the detection saw each dart tip; dashed = camera outvoted. Tap a photo to enlarge it.',
   },
   caller: {
+    target: 'Your target: {{target}}',
     gameShot: 'Game shot!',
     gameShotMatch: 'Game shot, and the match! {{name}}',
     winner: '{{name}} wins!',

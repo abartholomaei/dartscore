@@ -125,28 +125,31 @@
 }
 
 .boardFace {
-  fill: #13251a;
-  stroke: #2e5a3c;
-  stroke-width: 2;
+  fill: none;
+  stroke: rgb(255 255 255 / 0.45);
+  stroke-width: 1.6;
 }
 
 .ring {
   fill: none;
-  stroke: #2e5a3c;
-  stroke-width: 1;
+  stroke: rgb(255 255 255 / 0.22);
+  stroke-width: 0.9;
 }
 
 .bull {
-  fill: #2e5a3c;
+  fill: rgb(255 255 255 / 0.25);
 }
 
 .wire {
-  stroke: #24452f;
-  stroke-width: 0.8;
+  stroke: rgb(255 255 255 / 0.16);
+  stroke-width: 0.7;
 }
 
 .number {
-  fill: #6b9b7a;
+  fill: #eafff1;
+  paint-order: stroke;
+  stroke: rgb(0 0 0 / 0.7);
+  stroke-width: 3px;
   font-family: var(--font-display);
   font-weight: 700;
   font-size: 13px;
@@ -159,8 +162,34 @@
   transition: transform 0.6s ease-in-out;
 }
 
-.monster image {
+.monster image,
+.monsterGone image {
   transition: all 0.4s ease-out;
+  filter: drop-shadow(0 2px 1.5px rgb(0 0 0 / 0.65));
+}
+
+.wobble .bob {
+  animation: wobble 0.5s ease-in-out, bob 1.6s ease-in-out 0.5s infinite;
+}
+
+.poof {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: poof 0.75s ease-out forwards;
+  pointer-events: none;
+}
+
+.dust circle {
+  fill: rgb(214 211 186 / 0.8);
+}
+
+.dust {
+  animation: dust 0.6s ease-out forwards;
+}
+
+.pulse {
+  transform-origin: center;
+  animation: pulse 0.45s ease-out;
 }
 
 .hitArea {
@@ -172,7 +201,7 @@
 }
 
 .monsterGone {
-  animation: vanish 0.6s ease-in forwards;
+  animation: vanish 0.55s ease-in forwards;
 }
 
 .bob {
@@ -282,12 +311,57 @@
   0% {
     opacity: 1;
   }
-  30% {
+  25% {
     opacity: 1;
-    filter: brightness(3);
+    filter: brightness(2.2);
   }
   100% {
     opacity: 0;
+  }
+}
+
+@keyframes poof {
+  0% {
+    transform: scale(0.3);
+    opacity: 0;
+  }
+  25% {
+    transform: scale(1.15);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1.5);
+    opacity: 0;
+  }
+}
+
+@keyframes dust {
+  0% {
+    transform: scale(0.4);
+    opacity: 0.9;
+  }
+  100% {
+    transform: scale(2.2);
+    opacity: 0;
+  }
+}
+
+@keyframes wobble {
+  0%,
+  100% {
+    transform: rotate(0);
+  }
+  25% {
+    transform: rotate(-8deg) scale(1.08);
+  }
+  75% {
+    transform: rotate(8deg) scale(1.08);
+  }
+}
+
+@keyframes pulse {
+  50% {
+    transform: scale(1.025);
   }
 }
 
@@ -329,6 +403,9 @@
   .bob,
   .dart,
   .monsterGone,
+  .poof,
+  .dust,
+  .pulse,
   .popup,
   .popupBad {
     animation: none;

@@ -28,6 +28,8 @@ export default function ArcadeStage({
   const darts = game.arcade_darts ?? []
   const effect = game.last_effect as Effect | null | undefined
   const [popups, setPopups] = useState<Popup[]>([])
+  // the latest dart's effect, keyed by event number so the animation restarts every dart
+  const [burst, setBurst] = useState<{ key: number; spots: [number, number][]; miss: [number, number] | null; grew: boolean; multi: boolean } | null>(null)
   const [intro, setIntro] = useState<{ key: string; round: number; name: string } | null>(null)
   const lastEvent = useRef(game.event_count)
 
@@ -40,6 +42,8 @@ export default function ArcadeStage({
     lastEvent.current = game.event_count
     if (!effect?.position) return
     const [x, y] = effect.position
+    const caught = monsters.filter((m) => effect.killed.includes(m.id)).map((m) => [m.x, m.y] as [number, number])
+    setBurst({ key: game.event_count, spots: caught, miss: caught.length ? null : effect.position, grew: effect.grew, multi: caught.length > 1 })
     const popup: Popup = {
       key: game.event_count,
       x,
@@ -50,6 +54,7 @@ export default function ArcadeStage({
     setPopups((list) => [...list.slice(-4), popup])
     const timer = window.setTimeout(() => setPopups((list) => list.filter((p) => p.key !== popup.key)), 1400)
     return () => window.clearTimeout(timer)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [game.event_count, effect, t])
 
   // "Round 3 - Alex" between turns
@@ -124,13 +129,27 @@ export default function ArcadeStage({
           aria-label={t('arcade.board')}
         >
           <defs>
-            <radialGradient id="arcadeGlow">
-              <stop offset="0%" stopColor="#1f3b2a" />
-              <stop offset="100%" stopColor="#0b120e" />
+            <clipPath id="arcadeClip">
+              <circle r={VIEW - 1} />
+            </clipPath>
+            <radialGradient id="arcadeVignette">
+              <stop offset="70%" stopColor="#000" stopOpacity="0" />
+              <stop offset="100%" stopColor="#000" stopOpacity="0.55" />
             </radialGradient>
           </defs>
-          <circle r={VIEW} fill="url(#arcadeGlow)" />
-          {/* the board, drawn muted so the monsters stand out */}
+          <g className={burst?.multi ? styles.pulse : undefined} key={burst?.multi ? burst.key : 'board'}>
+            <image
+              href="/arcade/monster-meadow.webp"
+              x={-VIEW}
+              y={-VIEW}
+              width={2 * VIEW}
+              height={2 * VIEW}
+              clipPath="url(#arcadeClip)"
+              preserveAspectRatio="xMidYMid slice"
+            />
+            <circle r={VIEW} fill="url(#arcadeVignette)" />
+          </g>
+          {/* the board lines, light and see-through over the meadow */}
           <circle r={R.doubleOuter} className={styles.boardFace} />
           {[R.doubleInner, R.tripleOuter, R.tripleInner, R.outerBull].map((r) => (
             <circle key={r} r={r} className={styles.ring} />
@@ -158,7 +177,7 @@ export default function ArcadeStage({
           {monsters.map((m) => (
             <g
               key={`${introKey}-${m.id}`}
-              className={m.alive ? styles.monster : styles.monsterGone}
+              className={m.alive ? `${styles.monster} ${burst?.grew ? styles.wobble : ''}` : styles.monsterGone}
               style={{ transform: `translate(${m.x}px, ${-m.y}px)` }}
             >
               <circle r={m.radius} className={styles.hitArea} />
@@ -190,6 +209,26 @@ export default function ArcadeStage({
             ) : null,
           )}
 
+          {burst?.spots.map(([x, y], i) => (
+            <image
+              key={`${burst.key}-${i}`}
+              href="/arcade/poof.webp"
+              x={x - 26}
+              y={-y - 26}
+              width={52}
+              height={52}
+              className={styles.poof}
+            />
+          ))}
+          {burst?.miss && (
+            <g key={`dust-${burst.key}`} style={{ transform: `translate(${burst.miss[0]}px, ${-burst.miss[1]}px)` }}>
+              <g className={styles.dust}>
+                {[0, 60, 120, 180, 240, 300].map((a) => (
+                  <circle key={a} r={3} cx={Math.cos((a * Math.PI) / 180) * 6} cy={Math.sin((a * Math.PI) / 180) * 6} />
+                ))}
+              </g>
+            </g>
+          )}
           {popups.map((p) => (
             <text key={p.key} x={p.x} y={-p.y - 10} className={p.good ? styles.popup : styles.popupBad}>
               {p.text}

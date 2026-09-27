@@ -604,7 +604,7 @@ Priorität für V2: **M** = zuerst, **S** = danach, **C** = bei Gelegenheit.
 - [x] V2-31 Weiterspielen nach Spielende (X01/Cricket: Match-Ziel erhöhen)
 - [ ] V2-32 Walk-on-Musik pro Profil
 - [ ] V2-33 Spieler-Intro vor dem Match
-- [ ] V2-34 Handicap
+- [x] V2-34 Handicap (X01: eigener Startwert pro Spieler)
 - [ ] V2-35 Dart-Sets pro Profil
 - [ ] V2-36 Tägliche Challenge und Serien
 - [ ] V2-37 Highlight-Galerie

@@ -12,6 +12,7 @@ from sqlalchemy.orm import Session, sessionmaker
 from dartscore.game import Game, replay_game
 from dartscore.game.base import Leg, Turn
 from dartscore.game.dart import BULL
+from dartscore.game.x01 import X01Game
 from dartscore.services.games import _event_from_record
 from dartscore.storage.models import GamePlayer, GameRecord
 
@@ -75,7 +76,9 @@ def _checkouts(ctx: _Context) -> Iterator[Turn]:
 
 
 def _fastest_leg(ctx: _Context) -> int | None:
-    if not _x01(ctx) or ctx.record.settings.get("start_score") != 501:
+    if not _x01(ctx) or not isinstance(ctx.game, X01Game):
+        return None
+    if ctx.game.settings.start_for(ctx.position) != 501:  # handicap starts do not count
         return None
     darts = [
         sum(len(t.darts) for t in ctx.game.turns_of(ctx.position, leg)) for leg in _won_legs(ctx)

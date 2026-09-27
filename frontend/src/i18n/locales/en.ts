@@ -370,6 +370,9 @@ const en = {
     color: 'Color',
   },
   newGame: {
+    handicap: 'Handicap: own start score per player',
+    handicapHint: 'Choose each player\'s start score in the throwing order below (e.g. 301 for a beginner).',
+    handicapFor: 'Start score for {{name}}',
     sequence: 'Targets',
     sequences: { halve_it: 'Halve-It (8 rounds)', bermuda: 'Bermuda (12 rounds)' },
     bermudaHint: 'Twelve rounds: 12, 13, 14, any double, 15, 16, 17, any treble, 18, 19, 20, bull. Same rules as Halve-It: a round without a hit halves your score.',

@@ -371,6 +371,9 @@ const de: Translations = {
     color: 'Farbe',
   },
   newGame: {
+    handicap: 'Handicap: eigener Startwert pro Spieler',
+    handicapHint: 'Den Startwert jedes Spielers unten in der Wurfreihenfolge wählen (z. B. 301 für Anfänger).',
+    handicapFor: 'Startwert für {{name}}',
     sequence: 'Ziele',
     sequences: { halve_it: 'Halve-It (8 Runden)', bermuda: 'Bermuda (12 Runden)' },
     bermudaHint: 'Zwölf Runden: 12, 13, 14, beliebiges Doppel, 15, 16, 17, beliebiges Triple, 18, 19, 20, Bull. Gleiche Regeln wie Halve-It: Eine Runde ohne Treffer halbiert den Punktestand.',

@@ -72,6 +72,7 @@ const DEFAULT_TRAINING: TrainingOptions = {
   gotchaTarget: 301,
   scoreRounds: 10,
 }
+const HANDICAP_SCORES = [101, 170, 201, 301, 401, 501, 601, 701, 901, 1001]
 const BOT_LEVELS = [30, 40, 50, 60, 70, 80, 90, 100]
 const CHECKOUT_RANGES = ['2-40', '41-100', '61-120', '101-170']
 
@@ -141,6 +142,9 @@ export default function NewGame() {
   const [adding, setAdding] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [rulesFor, setRulesFor] = useState<GameMode | null>(null)
+  // X01 handicap: a start score per participant (key -> score)
+  const [handicap, setHandicap] = useState(false)
+  const [handicapScores, setHandicapScores] = useState<Record<string, number>>({})
 
   useEffect(() => {
     getJson<Player[]>('/api/players')
@@ -204,7 +208,14 @@ export default function NewGame() {
   const buildRequest = () => {
     const settings =
       mode === 'x01'
-        ? { start_score: startScore, in_rule: inRule, out_rule: outRule, legs_to_win: legs, sets_to_win: sets }
+        ? {
+            start_score: startScore,
+            in_rule: inRule,
+            out_rule: outRule,
+            legs_to_win: legs,
+            sets_to_win: sets,
+            ...(handicap ? { start_scores: participants.map((p) => handicapScores[p.key] ?? null) } : {}),
+          }
         : mode === 'cricket'
           ? { variant, numbers: training.cricketNumbers, legs_to_win: legs, sets_to_win: sets }
           : trainingSettings(mode, training)
@@ -305,6 +316,8 @@ export default function NewGame() {
               <div className={styles.chips}>
                 {(['single', 'double', 'master'] as InOut[]).map((r) => choice(r, outRule, setOutRule, t(`newGame.rule.${r}`)))}
               </div>
+              <Toggle checked={handicap} onChange={setHandicap} label={t('newGame.handicap')} />
+              {handicap && <p className="muted">{t('newGame.handicapHint')}</p>}
             </>
           )}
           {mode === 'cricket' && (
@@ -573,6 +586,20 @@ export default function NewGame() {
                   {p.guestName && <span className="muted"> · {t('newGame.guest')}</span>}
                   {(p.botLevel || p.botOf) && <span className="muted"> · {t('newGame.bot')}</span>}
                 </span>
+                {mode === 'x01' && handicap && (
+                  <select
+                    className={styles.handicap}
+                    aria-label={t('newGame.handicapFor', { name: nameOf(p) })}
+                    value={handicapScores[p.key] ?? startScore}
+                    onChange={(e) => setHandicapScores((h) => ({ ...h, [p.key]: Number(e.target.value) }))}
+                  >
+                    {HANDICAP_SCORES.map((s) => (
+                      <option key={s} value={s}>
+                        {s}
+                      </option>
+                    ))}
+                  </select>
+                )}
                 <button type="button" aria-label={t('newGame.up')} onClick={() => move(i, -1)} disabled={i === 0}>
                   ↑
                 </button>

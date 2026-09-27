@@ -17,11 +17,20 @@ class X01Settings:
     out_rule: InOutRule = "double"
     # favourite finishing double per player (segment or None), taken from the profiles
     preferred_doubles: tuple[int | None, ...] = ()
+    # handicap: a different start score per player (None = start_score)
+    start_scores: tuple[int | None, ...] = ()
 
     def __post_init__(self) -> None:
         object.__setattr__(self, "preferred_doubles", tuple(self.preferred_doubles))
+        object.__setattr__(self, "start_scores", tuple(self.start_scores))
         if self.start_score not in START_SCORES:
             raise GameError("invalid_settings", f"start_score must be one of {START_SCORES}")
+        if any(s is not None and not 2 <= s <= 1001 for s in self.start_scores):
+            raise GameError("invalid_settings", "handicap start scores must be 2-1001")
+
+    def start_for(self, player: int) -> int:
+        handicap = self.start_scores[player] if player < len(self.start_scores) else None
+        return handicap or self.start_score
 
 
 class X01Game(Game):
@@ -32,7 +41,7 @@ class X01Game(Game):
         super().__init__(player_count, match)
 
     def _start_leg(self) -> None:
-        self.remaining = [self.settings.start_score] * self.player_count
+        self.remaining = [self.settings.start_for(p) for p in range(self.player_count)]
         self.opened = [self.settings.in_rule == "single"] * self.player_count
 
     def _score_dart(self, turn: Turn, dart: Dart) -> None:
@@ -86,6 +95,7 @@ class X01Game(Game):
             "in_rule": self.settings.in_rule,
             "out_rule": self.settings.out_rule,
             "preferred_doubles": list(self.settings.preferred_doubles),
+            "start_scores": list(self.settings.start_scores),
             "legs_to_win": self.match.legs_to_win,
             "sets_to_win": self.match.sets_to_win,
         }

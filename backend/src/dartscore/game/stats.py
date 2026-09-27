@@ -83,8 +83,7 @@ def _ton_bucket(total: int) -> str | None:
 
 
 def _x01_leg(game: X01Game, leg: Leg, stats: list[PlayerGameStats]) -> None:
-    start = game.settings.start_score
-    remaining = [start] * game.player_count
+    remaining = [game.settings.start_for(p) for p in range(game.player_count)]
     opened = [game.settings.in_rule == "single"] * game.player_count
     turn_count = [0] * game.player_count
     darts_in_leg = [0] * game.player_count

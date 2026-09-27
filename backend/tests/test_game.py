@@ -298,3 +298,14 @@ def test_checkout_prefers_favourite_double_with_same_dart_count() -> None:
     assert (suggest_checkout(64, preferred=16) or ())[-1].label == "D16"
     # one dart is better than two: 40 stays D20 even with D16 as favourite
     assert [d.label for d in suggest_checkout(40, preferred=16) or ()] == ["D20"]
+
+
+def test_x01_handicap_start_scores() -> None:
+    from dartscore.game import Dart, create_game
+
+    game = create_game("x01", 2, {"start_score": 501, "start_scores": [None, 301]})
+    assert game.state()["remaining"] == [501, 301]
+    game.throw(Dart(20, 3))
+    assert game.state()["remaining"] == [441, 301]
+    game2 = create_game("x01", 1, game.settings_dict() | {"start_scores": [301]})
+    assert game2.state()["remaining"] == [301]

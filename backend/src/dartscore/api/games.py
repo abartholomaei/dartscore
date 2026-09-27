@@ -52,6 +52,7 @@ class GameCreate(BaseModel):
         "score_training",
         "segment_training",
         "checkout_121",
+        "monster_hunt",
     ]
     settings: dict[str, Any] = {}
     players: list[Participant] = Field(min_length=1, max_length=8)
@@ -76,6 +77,12 @@ class DartInput(BaseModel):
         except ValueError as exc:
             raise GameError("invalid_dart", str(exc)) from exc
         raise GameError("invalid_dart", "Give dart or segment")
+
+
+class ThrowInput(DartInput):
+    # optional board position (mm) of a dart tapped on the board (used by arcade modes)
+    x_mm: float | None = Field(default=None, ge=-250, le=250)
+    y_mm: float | None = Field(default=None, ge=-250, le=250)
 
 
 class DartCorrection(DartInput):
@@ -120,8 +127,8 @@ def active_game(request: Request) -> GameState | None:
 
 
 @router.post("/active/throws")
-def throw(request: Request, body: DartInput) -> GameState:
-    return _service(request).throw(body.to_dart(), source="manual")
+def throw(request: Request, body: ThrowInput) -> GameState:
+    return _service(request).throw(body.to_dart(), source="manual", x_mm=body.x_mm, y_mm=body.y_mm)
 
 
 @router.post("/active/next")

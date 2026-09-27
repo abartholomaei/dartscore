@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useNavigate } from 'react-router'
 import { getJson, sendJson, type CricketVariant, type GamePlayer, type GameState, type InOutRule } from '../api'
+import ArcadeStage from '../components/ArcadeStage'
 import Avatar from '../components/Avatar'
 import Particles from '../components/Particles'
 import RulesDialog, { RulesButton } from '../components/RulesDialog'
@@ -113,7 +114,7 @@ function Running({ game }: { game: GameState }) {
     return queue.current
   }
 
-  const enter = (label: string) => {
+  const enter = (label: string, position?: [number, number]) => {
     const index = correcting
     setCorrecting(null)
     setMultiplier(1)
@@ -123,7 +124,8 @@ function Running({ game }: { game: GameState }) {
       }
       // entering a dart after a complete turn means the darts were pulled
       if (state.awaiting_next) await sendJson<GameState>('POST', '/api/games/active/next')
-      return sendJson<GameState>('POST', '/api/games/active/throws', { dart: label })
+      const at = position ? { x_mm: position[0], y_mm: position[1] } : {}
+      return sendJson<GameState>('POST', '/api/games/active/throws', { dart: label, ...at })
     })
   }
 
@@ -155,7 +157,9 @@ function Running({ game }: { game: GameState }) {
       <section className={styles.scores}>
         <MatchInfo game={game} />
         <TargetBanner game={game} />
-        {game.mode === 'x01' ? (
+        {game.mode === 'monster_hunt' ? (
+          <ArcadeStage game={game} onTap={(label, x, y) => void enter(label, [x, y])} disabled={busy} />
+        ) : game.mode === 'x01' ? (
           <X01Scores game={game} />
         ) : game.mode === 'cricket' ? (
           <CricketScores game={game} />

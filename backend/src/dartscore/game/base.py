@@ -26,6 +26,9 @@ class GameError(ValueError):
 class DartEvent:
     dart: Dart
     kind: Literal["dart"] = "dart"
+    # where the dart landed on the board (mm, x right, y up) if known (camera detection);
+    # only arcade modes use it, all others score by field
+    position: tuple[float, float] | None = None
 
 
 @dataclass(frozen=True)
@@ -55,6 +58,8 @@ class Turn:
     stop: bool = False
     # no further darts accepted until the next player
     closed: bool = False
+    # board position (mm) per dart, None if unknown (see DartEvent.position)
+    positions: list[tuple[float, float] | None] = field(default_factory=list)
 
     @property
     def total(self) -> int:
@@ -142,9 +147,10 @@ class Game(ABC):
         leg = self.legs[-1]
         return leg.turns[-1] if leg.turns and not leg.turns[-1].closed else None
 
-    def throw(self, dart: Dart) -> None:
-        self._apply(DartEvent(dart))
-        self.events.append(DartEvent(dart))
+    def throw(self, dart: Dart, position: tuple[float, float] | None = None) -> None:
+        event = DartEvent(dart, position=position)
+        self._apply(event)
+        self.events.append(event)
 
     def next_turn(self) -> None:
         self._apply(NextEvent())
@@ -259,6 +265,7 @@ class Game(ABC):
                 turn = Turn(player=self.current_player)
                 leg.turns.append(turn)
             turn.darts.append(event.dart)
+            turn.positions.append(event.position)
             self._score_dart(turn, event.dart)
             if turn.checkout:
                 leg.winner = turn.player
@@ -283,6 +290,7 @@ class Game(ABC):
         if turn is not None:
             while len(turn.darts) < DARTS_PER_TURN and not turn.closed:
                 turn.darts.append(Dart.miss())
+                turn.positions.append(None)
                 turn.implicit_misses += 1
                 self._score_dart(turn, Dart.miss())
                 if turn.bust or turn.checkout or turn.stop:

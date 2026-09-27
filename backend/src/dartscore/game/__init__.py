@@ -2,6 +2,7 @@
 
 from typing import Any
 
+from dartscore.game.arcade import MonsterHuntGame, MonsterHuntSettings
 from dartscore.game.base import DartEvent, Event, Game, GameError, MatchSettings, NextEvent
 from dartscore.game.cricket import CricketGame, CricketSettings
 from dartscore.game.dart import Dart
@@ -51,6 +52,7 @@ MODES = (
     "score_training",
     "segment_training",
     "checkout_121",
+    "monster_hunt",
 )
 
 __all__ = [
@@ -88,6 +90,8 @@ def create_game(mode: str, player_count: int, settings: dict[str, Any]) -> Game:
             return BobsGame(player_count, BobsSettings(**options))
         if mode == "checkout_training":
             return CheckoutTrainingGame(player_count, CheckoutTrainingSettings(**options))
+        if mode == "monster_hunt":
+            return MonsterHuntGame(player_count, MonsterHuntSettings(**options))
         if mode == "segment_training":
             return SegmentTrainingGame(player_count, SegmentTrainingSettings(**options))
         if mode == "checkout_121":

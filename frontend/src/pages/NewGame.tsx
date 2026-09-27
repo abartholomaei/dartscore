@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router'
-import { ApiError, BOT_MODES, getJson, sendJson, PARTY_MODES, TRAINING_MODES, type GameMode, type GameState, type Player } from '../api'
+import { ApiError, ARCADE_MODES, BOT_MODES, getJson, sendJson, PARTY_MODES, TRAINING_MODES, type GameMode, type GameState, type Player } from '../api'
 import { useLiveGame } from '../LiveGame'
 import { PENDING_KEY, useErrorText } from '../helpers'
 import { PlayerForm } from './Players'
@@ -37,6 +37,8 @@ type TrainingOptions = {
   dartsPerTarget: number
   doublesOrder: 'sequential' | 'random'
   killerLives: number
+  huntRounds: number
+  huntDifficulty: 'easy' | 'medium' | 'hard'
   atcOrder: 'numbers' | 'board'
   halveItTargets: 'halve_it' | 'bermuda'
   cricketNumbers: 'standard' | 'random' | 'hidden'
@@ -60,6 +62,8 @@ const DEFAULT_TRAINING: TrainingOptions = {
   dartsPerTarget: 9,
   doublesOrder: 'sequential',
   killerLives: 3,
+  huntRounds: 8,
+  huntDifficulty: 'medium',
   atcOrder: 'numbers',
   halveItTargets: 'halve_it',
   cricketNumbers: 'standard',
@@ -92,6 +96,8 @@ function trainingSettings(mode: GameMode, o: TrainingOptions): Record<string, un
       return { lives: o.killerLives }
     case 'halve_it':
       return { targets: o.halveItTargets }
+    case 'monster_hunt':
+      return { rounds: o.huntRounds, difficulty: o.huntDifficulty }
     case 'segment_training': {
       const ring = o.segNumber === 25 && o.segRing === 'triple' ? 'any' : o.segRing
       const limits = o.segEnd === 'darts' ? [33, 66, 99] : [5, 10, 20, 50]
@@ -131,7 +137,7 @@ export default function NewGame() {
   const [training, setTraining] = useState<TrainingOptions>({ ...DEFAULT_TRAINING, ...saved.training })
   const setOption = <K extends keyof TrainingOptions>(key: K) => (value: TrainingOptions[K]) =>
     setTraining((o) => ({ ...o, [key]: value }))
-  const isTraining = TRAINING_MODES.includes(mode) || PARTY_MODES.includes(mode)
+  const isTraining = TRAINING_MODES.includes(mode) || PARTY_MODES.includes(mode) || ARCADE_MODES.includes(mode)
   const [legs, setLegs] = useState(saved.legs ?? 1)
   const [sets, setSets] = useState(saved.sets ?? 1)
   const [players, setPlayers] = useState<Player[]>([])
@@ -320,6 +326,10 @@ export default function NewGame() {
           <div className={styles.chips}>
             {PARTY_MODES.map((m) => choice<GameMode>(m, mode, setMode, t(`modes.${m}`)))}
           </div>
+          <h3 className={styles.label}>{t('newGame.arcade')}</h3>
+          <div className={styles.chips}>
+            {ARCADE_MODES.map((m) => choice<GameMode>(m, mode, setMode, `👾 ${t(`modes.${m}`)}`))}
+          </div>
 
           {mode === 'x01' && (
             <>
@@ -466,6 +476,21 @@ export default function NewGame() {
                 </label>
               </div>
               <p className="muted">{t('newGame.checkout121Hint')}</p>
+            </>
+          )}
+          {mode === 'monster_hunt' && (
+            <>
+              <h3 className={styles.label}>{t('newGame.rounds')}</h3>
+              <div className={styles.chips}>
+                {[5, 8, 10].map((r) => choice(r, training.huntRounds, setOption('huntRounds'), String(r)))}
+              </div>
+              <h3 className={styles.label}>{t('newGame.difficulty')}</h3>
+              <div className={styles.chips}>
+                {(['easy', 'medium', 'hard'] as const).map((d) =>
+                  choice(d, training.huntDifficulty, setOption('huntDifficulty'), t(`newGame.difficulties.${d}`)),
+                )}
+              </div>
+              <p className="muted">{t('newGame.monsterHuntHint')}</p>
             </>
           )}
           {mode === 'score_training' && (

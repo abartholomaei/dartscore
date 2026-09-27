@@ -32,6 +32,7 @@ Mode = Literal[
     "score_training",
     "segment_training",
     "checkout_121",
+    "monster_hunt",
 ]
 # the current PIN of a protected profile, sent with changes
 PinHeader = Annotated[str | None, Header()]

@@ -68,7 +68,16 @@ def _event_from_record(record: GameEventRecord) -> Event:
     if record.kind == "dart":
         assert record.segment is not None
         assert record.multiplier is not None
-        return DartEvent(Dart(record.segment, record.multiplier))
+        # the detected position only for darts nobody corrected (a correction means the
+        # detection was wrong; a bounce-out fell out of the board)
+        position = (
+            (record.x_mm, record.y_mm)
+            if record.source in ("auto", "bot", "manual")
+            and record.x_mm is not None
+            and record.y_mm is not None
+            else None
+        )
+        return DartEvent(Dart(record.segment, record.multiplier), position=position)
     return NextEvent()
 
 
@@ -241,7 +250,8 @@ class GameService:
         with self._lock:
             active = self._require_active()
             self._check_bot(active, source)
-            active.game.throw(dart)
+            position = (x_mm, y_mm) if x_mm is not None and y_mm is not None else None
+            active.game.throw(dart, position)
             active.meta.append(EventMeta(source, x_mm, y_mm, confidence))
             self._append_event(active)
             return self._after_change(active)

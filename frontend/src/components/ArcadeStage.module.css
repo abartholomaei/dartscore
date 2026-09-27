@@ -1,0 +1,336 @@
+.stage {
+  position: relative;
+  display: grid;
+  gap: 10px;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.round {
+  display: flex;
+  gap: 6px;
+}
+
+.round span {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2px solid var(--accent);
+}
+
+.roundDone {
+  background: var(--accent);
+}
+
+.roundNow {
+  background: var(--accent);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 35%, transparent);
+}
+
+.roundOpen {
+  opacity: 0.4;
+}
+
+.roundText {
+  font-family: var(--font-display);
+  font-size: clamp(1.1rem, 2vw, 1.6rem);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.double {
+  color: #facc15;
+}
+
+.world {
+  display: grid;
+  grid-template-columns: minmax(150px, 220px) minmax(0, 1fr);
+  gap: 12px;
+  align-items: center;
+}
+
+@media (max-width: 700px) {
+  .world {
+    grid-template-columns: 1fr;
+  }
+
+  .players {
+    display: flex !important;
+    flex-wrap: wrap;
+  }
+}
+
+.players {
+  display: grid;
+  gap: 8px;
+  align-content: center;
+}
+
+.card {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-areas: 'avatar name' 'avatar score';
+  column-gap: 10px;
+  align-items: center;
+  padding: 8px 10px;
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.card > :first-child {
+  grid-area: avatar;
+}
+
+.cardActive {
+  border-color: var(--accent);
+  box-shadow: 0 0 18px color-mix(in srgb, var(--accent) 35%, transparent);
+}
+
+.cardName {
+  grid-area: name;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.1rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cardScore {
+  grid-area: score;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 1.6rem;
+  line-height: 1;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+
+.board {
+  width: 100%;
+  max-height: 72vh;
+  aspect-ratio: 1;
+  border-radius: 50%;
+}
+
+.tappable {
+  cursor: crosshair;
+}
+
+.boardFace {
+  fill: #13251a;
+  stroke: #2e5a3c;
+  stroke-width: 2;
+}
+
+.ring {
+  fill: none;
+  stroke: #2e5a3c;
+  stroke-width: 1;
+}
+
+.bull {
+  fill: #2e5a3c;
+}
+
+.wire {
+  stroke: #24452f;
+  stroke-width: 0.8;
+}
+
+.number {
+  fill: #6b9b7a;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 13px;
+  text-anchor: middle;
+  dominant-baseline: central;
+}
+
+.monster,
+.monsterGone {
+  transition: transform 0.6s ease-in-out;
+}
+
+.monster image {
+  transition: all 0.4s ease-out;
+}
+
+.hitArea {
+  fill: rgb(34 197 94 / 0.08);
+  stroke: rgb(34 197 94 / 0.35);
+  stroke-width: 0.8;
+  stroke-dasharray: 3 3;
+  transition: r 0.4s ease-out;
+}
+
+.monsterGone {
+  animation: vanish 0.6s ease-in forwards;
+}
+
+.bob {
+  animation: bob 1.6s ease-in-out infinite;
+}
+
+.value {
+  fill: #fff;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 10px;
+  text-anchor: middle;
+  paint-order: stroke;
+  stroke: #0b120e;
+  stroke-width: 3px;
+}
+
+.dart circle {
+  fill: #facc15;
+  stroke: #0b120e;
+  stroke-width: 1.5;
+}
+
+.dart .dartTip {
+  fill: #0b120e;
+  stroke: none;
+}
+
+.dart {
+  animation: land 0.25s ease-out;
+}
+
+.popup,
+.popupBad {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 22px;
+  text-anchor: middle;
+  paint-order: stroke;
+  stroke: #0b120e;
+  stroke-width: 4px;
+  animation: rise 1.4s ease-out forwards;
+}
+
+.popup {
+  fill: #facc15;
+}
+
+.popupBad {
+  fill: #fb923c;
+  font-size: 15px;
+}
+
+.banner {
+  padding: 10px 16px;
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--accent) 14%, var(--surface));
+  border: 1px solid var(--accent);
+  font-family: var(--font-display);
+  font-size: clamp(1.2rem, 2.5vw, 2rem);
+  font-weight: 800;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.intro {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 8px;
+  background: rgb(11 11 12 / 0.72);
+  border-radius: var(--radius);
+  pointer-events: none;
+  animation: introFade 1.8s ease-in-out forwards;
+}
+
+.intro span {
+  font-family: var(--font-display);
+  font-size: clamp(1.4rem, 3vw, 2.5rem);
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.intro strong {
+  font-family: var(--font-display);
+  font-size: clamp(2.5rem, 7vw, 6rem);
+  font-weight: 800;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+@keyframes bob {
+  0%,
+  100% {
+    transform: translateY(0) scale(1, 1);
+  }
+  50% {
+    transform: translateY(-3px) scale(1.04, 0.96);
+  }
+}
+
+@keyframes vanish {
+  0% {
+    opacity: 1;
+  }
+  30% {
+    opacity: 1;
+    filter: brightness(3);
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes land {
+  from {
+    transform: scale(2.2);
+    opacity: 0;
+  }
+}
+
+@keyframes rise {
+  0% {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  15% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-26px);
+  }
+}
+
+@keyframes introFade {
+  0% {
+    opacity: 0;
+  }
+  15%,
+  80% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bob,
+  .dart,
+  .monsterGone,
+  .popup,
+  .popupBad {
+    animation: none;
+  }
+}

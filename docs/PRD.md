@@ -689,10 +689,10 @@ Wie beim Stadionsprecher werden die Grafiken **einmalig erzeugt** und als Dateie
 
 #### To-Dos (MVP)
 
-- [ ] Arcade-Grundgerüst: Modus-Typ „arcade“ im Backend (Takt-Modell, Seed), PixiJS-Vollbildansicht, Asset-Manifest
+- [x] Arcade-Grundgerüst: Dart-Positionen in der Spiellogik (Kamera, Tippen aufs Board, sonst Feldmitte), Arcade-Bühne (SVG/CSS statt PixiJS – reicht für wenige Sprites und läuft auf dem Mac mini)
 - [ ] Generator-Skript für Grafiken (Stil-Prompt, Referenzbild, transparente PNGs, Sprite-Atlas)
-- [ ] Gemeinsames Layout: Spielerkarten mit Foto, Banner, Einblendungen, Punkte-Popups, „So geht’s“-Karten
-- [ ] Spiel 1: Monster-Jagd (Objekte auf Board-Positionen, Treffer nach Abstand in mm, Wachsen bei Fehlwurf)
+- [x] Gemeinsames Layout: Spielerkarten mit Foto, Banner, Einblendungen, Punkte-Popups, „So geht’s“-Karten (über die Regel-Hilfe)
+- [x] Spiel 1: Monster-Jagd (Objekte auf Board-Positionen, Treffer nach Abstand in mm, Wachsen bei Fehlwurf) – vorerst mit Platzhalter-Grafiken
 - [ ] Spiel 2: Themen-Skin für X01
 - [ ] Spiel 3: Meteoriten-Abwehr (kooperativ, Drehung, Annäherung)
 - [ ] Weitere: Eisschollen/Holzfäller-Variante, Darts-Rennen, Schiffe versenken

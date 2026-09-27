@@ -254,6 +254,7 @@ export type GameMode =
   | 'score_training'
   | 'segment_training'
   | 'checkout_121'
+  | 'monster_hunt'
 export const TRAINING_MODES: GameMode[] = [
   'around_the_clock',
   'shanghai',
@@ -266,6 +267,7 @@ export const TRAINING_MODES: GameMode[] = [
 ]
 export const BOT_MODES: GameMode[] = ['x01', 'cricket']
 export const PARTY_MODES: GameMode[] = ['killer', 'halve_it', 'gotcha']
+export const ARCADE_MODES: GameMode[] = ['monster_hunt']
 export type InOutRule = 'single' | 'double' | 'master'
 export type CricketVariant = 'standard' | 'cut_throat' | 'no_score'
 
@@ -334,6 +336,12 @@ export type GameState = {
   hidden?: boolean[]
   streak?: number[]
   best_streak?: number[]
+  // arcade (monster hunt)
+  monsters?: { id: number; kind: string; x: number; y: number; radius: number; value: number; alive: boolean }[]
+  arcade_darts?: { label: string; position: [number, number] | null }[]
+  last_effect?: { player: number; killed: number[]; points: number; grew: boolean; position: [number, number] | null } | null
+  double_round?: boolean
+  kills?: number[]
   // party modes
   numbers?: number[]
   lives?: number[]

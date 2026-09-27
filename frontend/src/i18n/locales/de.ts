@@ -196,6 +196,13 @@ const de: Translations = {
     example: 'Beispiel',
     open: 'Regeln',
     modes: {
+      monster_hunt: {
+        goal: 'Möglichst viele Monster fangen: Punkte für jedes getroffene Monster.',
+        play: 'Jede Runde sitzen einige Monster auf der Scheibe - für alle Spieler dieselben. Drei Darts pro Aufnahme; ein Dart zählt dort, wo er steckt, nicht nach Feld.',
+        scoring: 'Ein Dart auf einem Monster fängt es (zwei auf einmal, wenn er beide trifft). Ein Dart, der nichts fängt, lässt die anderen wachsen - leichter zu treffen, aber weniger wert. Fledermäuse fliegen nach jedem Dart weiter. Die letzte Runde zählt doppelt.',
+        win: 'Die meisten Punkte nach der letzten Runde gewinnen.',
+        example: 'Ein Kobold mit 100: sofort getroffen = 100; nach einem Fehlwurf ist er größer, aber nur noch 80 wert.',
+      },
       x01: {
         goal: 'Vom Startwert (z. B. 501) genau auf null herunterzählen.',
         play: 'Pro Aufnahme drei Darts; ihre Punkte werden abgezogen. Single-In: Jeder Dart zählt sofort; Double-In: Der erste zählende Dart muss ein Doppel sein.',
@@ -382,6 +389,16 @@ const de: Translations = {
     attempts_one: '{{count}} Versuch',
     attempts_other: '{{count}} Versuche',
   },
+  arcade: {
+    board: 'Monster-Scheibe',
+    grow: 'sie wachsen!',
+    multiKill: '{{count}} auf einmal!',
+    hit: 'Erwischt! +{{points}}',
+    missed: 'Daneben - sie wachsen',
+    doubleRound: 'Letzte Runde - doppelte Punkte!',
+    instruction: 'Triff die Monster! (noch {{count}})',
+    yourTurn: '{{name}}',
+  },
   photos: {
     review: 'Nachprüfen',
     reviewing: 'prüfe…',
@@ -453,6 +470,10 @@ const de: Translations = {
     color: 'Farbe',
   },
   newGame: {
+    arcade: 'Arcade',
+    difficulty: 'Schwierigkeit',
+    difficulties: { easy: 'Leicht', medium: 'Mittel', hard: 'Schwer' },
+    monsterHuntHint: 'Monster sitzen auf der Scheibe - triff sie dort, wo sie sind. Ein Fehlwurf macht sie größer, aber weniger wert. Die letzte Runde zählt doppelt. Am besten mit den Kameras (oder aufs Board tippen).',
     teams: 'In Teams spielen',
     teamCount: 'Teams',
     teamsHint: 'Für jeden Spieler ein Team (A, B, …) wählen. Ein Team teilt sich einen Punktestand; seine Spieler werfen abwechselnd in der Reihenfolge der Liste. Team-Spiele zählen nicht in die persönlichen Averages.',
@@ -692,6 +713,7 @@ const de: Translations = {
     handOut: 'Hand weg',
   },
   modes: {
+    monster_hunt: 'Monster-Jagd',
     segment_training: 'Segment-Training',
     checkout_121: '121-Checkout',
     bull_off: 'Ausbullen',

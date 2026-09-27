@@ -195,6 +195,13 @@ const en = {
     example: 'Example',
     open: 'Rules',
     modes: {
+      monster_hunt: {
+        goal: 'Catch as many monsters as possible: points for every monster you hit.',
+        play: 'Each round a few monsters sit on the board - the same ones for every player. Three darts per turn; a dart counts where it lands, not by field.',
+        scoring: 'A dart that lands on a monster catches it (two at once if it hits both). A dart that catches nothing makes the others grow - easier to hit, but worth less. Bats move after every dart. The last round counts double.',
+        win: 'Most points after the last round win.',
+        example: 'An imp worth 100: hit it at once = 100; after one miss it is bigger but worth 80.',
+      },
       x01: {
         goal: 'Count down from the start score (e.g. 501) to exactly zero.',
         play: 'Each turn has three darts; their points are subtracted. Single in: any dart counts from the start; double in: the first scoring dart must be a double.',
@@ -381,6 +388,16 @@ const en = {
     attempts_one: '{{count}} attempt',
     attempts_other: '{{count}} attempts',
   },
+  arcade: {
+    board: 'Monster board',
+    grow: 'they grow!',
+    multiKill: '{{count}} at once!',
+    hit: 'Got it! +{{points}}',
+    missed: 'Missed - they grow',
+    doubleRound: 'Last round - double points!',
+    instruction: 'Hit the monsters! ({{count}} left)',
+    yourTurn: '{{name}}',
+  },
   photos: {
     review: 'Referee',
     reviewing: 'checking…',
@@ -452,6 +469,10 @@ const en = {
     color: 'Color',
   },
   newGame: {
+    arcade: 'Arcade',
+    difficulty: 'Difficulty',
+    difficulties: { easy: 'Easy', medium: 'Medium', hard: 'Hard' },
+    monsterHuntHint: 'Monsters sit on the board - hit them where they are. A miss makes them bigger but worth less. The last round counts double. Works best with the cameras (or tap the board).',
     teams: 'Play in teams',
     teamCount: 'Teams',
     teamsHint: 'Pick a team (A, B, …) for every player. A team shares one score; its players throw in turn, in the order of the list. Team games do not count towards personal averages.',
@@ -691,6 +712,7 @@ const en = {
     handOut: 'Hand gone',
   },
   modes: {
+    monster_hunt: 'Monster hunt',
     segment_training: 'Segment training',
     checkout_121: '121 checkout',
     bull_off: 'Bull-off',

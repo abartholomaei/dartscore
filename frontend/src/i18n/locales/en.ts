@@ -202,6 +202,14 @@ const en = {
     color: 'Color',
   },
   newGame: {
+    segment: 'Target',
+    randomTarget: 'Random',
+    segRings: { any: 'Any ring', single: 'Single', double: 'Double', triple: 'Triple' },
+    segEnd: 'Session ends after',
+    segEnds: { darts: 'Darts', hits: 'Hits' },
+    dartsPerAttempt: 'Darts per attempt',
+    attempts: 'Attempts',
+    checkout121Hint: 'Start at 121. Checked out: the target goes one up; missed: one down (never below 121). The highest checkout counts.',
     bullOff: 'Bull-off for the order',
     bullOffHint: 'Everybody throws one dart at the bull, the closest starts.',
     training: 'Training',
@@ -259,6 +267,9 @@ const en = {
     confirmAbort: 'A game is still running. Abort it and start a new one?',
   },
   play: {
+    segmentProgress_darts: '{{hits}} hits · {{darts}}/{{limit}} darts',
+    segmentProgress_hits: '{{hits}}/{{limit}} hits · {{darts}} darts',
+    checkout121: 'target {{target}} · attempt {{attempt}}/{{attempts}} · best {{best}}',
     bullOffRound: 'Bull-off round {{round}}',
     startsFirst: '{{name}} throws first!',
     startPrepared: 'Start {{mode}}',
@@ -400,6 +411,8 @@ const en = {
     handOut: 'Hand gone',
   },
   modes: {
+    segment_training: 'Segment training',
+    checkout_121: '121 checkout',
     bull_off: 'Bull-off',
     x01: 'X01',
     cricket: 'Cricket',

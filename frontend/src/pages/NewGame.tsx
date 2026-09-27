@@ -35,6 +35,12 @@ type TrainingOptions = {
   dartsPerTarget: number
   doublesOrder: 'sequential' | 'random'
   killerLives: number
+  segNumber: number
+  segRing: 'any' | 'single' | 'double' | 'triple'
+  segEnd: 'darts' | 'hits'
+  segLimit: number
+  c121Attempts: number
+  c121Darts: number
   gotchaTarget: number
   scoreRounds: number
 }
@@ -49,6 +55,12 @@ const DEFAULT_TRAINING: TrainingOptions = {
   dartsPerTarget: 9,
   doublesOrder: 'sequential',
   killerLives: 3,
+  segNumber: 20,
+  segRing: 'any',
+  segEnd: 'darts',
+  segLimit: 33,
+  c121Attempts: 10,
+  c121Darts: 9,
   gotchaTarget: 301,
   scoreRounds: 10,
 }
@@ -69,6 +81,13 @@ function trainingSettings(mode: GameMode, o: TrainingOptions): Record<string, un
       return { order: o.doublesOrder, include_bull: o.includeBull }
     case 'killer':
       return { lives: o.killerLives }
+    case 'segment_training': {
+      const ring = o.segNumber === 25 && o.segRing === 'triple' ? 'any' : o.segRing
+      const limits = o.segEnd === 'darts' ? [33, 66, 99] : [5, 10, 20, 50]
+      return { number: o.segNumber, ring, end: o.segEnd, limit: limits.includes(o.segLimit) ? o.segLimit : limits[0] }
+    }
+    case 'checkout_121':
+      return { attempts: o.c121Attempts, darts_per_attempt: o.c121Darts }
     case 'gotcha':
       return { target: o.gotchaTarget }
     case 'score_training':
@@ -323,6 +342,65 @@ export default function NewGame() {
             </>
           )}
           {mode === 'bobs_27' && <p className="muted">{t('newGame.bobsHint')}</p>}
+          {mode === 'segment_training' && (
+            <>
+              <h3 className={styles.label}>{t('newGame.segment')}</h3>
+              <div className={styles.chips}>
+                {[0, 20, 19, 18, 17, 16, 15, 25].map((n) =>
+                  choice(n, training.segNumber, setOption('segNumber'), n === 0 ? t('newGame.randomTarget') : n === 25 ? 'Bull' : String(n)),
+                )}
+                <select
+                  className={styles.chip}
+                  aria-label={t('newGame.segment')}
+                  value={training.segNumber}
+                  onChange={(e) => setOption('segNumber')(Number(e.target.value))}
+                >
+                  {Array.from({ length: 20 }, (_, i) => i + 1).map((n) => (
+                    <option key={n} value={n}>
+                      {n}
+                    </option>
+                  ))}
+                  <option value={25}>Bull</option>
+                  <option value={0}>{t('newGame.randomTarget')}</option>
+                </select>
+              </div>
+              <h3 className={styles.label}>{t('newGame.ring')}</h3>
+              <div className={styles.chips}>
+                {(['any', 'single', 'double', 'triple'] as const)
+                  .filter((r) => !(training.segNumber === 25 && r === 'triple'))
+                  .map((r) => choice(r, training.segRing, setOption('segRing'), t(`newGame.segRings.${r}`)))}
+              </div>
+              <h3 className={styles.label}>{t('newGame.segEnd')}</h3>
+              <div className={styles.chips}>
+                {(['darts', 'hits'] as const).map((e) =>
+                  choice(e, training.segEnd, (v: 'darts' | 'hits') => {
+                    setOption('segEnd')(v)
+                    setOption('segLimit')(v === 'darts' ? 33 : 10)
+                  }, t(`newGame.segEnds.${e}`)),
+                )}
+              </div>
+              <div className={styles.chips}>
+                {(training.segEnd === 'darts' ? [33, 66, 99] : [5, 10, 20, 50]).map((n) =>
+                  choice(n, training.segLimit, setOption('segLimit'), String(n)),
+                )}
+              </div>
+            </>
+          )}
+          {mode === 'checkout_121' && (
+            <>
+              <h3 className={styles.label}>{t('newGame.dartsPerAttempt')}</h3>
+              <div className={styles.chips}>
+                {[3, 6, 9].map((d) => choice(d, training.c121Darts, setOption('c121Darts'), String(d)))}
+              </div>
+              <div className={styles.numbers}>
+                <label>
+                  {t('newGame.attempts')}
+                  <Stepper value={training.c121Attempts} min={1} max={50} onChange={setOption('c121Attempts')} />
+                </label>
+              </div>
+              <p className="muted">{t('newGame.checkout121Hint')}</p>
+            </>
+          )}
           {mode === 'score_training' && (
             <>
               <h3 className={styles.label}>{t('newGame.rounds')}</h3>

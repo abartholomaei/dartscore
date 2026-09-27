@@ -143,7 +143,7 @@ function Running({ game }: { game: GameState }) {
               {t('play.target')}: {trainingTarget(game)}
             </span>
           )}
-          {(game.mode === 'x01' || game.mode === 'checkout_training') && game.checkout && !game.awaiting_next && (
+          {(game.mode === 'x01' || game.mode === 'checkout_training' || game.mode === 'checkout_121') && game.checkout && !game.awaiting_next && (
             <span className={styles.checkout}>
               {t('play.checkout')}: {game.checkout.join(' · ')}
             </span>
@@ -175,7 +175,7 @@ function Running({ game }: { game: GameState }) {
                     </span>
                   )
                 )}
-                {label && (game.mode === 'x01' || game.mode === 'checkout_training') && (
+                {label && (game.mode === 'x01' || game.mode === 'checkout_training' || game.mode === 'checkout_121') && (
                   <span className={styles.slotPoints}>{dartPoints(label)}</span>
                 )}
               </button>
@@ -375,6 +375,7 @@ function trainingTarget(game: GameState): string | null {
     case 'doubles_training':
       return game.target ?? null
     case 'halve_it':
+    case 'segment_training':
       return game.target ?? null
     case 'killer': {
       const p = game.current_player
@@ -418,6 +419,19 @@ function TrainingScores({ game }: { game: GameState }) {
           case 'doubles_training':
             big = game.hits?.[i] ?? 0
             detail = t('play.hits')
+            break
+          case 'segment_training':
+            big = game.hits?.[i] ?? 0
+            detail = t('play.segmentProgress', { darts: game.darts_thrown?.[i] ?? 0, hits: game.hits?.[i] ?? 0, limit: game.limit ?? 0, context: game.end })
+            break
+          case 'checkout_121':
+            big = game.remaining?.[i] ?? '–'
+            detail = t('play.checkout121', {
+              target: game.target_score?.[i] ?? 0,
+              attempt: game.attempt?.[i] ?? 1,
+              attempts: game.attempts ?? 0,
+              best: game.best?.[i] || '–',
+            })
             break
           case 'score_training':
           case 'halve_it':

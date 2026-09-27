@@ -573,8 +573,8 @@ Priorität für V2: **M** = zuerst, **S** = danach, **C** = bei Gelegenheit.
 - [ ] V2-2 Schiedsrichter-Nachprüfung auf Knopfdruck
 - [ ] V2-3 Zielabweichung (horizontal/vertikal, mm) in der Statistik
 - [ ] V2-4 Persönlicher Bot aus eigenen Wurfdaten
-- [ ] V2-5 Segment-Training
-- [ ] V2-6 121-Checkout
+- [x] V2-5 Segment-Training
+- [x] V2-6 121-Checkout
 - [ ] V2-7 Zweiter Bildschirm / Handy als Fernbedienung / Zuschauer-Ansicht
 - [ ] V2-8 Lokale Turniere
 - [ ] V2-9 Trainingspläne

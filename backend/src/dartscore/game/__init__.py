@@ -15,6 +15,12 @@ from dartscore.game.party import (
     ScoreTrainingGame,
     ScoreTrainingSettings,
 )
+from dartscore.game.practice import (
+    Checkout121Game,
+    Checkout121Settings,
+    SegmentTrainingGame,
+    SegmentTrainingSettings,
+)
 from dartscore.game.training import (
     AroundTheClockGame,
     AroundTheClockSettings,
@@ -43,6 +49,8 @@ MODES = (
     "halve_it",
     "gotcha",
     "score_training",
+    "segment_training",
+    "checkout_121",
 )
 
 __all__ = [
@@ -79,6 +87,10 @@ def create_game(mode: str, player_count: int, settings: dict[str, Any]) -> Game:
             return BobsGame(player_count, BobsSettings(**options))
         if mode == "checkout_training":
             return CheckoutTrainingGame(player_count, CheckoutTrainingSettings(**options))
+        if mode == "segment_training":
+            return SegmentTrainingGame(player_count, SegmentTrainingSettings(**options))
+        if mode == "checkout_121":
+            return Checkout121Game(player_count, Checkout121Settings(**options))
         if mode == "killer":
             return KillerGame(player_count, KillerSettings(**options))
         if mode == "halve_it":

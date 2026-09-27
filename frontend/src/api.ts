@@ -237,6 +237,8 @@ export type GameMode =
   | 'halve_it'
   | 'gotcha'
   | 'score_training'
+  | 'segment_training'
+  | 'checkout_121'
 export const TRAINING_MODES: GameMode[] = [
   'around_the_clock',
   'shanghai',
@@ -244,6 +246,8 @@ export const TRAINING_MODES: GameMode[] = [
   'checkout_training',
   'doubles_training',
   'score_training',
+  'segment_training',
+  'checkout_121',
 ]
 export const BOT_MODES: GameMode[] = ['x01', 'cricket']
 export const PARTY_MODES: GameMode[] = ['killer', 'halve_it', 'gotcha']
@@ -300,6 +304,14 @@ export type GameState = {
   darts_on_target?: number[]
   hits?: number[]
   hits_by_target?: Record<string, number>[]
+  // segment training / 121 checkout
+  darts_thrown?: number[]
+  limit?: number
+  end?: 'hits' | 'darts'
+  target_score?: number[]
+  attempt?: number[]
+  attempts?: number
+  best?: number[]
   // party modes
   numbers?: number[]
   lives?: number[]

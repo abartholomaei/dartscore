@@ -203,6 +203,14 @@ const de: Translations = {
     color: 'Farbe',
   },
   newGame: {
+    segment: 'Ziel',
+    randomTarget: 'Zufall',
+    segRings: { any: 'Jeder Ring', single: 'Single', double: 'Doppel', triple: 'Triple' },
+    segEnd: 'Ende nach',
+    segEnds: { darts: 'Darts', hits: 'Treffern' },
+    dartsPerAttempt: 'Darts pro Versuch',
+    attempts: 'Versuche',
+    checkout121Hint: 'Start bei 121. Geschafft: Das Ziel steigt um eins, verpasst: sinkt um eins (nie unter 121). Es zählt der höchste Checkout.',
     bullOff: 'Ausbullen',
     bullOffHint: 'Jeder wirft einen Dart aufs Bull, wer am nächsten dran ist, beginnt.',
     training: 'Training',
@@ -260,6 +268,9 @@ const de: Translations = {
     confirmAbort: 'Es läuft noch ein Spiel. Abbrechen und ein neues starten?',
   },
   play: {
+    segmentProgress_darts: '{{hits}} Treffer · {{darts}}/{{limit}} Darts',
+    segmentProgress_hits: '{{hits}}/{{limit}} Treffer · {{darts}} Darts',
+    checkout121: 'Ziel {{target}} · Versuch {{attempt}}/{{attempts}} · beste {{best}}',
     bullOffRound: 'Ausbullen, Runde {{round}}',
     startsFirst: '{{name}} beginnt!',
     startPrepared: '{{mode}} starten',
@@ -401,6 +412,8 @@ const de: Translations = {
     handOut: 'Hand weg',
   },
   modes: {
+    segment_training: 'Segment-Training',
+    checkout_121: '121-Checkout',
     bull_off: 'Ausbullen',
     x01: 'X01',
     cricket: 'Cricket',

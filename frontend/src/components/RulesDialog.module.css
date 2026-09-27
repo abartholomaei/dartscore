@@ -1,0 +1,66 @@
+.dialog {
+  width: min(640px, calc(100vw - 32px));
+  max-height: calc(100dvh - 32px);
+  padding: var(--gutter);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text);
+}
+
+.dialog::backdrop {
+  background: rgb(0 0 0 / 0.7);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.header h2 {
+  font-size: clamp(1.4rem, 3vw, 2rem);
+}
+
+.sections {
+  display: grid;
+  gap: 14px;
+  margin: 0;
+}
+
+.sections dt {
+  font-family: var(--font-display);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--accent);
+}
+
+.sections dd {
+  margin: 2px 0 0;
+  line-height: 1.55;
+}
+
+.example {
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: var(--bg);
+}
+
+.open {
+  padding: 4px 12px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: none;
+  color: var(--text-muted);
+  font: inherit;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.open:hover {
+  color: var(--text);
+  border-color: var(--accent);
+}

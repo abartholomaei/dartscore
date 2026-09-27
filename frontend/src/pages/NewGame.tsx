@@ -6,6 +6,7 @@ import { useLiveGame } from '../LiveGame'
 import { PENDING_KEY, useErrorText } from '../helpers'
 import { PlayerForm } from './Players'
 import Avatar from '../components/Avatar'
+import RulesDialog, { RulesButton } from '../components/RulesDialog'
 import styles from './NewGame.module.css'
 
 type Participant = { key: string; playerId: number | null; guestName: string | null; botLevel?: number; botOf?: number }
@@ -131,6 +132,7 @@ export default function NewGame() {
   const [botChoice, setBotChoice] = useState('60')
   const [adding, setAdding] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [rulesFor, setRulesFor] = useState<GameMode | null>(null)
 
   useEffect(() => {
     getJson<Player[]>('/api/players')
@@ -265,7 +267,11 @@ export default function NewGame() {
       <h1 className={styles.title}>{t('newGame.title')}</h1>
       <div className={styles.layout}>
         <section className={`card ${styles.section}`}>
-          <h2 className="cardTitle">{t('newGame.mode')}</h2>
+          <div className={styles.modeHeader}>
+            <h2 className="cardTitle">{t('newGame.mode')}</h2>
+            <RulesButton mode={mode} onOpen={setRulesFor} />
+          </div>
+          {rulesFor && <RulesDialog mode={rulesFor} onClose={() => setRulesFor(null)} />}
           <div className={styles.chips}>
             {choice<GameMode>('x01', mode, setMode, 'X01')}
             {choice<GameMode>('cricket', mode, setMode, 'Cricket')}

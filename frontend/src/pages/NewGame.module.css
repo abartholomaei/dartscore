@@ -175,3 +175,10 @@
   flex-wrap: wrap;
   gap: 12px;
 }
+
+.modeHeader {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}

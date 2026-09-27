@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { Link, useNavigate } from 'react-router'
 import { sendJson, type CricketVariant, type GamePlayer, type GameState, type InOutRule } from '../api'
 import Avatar from '../components/Avatar'
+import RulesDialog, { RulesButton } from '../components/RulesDialog'
 import DartBoard from '../components/DartBoard'
 import DetectionBadge from '../components/DetectionBadge'
 import VisitPhotos, { type VisitRef } from '../components/VisitPhotos'
@@ -277,17 +278,22 @@ function MatchInfo({ game }: { game: GameState }) {
         : `${t(`modes.${game.mode}`)}${game.round && game.rounds ? ` · ${t('play.round', { round: game.round, rounds: game.rounds })}` : ''}`
   const legs = Number(s.legs_to_win)
   const sets = Number(s.sets_to_win)
+  const [rules, setRules] = useState(false)
   return (
-    <p className={styles.matchInfo}>
-      {title}
-      {(legs > 1 || sets > 1) && (
-        <>
-          {' · '}
-          {sets > 1 && `${t('play.set')} ${game.set} · `}
-          {t('play.leg')} {game.leg} · {t('play.firstTo', { count: legs })}
-        </>
-      )}
-    </p>
+    <>
+      <p className={styles.matchInfo}>
+        {title}
+        {(legs > 1 || sets > 1) && (
+          <>
+            {' · '}
+            {sets > 1 && `${t('play.set')} ${game.set} · `}
+            {t('play.leg')} {game.leg} · {t('play.firstTo', { count: legs })}
+          </>
+        )}{' '}
+        <RulesButton mode={game.mode} onOpen={() => setRules(true)} />
+      </p>
+      {rules && <RulesDialog mode={game.mode} onClose={() => setRules(false)} />}
+    </>
   )
 }
 

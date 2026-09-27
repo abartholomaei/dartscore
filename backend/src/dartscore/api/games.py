@@ -2,11 +2,13 @@
 
 from typing import Any, Literal
 
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, HTTPException, Request
+from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field, model_validator
 
 from dartscore.game import Dart, GameError
 from dartscore.services.games import GameService, PlayerRef
+from dartscore.services.recordings import RecordingIndex
 
 router = APIRouter(prefix="/api/games", tags=["games"])
 
@@ -141,6 +143,42 @@ class PlayOn(BaseModel):
 def play_on(request: Request, body: PlayOn) -> GameState:
     """Continue the last finished match with a higher target."""
     return _service(request).play_on(body.legs_to_win, body.sets_to_win)
+
+
+@router.get("/{game_id}/visits")
+def visits(request: Request, game_id: int) -> list[dict[str, Any]]:
+    """All turns with the recorded camera images of their darts."""
+    recordings: RecordingIndex = request.app.state.recordings
+    result = _service(request).visits(game_id)
+    for visit in result:
+        photos: list[dict[str, Any] | None] = []
+        for seq in visit["seqs"]:
+            found = recordings.get(game_id, seq) if seq is not None else None
+            if found is None:
+                photos.append(None)
+                continue
+            detection = found[1].get("detection") or {}
+            photos.append(
+                {
+                    "cameras": sorted(c for c in (found[1].get("calibrations") or {})),
+                    "tips": {h["camera_id"]: h["tip_px"] for h in detection.get("hits", [])},
+                    "used": [h["camera_id"] for h in detection.get("hits", []) if h.get("used")],
+                    "detected": detection.get("label"),
+                }
+            )
+        visit["photos"] = photos
+    return result
+
+
+@router.get("/{game_id}/darts/{seq}/{camera_id}.jpg")
+def dart_photo(
+    request: Request, game_id: int, seq: int, camera_id: str, kind: str = "after"
+) -> FileResponse:
+    recordings: RecordingIndex = request.app.state.recordings
+    path = recordings.image_path(game_id, seq, camera_id, kind)
+    if path is None:
+        raise HTTPException(status_code=404, detail="No photo for this dart")
+    return FileResponse(path, media_type="image/jpeg", headers={"Cache-Control": "max-age=86400"})
 
 
 @router.get("/{game_id}")

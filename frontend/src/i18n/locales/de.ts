@@ -90,6 +90,7 @@ const de: Translations = {
     },
   },
   common: {
+    close: 'Schließen',
     cancel: 'Abbrechen',
     save: 'Speichern',
   },
@@ -147,6 +148,14 @@ const de: Translations = {
     searching: 'suche Schachbrett...',
     computed: 'Linse kalibriert (Fehler {{rms}} px).',
     boardConverted: 'Board-Punkte umgerechnet.',
+  },
+  photos: {
+    show: 'Kamerafotos dieser Aufnahme zeigen',
+    legTurn: 'Leg {{leg}}, Aufnahme {{turn}}',
+    detectedAs: '(erkannt: {{label}})',
+    noPhoto: '(kein Foto)',
+    none: 'Keine Kamerafotos zu dieser Aufnahme - sie wurde von Hand eingegeben.',
+    hint: 'Die Zahlen zeigen, wo die Erkennung die Spitze jedes Darts gesehen hat; gestrichelt = Kamera wurde überstimmt. Foto antippen zum Vergrößern.',
   },
   caller: {
     gameShot: 'Game shot!',

@@ -295,6 +295,45 @@ class GameService:
             refs = refs[1:] + refs[:1]
             return self.create(mode, settings, refs, abort_active=True)
 
+    def visits(self, game_id: int) -> list[dict[str, Any]]:
+        """Every turn of a game with the event seq of each thrown dart (None for darts filled
+        in by "next"), so the recorded camera images can be found."""
+        with self._sessions() as session:
+            record = session.get(GameRecord, game_id)
+            if record is None:
+                raise GameError("game_not_found", f"Game {game_id} not found")
+            game = create_game(record.mode, len(record.players), record.settings)
+            seqs: dict[int, list[int | None]] = {}  # id(turn) -> event seqs
+            for event in record.events:
+                parsed = _event_from_record(event)
+                if not isinstance(parsed, DartEvent):
+                    game.next_turn()
+                    continue
+                legs_before = len(game.legs)
+                game.throw(parsed.dart)
+                # a winning dart starts the next leg: its turn is in the previous one
+                leg = game.legs[legs_before - 1] if len(game.legs) > legs_before else game.legs[-1]
+                turn = leg.turns[-1]
+                seqs.setdefault(id(turn), []).append(event.seq)
+            result = []
+            for leg in game.legs:
+                for index, turn in enumerate(leg.turns):
+                    thrown = seqs.get(id(turn), [])
+                    result.append(
+                        {
+                            "set": leg.set_number,
+                            "leg": leg.number,
+                            "turn_index": index,
+                            "player": turn.player,
+                            "darts": [d.label for d in turn.darts],
+                            # implicit misses come last and have no event
+                            "seqs": thrown + [None] * (len(turn.darts) - len(thrown)),
+                            "total": turn.total,
+                            "bust": turn.bust,
+                        }
+                    )
+            return result
+
     def play_on(self, legs_to_win: int, sets_to_win: int) -> dict[str, Any]:
         """Continues the last finished X01/Cricket match with a higher target (e.g. first to 3
         legs becomes first to 4). Games are event lists, so the match is simply replayed with
@@ -485,6 +524,8 @@ class GameService:
             "players": [
                 {**info, "stats": stats[info["position"]].to_dict()} for info in active.players
             ],
+            # the leg the history belongs to (the finished one until the darts are pulled)
+            "history_leg": {"set": leg.set_number, "leg": leg.number},
             "history": [
                 {
                     "player": t.player,

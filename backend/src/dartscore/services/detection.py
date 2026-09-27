@@ -20,6 +20,7 @@ from dartscore.config import DetectionConfig
 from dartscore.game import Dart, GameError
 from dartscore.services.games import GameService
 from dartscore.services.hub import EventHub
+from dartscore.services.recordings import RecordingIndex
 from dartscore.vision.calibration import BoardCalibration
 from dartscore.vision.camera import CameraManager
 from dartscore.vision.detection import DartDetection, DartDetector, Takeout
@@ -44,6 +45,8 @@ class DetectionService:
         self._games = games
         self._hub = hub
         self._recordings_dir = recordings_dir
+        # set by the app: makes new recordings findable for the visit photos
+        self.recordings: RecordingIndex | None = None
         self._lock = threading.Lock()
         self._detector: DartDetector | None = None
         self._enabled = config.enabled
@@ -220,7 +223,10 @@ class DetectionService:
                 "board_darts": detector.board_darts,
                 "calibrations": detector.calibration_info(),
             }
-            (folder / "meta.json").write_text(json.dumps(meta, indent=2, default=str))
+            text = json.dumps(meta, indent=2, default=str)
+            (folder / "meta.json").write_text(text)
+            if self.recordings is not None:
+                self.recordings.add(folder, json.loads(text))
         except OSError as exc:
             log.warning("recording_failed", error=str(exc))
 

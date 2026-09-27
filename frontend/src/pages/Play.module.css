@@ -579,3 +579,16 @@
     opacity: 0;
   }
 }
+
+.photoButton {
+  border: 0;
+  background: none;
+  cursor: pointer;
+  font-size: 1rem;
+  padding: 2px 4px;
+  opacity: 0.6;
+}
+
+.photoButton:hover {
+  opacity: 1;
+}

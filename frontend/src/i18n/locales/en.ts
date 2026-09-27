@@ -89,6 +89,7 @@ const en = {
     },
   },
   common: {
+    close: 'Close',
     cancel: 'Cancel',
     save: 'Save',
   },
@@ -146,6 +147,14 @@ const en = {
     searching: 'searching for the chessboard...',
     computed: 'Lens calibrated (error {{rms}} px).',
     boardConverted: 'Board points converted.',
+  },
+  photos: {
+    show: 'Show camera photos of this turn',
+    legTurn: 'leg {{leg}}, turn {{turn}}',
+    detectedAs: '(detected {{label}})',
+    noPhoto: '(no photo)',
+    none: 'No camera photos for this turn - it was entered by hand.',
+    hint: 'Numbers mark where the detection saw each dart tip; dashed = camera outvoted. Tap a photo to enlarge it.',
   },
   caller: {
     gameShot: 'Game shot!',

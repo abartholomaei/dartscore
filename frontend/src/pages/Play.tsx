@@ -4,6 +4,7 @@ import { Link, useNavigate } from 'react-router'
 import { sendJson, type CricketVariant, type GamePlayer, type GameState, type InOutRule } from '../api'
 import DartBoard from '../components/DartBoard'
 import DetectionBadge from '../components/DetectionBadge'
+import VisitPhotos, { type VisitRef } from '../components/VisitPhotos'
 import { dartLabel, dartPoints } from '../dart'
 import { useLiveGame } from '../LiveGame'
 import { useCaller } from '../caller'
@@ -531,6 +532,7 @@ function Pad({
 
 function History({ game }: { game: GameState }) {
   const { t } = useTranslation()
+  const [photos, setPhotos] = useState<VisitRef | null>(null)
   const turns = [...game.history].reverse().slice(0, 12)
   if (turns.length === 0) return null
   return (
@@ -539,18 +541,35 @@ function History({ game }: { game: GameState }) {
       <ol>
         {turns.map((turn, i) => {
           const player = game.players[turn.player]
+          const turnIndex = game.history.length - 1 - i
           return (
-            <li key={game.history.length - i}>
+            <li key={turnIndex}>
               <span className={styles.dot} style={{ background: player.color }} />
               <span className={styles.historyName}>{player.name}</span>
               <span className={styles.historyDarts}>{turn.darts.join(' ')}</span>
               <span className={turn.bust ? styles.bust : styles.historyTotal}>
                 {turn.bust ? t('play.bust') : turn.total}
               </span>
+              <button
+                className={styles.photoButton}
+                title={t('photos.show')}
+                aria-label={t('photos.show')}
+                onClick={() => setPhotos({ ...game.history_leg, turn_index: turnIndex })}
+              >
+                📷
+              </button>
             </li>
           )
         })}
       </ol>
+      {photos && (
+        <VisitPhotos
+          gameId={game.id}
+          initial={photos}
+          playerNames={game.players.map((p) => p.name)}
+          onClose={() => setPhotos(null)}
+        />
+      )}
     </section>
   )
 }

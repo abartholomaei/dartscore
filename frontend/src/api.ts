@@ -264,6 +264,7 @@ export type GameState = {
   created_at: string
   players: GamePlayer[]
   history: TurnSummary[]
+  history_leg: { set: number; leg: number }
   player_count: number
   current_player: number
   leg: number

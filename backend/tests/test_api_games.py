@@ -369,3 +369,44 @@ def test_play_on_extends_a_finished_match(client: TestClient) -> None:
     level = client.get(f"/api/games/{state['id']}").json()
     assert level["legs_won"] == [1, 1]
     assert level["finished"] is False  # first to 2: a deciding leg follows
+
+
+def test_visits_link_darts_to_recorded_photos(client: TestClient, tmp_path: Path) -> None:
+    import json
+
+    import cv2
+    import numpy as np
+
+    client.post(
+        "/api/games",
+        json={"mode": "x01", "settings": {"start_score": 101}, "players": [{"guest_name": "A"}]},
+    )
+    state = throw(client, "T20", "S1", "NEXT", "S20")
+    game_id = state["id"]
+    # a recording as DetectionService would write it for the dart with seq 1 (the S1)
+    recordings = client.app.state.recordings  # type: ignore[attr-defined]
+    folder = recordings.dir / "2026-09-27" / "101500_000001"
+    folder.mkdir(parents=True)
+    cv2.imwrite(str(folder / "cam1_after.jpg"), np.zeros((20, 30, 3), np.uint8))
+    meta = {
+        "game_id": game_id,
+        "event_seq": 1,
+        "calibrations": {"cam1": {}},
+        "detection": {
+            "label": "S1",
+            "hits": [{"camera_id": "cam1", "tip_px": [5, 6], "used": True}],
+        },
+    }
+    (folder / "meta.json").write_text(json.dumps(meta))
+
+    visits = client.get(f"/api/games/{game_id}/visits").json()
+    assert [v["darts"] for v in visits] == [["T20", "S1", "MISS"], ["S20"]]
+    assert visits[0]["seqs"] == [0, 1, None]  # the miss was filled in by "next"
+    assert visits[0]["photos"][0] is None
+    assert visits[0]["photos"][1]["tips"] == {"cam1": [5, 6]}
+    photo = client.get(f"/api/games/{game_id}/darts/1/cam1.jpg")
+    assert photo.status_code == 200
+    assert photo.headers["content-type"] == "image/jpeg"
+    assert client.get(f"/api/games/{game_id}/darts/1/../../x.jpg").status_code == 404
+    assert client.get(f"/api/games/{game_id}/darts/0/cam1.jpg").status_code == 404
+    assert state["history_leg"] == {"set": 1, "leg": 1}

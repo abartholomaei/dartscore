@@ -23,6 +23,7 @@ from dartscore.services.export import ExportService
 from dartscore.services.games import GameService
 from dartscore.services.hub import EventHub
 from dartscore.services.players import PlayerService
+from dartscore.services.recordings import RecordingIndex
 from dartscore.services.stats import StatsService
 from dartscore.storage.backup import DailyBackup
 from dartscore.storage.db import create_db_engine, database_url, migrate, session_factory
@@ -129,6 +130,8 @@ def create_app(settings: Settings, camera_manager: CameraManager | None = None) 
         settings.model_file,
     )
     app.state.detection = detection_service
+    app.state.recordings = RecordingIndex(settings.recordings_dir)
+    detection_service.recordings = app.state.recordings
 
     def reconfigure_detection() -> None:
         store: calibration.CalibrationStore = app.state.calibrations

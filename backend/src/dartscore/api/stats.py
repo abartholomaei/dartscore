@@ -6,6 +6,7 @@ from typing import Annotated, Any
 from fastapi import APIRouter, Query, Request, Response
 
 from dartscore.services.achievements import AchievementService
+from dartscore.services.aim import aim_stats
 from dartscore.services.export import ExportService
 from dartscore.services.stats import StatsService, player_grouping, player_positions
 
@@ -41,6 +42,12 @@ def achievements(request: Request, player_id: int) -> list[dict[str, Any]]:
 @router.get("/players/{player_id}/grouping")
 def grouping(request: Request, player_id: int) -> dict[str, Any]:
     return player_grouping(request.app.state.sessions, player_id)
+
+
+@router.get("/players/{player_id}/aim")
+def aim(request: Request, player_id: int, days: Days = None) -> dict[str, Any]:
+    """Direction and size of the deviation from the intended field."""
+    return aim_stats(request.app.state.sessions, player_id, days)
 
 
 @router.get("/head-to-head")

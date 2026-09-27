@@ -16,6 +16,9 @@ import DartBoard from '../components/DartBoard'
 import { useErrorText } from '../helpers'
 import styles from './PlayerStats.module.css'
 
+type AimSummary = { darts: number; radial_mm: number; sideways_mm: number; distance_mm: number; points: [number, number][] }
+type AimStats = { overall: AimSummary | null; targets: Record<string, AimSummary> }
+
 type Grouping = { turns: number; average_mm: number | null; recent_mm: number | null; best_mm: number | null }
 
 const pct = (v: number | null) => (v === null ? '–' : `${Math.round(v * 1000) / 10} %`)
@@ -33,6 +36,7 @@ export default function PlayerStats() {
   const [positions, setPositions] = useState<[number, number][]>([])
   const [days, setDays] = useState<number | null>(null)
   const [grouping, setGrouping] = useState<Grouping | null>(null)
+  const [aim, setAim] = useState<AimStats | null>(null)
   const [achievements, setAchievements] = useState<Achievement[]>([])
   const [doubles, setDoubles] = useState<Record<string, { attempts: number; hits: number }>>({})
 
@@ -46,6 +50,9 @@ export default function PlayerStats() {
       .catch(() => undefined)
     getJson<[number, number, string][]>(`/api/stats/players/${id}/positions`)
       .then((list) => setPositions(list.map(([x, y]) => [x, y])))
+      .catch(() => undefined)
+    getJson<AimStats>(`/api/stats/players/${id}/aim${query}`)
+      .then(setAim)
       .catch(() => undefined)
     getJson<Grouping>(`/api/stats/players/${id}/grouping`)
       .then(setGrouping)
@@ -146,6 +153,8 @@ export default function PlayerStats() {
           </section>
         )
       })}
+
+      {aim?.overall && <AimCard aim={aim} />}
 
       {achievements.length > 0 && <Achievements items={achievements} />}
 
@@ -287,6 +296,66 @@ function Achievements({ items }: { items: Achievement[] }) {
           </li>
         ))}
       </ul>
+    </section>
+  )
+}
+
+/** Where the darts land relative to the intended field (T20 while scoring, doubles on a finish,
+ *  training targets). "radial" = towards the board edge, "sideways" = clockwise. */
+function AimCard({ aim }: { aim: AimStats }) {
+  const { t } = useTranslation()
+  const names = Object.keys(aim.targets).sort((a, b) => aim.targets[b].darts - aim.targets[a].darts)
+  const [selected, setSelected] = useState(names[0] ?? '')
+  const summary = aim.targets[selected] ?? aim.overall
+  if (!summary) return null
+  const t20 = selected === 'T20'
+  const vertical =
+    Math.abs(summary.radial_mm) < 1
+      ? t('aim.centered')
+      : t(t20 ? (summary.radial_mm > 0 ? 'aim.high' : 'aim.low') : summary.radial_mm > 0 ? 'aim.outside' : 'aim.inside', {
+          mm: Math.abs(summary.radial_mm).toFixed(1),
+        })
+  const horizontal =
+    Math.abs(summary.sideways_mm) < 1
+      ? t('aim.centered')
+      : t(t20 ? (summary.sideways_mm > 0 ? 'aim.right' : 'aim.left') : summary.sideways_mm > 0 ? 'aim.clockwise' : 'aim.counterclockwise', {
+          mm: Math.abs(summary.sideways_mm).toFixed(1),
+        })
+  const range = 40 // mm shown around the target
+  return (
+    <section className="card">
+      <h2 className="cardTitle">{t('aim.title')}</h2>
+      <div className={styles.aimTabs}>
+        {names.map((name) => (
+          <button
+            key={name}
+            className={name === selected ? `${styles.aimTab} ${styles.aimTabActive}` : styles.aimTab}
+            onClick={() => setSelected(name)}
+          >
+            {name === 'doubles' ? t('aim.doubles') : name} <span className="muted">({aim.targets[name].darts})</span>
+          </button>
+        ))}
+      </div>
+      <div className={styles.aim}>
+        <svg viewBox={`${-range} ${-range} ${2 * range} ${2 * range}`} className={styles.aimPlot} aria-hidden>
+          {[10, 20, 30].map((r) => (
+            <circle key={r} r={r} className={styles.aimRing} />
+          ))}
+          <line x1={-range} x2={range} y1={0} y2={0} className={styles.aimAxis} />
+          <line y1={-range} y2={range} x1={0} x2={0} className={styles.aimAxis} />
+          {summary.points.map(([radial, sideways], i) => (
+            <circle key={i} cx={sideways} cy={-radial} r={1.4} className={styles.aimPoint} />
+          ))}
+          <circle cx={summary.sideways_mm} cy={-summary.radial_mm} r={2.6} className={styles.aimMean} />
+        </svg>
+        <div className={styles.tiles}>
+          <Tile label={t(t20 ? 'aim.vertical' : 'aim.radial')} value={vertical} />
+          <Tile label={t(t20 ? 'aim.horizontal' : 'aim.sideways')} value={horizontal} />
+          <Tile label={t('aim.distance')} value={`${summary.distance_mm.toFixed(1)} mm`} />
+          <Tile label={t('aim.darts')} value={summary.darts} />
+        </div>
+      </div>
+      <p className="muted">{t(t20 ? 'aim.hintT20' : 'aim.hint')}</p>
     </section>
   )
 }

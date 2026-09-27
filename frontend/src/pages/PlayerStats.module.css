@@ -175,3 +175,67 @@
   min-width: 0;
   font-size: 0.875rem;
 }
+
+.aimTabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.aimTab {
+  padding: 6px 12px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  cursor: pointer;
+}
+
+.aimTabActive {
+  border-color: var(--accent);
+}
+
+.aim {
+  display: grid;
+  gap: var(--gutter);
+  grid-template-columns: minmax(0, 260px) 1fr;
+  align-items: center;
+}
+
+@media (max-width: 640px) {
+  .aim {
+    grid-template-columns: 1fr;
+  }
+}
+
+.aimPlot {
+  width: 100%;
+  max-width: 260px;
+  aspect-ratio: 1;
+  background: var(--bg);
+  border-radius: 50%;
+}
+
+.aimRing {
+  fill: none;
+  stroke: var(--border);
+  stroke-width: 0.5;
+}
+
+.aimAxis {
+  stroke: var(--border);
+  stroke-width: 0.4;
+}
+
+.aimPoint {
+  fill: var(--text-muted);
+  opacity: 0.55;
+}
+
+.aimMean {
+  fill: var(--accent);
+  stroke: var(--bg);
+  stroke-width: 0.8;
+}

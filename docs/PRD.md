@@ -571,7 +571,7 @@ Priorität für V2: **M** = zuerst, **S** = danach, **C** = bei Gelegenheit.
 
 - [ ] V2-1 Wurf-Fotos pro Aufnahme im Spielverlauf
 - [ ] V2-2 Schiedsrichter-Nachprüfung auf Knopfdruck
-- [ ] V2-3 Zielabweichung (horizontal/vertikal, mm) in der Statistik
+- [x] V2-3 Zielabweichung (horizontal/vertikal, mm) in der Statistik
 - [ ] V2-4 Persönlicher Bot aus eigenen Wurfdaten
 - [x] V2-5 Segment-Training
 - [x] V2-6 121-Checkout

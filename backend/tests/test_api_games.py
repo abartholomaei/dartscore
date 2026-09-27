@@ -410,3 +410,25 @@ def test_visits_link_darts_to_recorded_photos(client: TestClient, tmp_path: Path
     assert client.get(f"/api/games/{game_id}/darts/1/../../x.jpg").status_code == 404
     assert client.get(f"/api/games/{game_id}/darts/0/cam1.jpg").status_code == 404
     assert state["history_leg"] == {"set": 1, "leg": 1}
+
+
+def test_aim_deviation_relative_to_the_target(client: TestClient) -> None:
+    from dartscore.game import Dart
+
+    (a,) = make_players(client, "A")
+    client.post("/api/games", json={"mode": "x01", "settings": {"start_score": 501},
+                                    "players": [{"player_id": a}]})  # fmt: skip
+    games = client.app.state.games  # type: ignore[attr-defined]
+    # scoring at 501: aimed at T20 (centre at 0, 103 mm); all 7 mm high and 3 mm right
+    for _ in range(3):
+        games.throw(Dart(20, 3), source="auto", x_mm=3.0, y_mm=110.0, confidence=0.9)
+    games.next_turn()
+    games.throw(Dart(19, 3), source="auto", x_mm=-40.0, y_mm=-95.0, confidence=0.9)  # not near T20
+    games.throw(Dart(20, 1), source="corrected", x_mm=0.0, y_mm=150.0)  # corrected: ignored
+    client.post("/api/games/active/abort")
+    result = client.get(f"/api/stats/players/{a}/aim").json()
+    t20 = result["targets"]["T20"]
+    assert t20["darts"] == 3
+    assert t20["radial_mm"] == 7.0
+    assert t20["sideways_mm"] == 3.0
+    assert result["overall"]["distance_mm"] == 7.6

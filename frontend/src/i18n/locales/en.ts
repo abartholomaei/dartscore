@@ -373,6 +373,7 @@ const en = {
     require: '{{name}}, you require {{score}}',
   },
   errors: {
+    invalid_teams: 'Every team needs at least one player (teams play X01 or Cricket, without bots).',
     invalid_image: 'This picture could not be used.',
     play_on_mode: 'Only X01 and Cricket matches can be continued.',
     too_few_captures: 'Capture at least 8 views first.',
@@ -420,6 +421,9 @@ const en = {
     color: 'Color',
   },
   newGame: {
+    teams: 'Play in teams',
+    teamCount: 'Teams',
+    teamsHint: 'Pick a team (A, B, …) for every player. A team shares one score; its players throw in turn, in the order of the list. Team games do not count towards personal averages.',
     handicap: 'Handicap: own start score per player',
     handicapHint: 'Choose each player\'s start score in the throwing order below (e.g. 301 for a beginner).',
     handicapFor: 'Start score for {{name}}',

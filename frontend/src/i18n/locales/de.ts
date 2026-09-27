@@ -374,6 +374,7 @@ const de: Translations = {
     require: '{{name}}, du brauchst {{score}}',
   },
   errors: {
+    invalid_teams: 'Jedes Team braucht mindestens einen Spieler (Teams spielen X01 oder Cricket, ohne Bots).',
     invalid_image: 'Dieses Bild konnte nicht verwendet werden.',
     play_on_mode: 'Nur X01- und Cricket-Matches können fortgesetzt werden.',
     too_few_captures: 'Erst mindestens 8 Ansichten aufnehmen.',
@@ -421,6 +422,9 @@ const de: Translations = {
     color: 'Farbe',
   },
   newGame: {
+    teams: 'In Teams spielen',
+    teamCount: 'Teams',
+    teamsHint: 'Für jeden Spieler ein Team (A, B, …) wählen. Ein Team teilt sich einen Punktestand; seine Spieler werfen abwechselnd in der Reihenfolge der Liste. Team-Spiele zählen nicht in die persönlichen Averages.',
     handicap: 'Handicap: eigener Startwert pro Spieler',
     handicapHint: 'Den Startwert jedes Spielers unten in der Wurfreihenfolge wählen (z. B. 301 für Anfänger).',
     handicapFor: 'Startwert für {{name}}',

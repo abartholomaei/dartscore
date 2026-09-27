@@ -78,7 +78,7 @@ def aim_stats(
                     continue
                 if event.source not in _TRUSTED_SOURCES:
                     continue
-                target = intended_target(game, thrower)
+                target = intended_target(game, game.current_player)
                 if target is None:
                     continue
                 tx, ty = aim_point(target)

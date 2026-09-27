@@ -8,6 +8,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session, aliased, sessionmaker
 
 from dartscore.game import GameError
+from dartscore.game.teams import current_member, engine_players, teams_of
 from dartscore.services.avatars import avatar_url
 from dartscore.services.export import _since
 from dartscore.storage.models import GamePlayer, GameRecord, Player
@@ -48,6 +49,8 @@ def _aggregate(rows: list[tuple[GameRecord, GamePlayer]]) -> dict[str, Any]:
     )
     trend = []
     for record, gp in rows:
+        if record.settings.get("teams"):
+            continue  # team games: the averages are the team's, not the player's
         s = gp.stats or {}
         total["games"] += 1
         total["wins"] += int(record.winner_position == gp.position)
@@ -166,11 +169,17 @@ def player_positions(
             if not any(e.x_mm is not None for e in events):
                 continue
             # replay to know whose turn each dart was
-            game = replay_game(record.mode, len(record.players), record.settings, [])
+            teams = teams_of(record.settings)
+            game = replay_game(
+                record.mode,
+                engine_players(record.settings, len(record.players)),
+                record.settings,
+                [],
+            )
             for event in events:
                 parsed = _event_from_record(event)
                 if isinstance(parsed, DartEvent):
-                    thrower = game.current_player
+                    thrower = current_member(game, teams) if teams else game.current_player
                     if thrower == gp.position and event.x_mm is not None and event.y_mm is not None:
                         label = Dart(parsed.dart.segment, parsed.dart.multiplier).label
                         result.append((round(event.x_mm, 1), round(event.y_mm, 1), label))
@@ -201,7 +210,13 @@ def player_grouping(sessions: sessionmaker[Session], player_id: int) -> dict[str
             events = list(record.events)
             if not any(e.x_mm is not None for e in events):
                 continue
-            game = replay_game(record.mode, len(record.players), record.settings, [])
+            teams = teams_of(record.settings)
+            game = replay_game(
+                record.mode,
+                engine_players(record.settings, len(record.players)),
+                record.settings,
+                [],
+            )
             turn: list[tuple[float, float]] = []
             for event in events:
                 parsed = _event_from_record(event)
@@ -210,7 +225,8 @@ def player_grouping(sessions: sessionmaker[Session], player_id: int) -> dict[str
                     continue
                 if game.current_turn is None:
                     turn = []  # a new turn begins
-                if game.current_player == gp.position:
+                thrower = current_member(game, teams) if teams else game.current_player
+                if thrower == gp.position:
                     if event.x_mm is not None and event.y_mm is not None:
                         turn.append((event.x_mm, event.y_mm))
                     if len(turn) == 3:

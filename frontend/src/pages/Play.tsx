@@ -167,7 +167,8 @@ function Running({ game }: { game: GameState }) {
       <section className={`card ${styles.turn}`} aria-live="polite">
         <div className={styles.turnHeader}>
           <span className={styles.dot} style={{ background: current.color }} />
-          <strong>{current.name}</strong>
+          <strong>{game.thrower && !game.awaiting_next ? game.thrower.name : current.name}</strong>
+          {game.thrower && !game.awaiting_next && <span className="muted">{current.name}</span>}
           {(game.mode === 'x01' || game.mode === 'checkout_training' || game.mode === 'checkout_121') && game.checkout && !game.awaiting_next && (
             <span className={styles.checkout}>
               {t('play.checkout')}: {game.checkout.join(' · ')}

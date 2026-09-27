@@ -143,6 +143,10 @@ export default function NewGame() {
   const [error, setError] = useState<string | null>(null)
   const [rulesFor, setRulesFor] = useState<GameMode | null>(null)
   // X01 handicap: a start score per participant (key -> score)
+  // team games (X01/Cricket): team number per participant key
+  const [teamPlay, setTeamPlay] = useState(false)
+  const [teamCount, setTeamCount] = useState(2)
+  const [teamOf, setTeamOf] = useState<Record<string, number>>({})
   const [handicap, setHandicap] = useState(false)
   const [handicapScores, setHandicapScores] = useState<Record<string, number>>({})
 
@@ -205,6 +209,12 @@ export default function NewGame() {
     (p.botLevel ? `Bot ${p.botLevel}` : null) ?? p.guestName ?? players.find((pl) => pl.id === p.playerId)?.name ?? '?'
   const colorOf = (p: Participant) => players.find((pl) => pl.id === p.playerId)?.color ?? '#9e9e9e'
 
+  const teamIndex = (key: string, i: number) => teamOf[key] ?? i % teamCount
+  const teams = () =>
+    Array.from({ length: teamCount }, (_, t) =>
+      participants.map((p, i) => (teamIndex(p.key, i) === t ? i : -1)).filter((i) => i >= 0),
+    )
+
   const buildRequest = () => {
     const settings =
       mode === 'x01'
@@ -215,9 +225,16 @@ export default function NewGame() {
             legs_to_win: legs,
             sets_to_win: sets,
             ...(handicap ? { start_scores: participants.map((p) => handicapScores[p.key] ?? null) } : {}),
+            ...(teamPlay ? { teams: teams() } : {}),
           }
         : mode === 'cricket'
-          ? { variant, numbers: training.cricketNumbers, legs_to_win: legs, sets_to_win: sets }
+          ? {
+              variant,
+              numbers: training.cricketNumbers,
+              legs_to_win: legs,
+              sets_to_win: sets,
+              ...(teamPlay ? { teams: teams() } : {}),
+            }
           : trainingSettings(mode, training)
     return {
       mode,
@@ -576,6 +593,18 @@ export default function NewGame() {
           )}
 
           <h3 className={styles.label}>{t('newGame.order')}</h3>
+          {(mode === 'x01' || mode === 'cricket') && participants.length >= 3 && (
+            <div className={styles.teamToggle}>
+              <Toggle checked={teamPlay} onChange={setTeamPlay} label={t('newGame.teams')} />
+              {teamPlay && (
+                <label>
+                  {t('newGame.teamCount')}
+                  <Stepper value={teamCount} min={2} max={4} onChange={setTeamCount} />
+                </label>
+              )}
+            </div>
+          )}
+          {teamPlay && <p className="muted">{t('newGame.teamsHint')}</p>}
           {participants.length === 0 && <p className="muted">{t('newGame.noPlayers')}</p>}
           <ol className={styles.order}>
             {participants.map((p, i) => (
@@ -586,6 +615,21 @@ export default function NewGame() {
                   {p.guestName && <span className="muted"> · {t('newGame.guest')}</span>}
                   {(p.botLevel || p.botOf) && <span className="muted"> · {t('newGame.bot')}</span>}
                 </span>
+                {teamPlay && (mode === 'x01' || mode === 'cricket') && (
+                  <span className={styles.teamChips}>
+                    {Array.from({ length: teamCount }, (_, tn) => (
+                      <button
+                        key={tn}
+                        type="button"
+                        className={teamIndex(p.key, i) === tn ? styles.teamActive : undefined}
+                        aria-pressed={teamIndex(p.key, i) === tn}
+                        onClick={() => setTeamOf((m) => ({ ...m, [p.key]: tn }))}
+                      >
+                        {String.fromCharCode(65 + tn)}
+                      </button>
+                    ))}
+                  </span>
+                )}
                 {mode === 'x01' && handicap && (
                   <select
                     className={styles.handicap}

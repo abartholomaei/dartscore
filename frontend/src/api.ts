@@ -200,6 +200,8 @@ export type GamePlayer = {
   guest: boolean
   avatar?: string | null
   bot_level: number | null
+  // team games: the members of this team entry
+  members?: { position: number; name: string; color: string; avatar?: string | null }[]
   stats: PlayerGameStats
 }
 
@@ -278,6 +280,8 @@ export type GameState = {
   players: GamePlayer[]
   history: TurnSummary[]
   history_leg: { set: number; leg: number }
+  // team games: the member of the team at the board who throws
+  thrower?: { team: number; name: string; color: string; avatar?: string | null } | null
   player_count: number
   current_player: number
   leg: number

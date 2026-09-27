@@ -17,6 +17,7 @@ from dartscore.game import Dart, DartEvent, create_game
 from dartscore.game.base import Game
 from dartscore.game.checkout import one_dart_finish
 from dartscore.game.dart import BULL
+from dartscore.game.teams import current_member, engine_players, teams_of
 from dartscore.game.training import BobsGame, DoublesTrainingGame
 from dartscore.game.x01 import X01Game
 from dartscore.services.games import _event_from_record, _player_info
@@ -29,15 +30,19 @@ def _since(days: int | None) -> datetime | None:
 
 def iter_darts(record: GameRecord) -> Iterator[tuple[int, Dart, GameEventRecord, Game, int | None]]:
     """Replays a game: yields (thrower position, dart, event, game state *before* the dart,
-    targeted double or None) for every dart event."""
-    game = create_game(record.mode, len(record.players), record.settings)
+    targeted double or None) for every dart event. In team games the thrower is the member
+    who threw (``game.current_player`` is the team)."""
+    teams = teams_of(record.settings)
+    game = create_game(
+        record.mode, engine_players(record.settings, len(record.players)), record.settings
+    )
     for event in record.events:
         parsed = _event_from_record(event)
         if not isinstance(parsed, DartEvent):
             game.next_turn()
             continue
-        thrower = game.current_player
-        target = _targeted_double(game, thrower)
+        target = _targeted_double(game, game.current_player)
+        thrower = current_member(game, teams) if teams else game.current_player
         yield thrower, parsed.dart, event, game, target
         game.throw(parsed.dart)
     return

@@ -477,3 +477,37 @@ def test_avatar_photo_and_gallery(client: TestClient) -> None:
     assert client.delete(f"/api/players/{a}/avatar").status_code == 403
     cleared = client.delete(f"/api/players/{a}/avatar", headers={"X-Player-Pin": "1234"})
     assert cleared.json()["avatar"] is None
+
+
+def test_team_game_rotates_members_and_shares_the_score(client: TestClient) -> None:
+    a, b, c, d = make_players(client, "A", "B", "C", "D")
+    created = client.post(
+        "/api/games",
+        json={
+            "mode": "x01",
+            "settings": {"start_score": 301, "teams": [[0, 2], [1, 3]]},
+            "players": [{"player_id": p} for p in (a, b, c, d)],
+        },
+    )
+    assert created.status_code == 201, created.text
+    state = created.json()
+    assert [p["name"] for p in state["players"]] == ["A & C", "B & D"]
+    assert state["thrower"]["name"] == "A"
+    state = throw(client, "T20", "T20", "T20", "NEXT")
+    assert state["thrower"]["name"] == "B"
+    state = throw(client, "S1", "S1", "S1", "NEXT")
+    assert state["thrower"]["name"] == "C"  # team 1's second turn
+    assert state["remaining"] == [121, 298]
+    client.post("/api/games/active/abort")
+    # personal averages leave team games out, but the darts stay the thrower's
+    x01 = client.get(f"/api/stats/players/{a}").json()["modes"].get("x01")
+    assert x01 is None
+    bad = client.post(
+        "/api/games",
+        json={
+            "mode": "x01",
+            "settings": {"teams": [[0, 1]]},
+            "players": [{"player_id": a}, {"player_id": b}],
+        },
+    )
+    assert bad.status_code == 422

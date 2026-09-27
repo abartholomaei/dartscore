@@ -24,6 +24,7 @@ from dartscore.game import (
     replay_game,
 )
 from dartscore.game.stats import game_stats
+from dartscore.game.teams import current_member, engine_players, teams_of, validate_teams
 from dartscore.services.avatars import avatar_url
 from dartscore.services.hub import EventHub
 from dartscore.storage.models import GameEventRecord, GamePlayer, GameRecord, Player, utcnow
@@ -59,6 +60,8 @@ class ActiveGame:
     players: list[dict[str, Any]]
     created_at: str
     meta: list[EventMeta] = field(default_factory=list)
+    # the stored settings (including "teams" for team games)
+    settings: dict[str, Any] = field(default_factory=dict)
 
 
 def _event_from_record(record: GameEventRecord) -> Event:
@@ -167,8 +170,15 @@ class GameService:
                     self._set_status(self._active.id, "aborted")
                 # a finished game keeps its status and just makes room for the new one
                 self._active = None
+            teams = teams_of(settings)
+            if teams is not None:
+                teams = validate_teams(teams, len(players))
+                if mode not in BOT_MODES:
+                    raise GameError("invalid_teams", "Teams play X01 or Cricket")
+                if any(ref.bot_level for ref in players):
+                    raise GameError("invalid_teams", "Bots cannot play in teams")
             with self._sessions() as session:
-                if mode == "x01" and "preferred_doubles" not in settings:
+                if mode == "x01" and "preferred_doubles" not in settings and teams is None:
                     # checkout suggestions use each profile's favourite double
                     favourites = []
                     for ref in players:
@@ -177,9 +187,10 @@ class GameService:
                     settings = {**settings, "preferred_doubles": favourites}
             if any(ref.bot_level for ref in players) and mode not in BOT_MODES:
                 raise GameError("bot_mode", f"Bots can only play {', '.join(BOT_MODES)}")
-            game = create_game(mode, len(players), settings)
+            game = create_game(mode, len(teams) if teams else len(players), settings)
+            stored = game.settings_dict() | ({"teams": teams} if teams else {})
             with self._sessions() as session:
-                record = GameRecord(mode=mode, settings=game.settings_dict())
+                record = GameRecord(mode=mode, settings=stored)
                 for position, ref in enumerate(players):
                     if ref.player_id is not None:
                         player = session.get(Player, ref.player_id)
@@ -210,6 +221,7 @@ class GameService:
                 session.refresh(record)
                 self._active = ActiveGame(
                     id=record.id,
+                    settings=dict(record.settings),
                     game=game,
                     players=[_player_info(gp) for gp in record.players],
                     created_at=record.created_at.isoformat(),
@@ -340,7 +352,11 @@ class GameService:
                     for gp in last.players
                 ]
                 mode, settings = last.mode, dict(last.settings)
-            refs = refs[1:] + refs[:1]
+            teams = teams_of(settings)
+            if teams:
+                settings["teams"] = teams[1:] + teams[:1]  # the next team starts
+            else:
+                refs = refs[1:] + refs[:1]
             return self.create(mode, settings, refs, abort_active=True)
 
     def visits(self, game_id: int) -> list[dict[str, Any]]:
@@ -350,7 +366,9 @@ class GameService:
             record = session.get(GameRecord, game_id)
             if record is None:
                 raise GameError("game_not_found", f"Game {game_id} not found")
-            game = create_game(record.mode, len(record.players), record.settings)
+            game = create_game(
+                record.mode, engine_players(record.settings, len(record.players)), record.settings
+            )
             seqs: dict[int, list[int | None]] = {}  # id(turn) -> event seqs
             for event in record.events:
                 parsed = _event_from_record(event)
@@ -404,7 +422,9 @@ class GameService:
                     raise GameError("invalid_settings", "The new target must be higher")
                 settings = {**old, "legs_to_win": legs_to_win, "sets_to_win": sets_to_win}
                 events = [_event_from_record(e) for e in record.events]
-                game = replay_game(record.mode, len(record.players), settings, events)
+                game = replay_game(
+                    record.mode, engine_players(settings, len(record.players)), settings, events
+                )
                 if game.finished:
                     raise GameError("invalid_settings", "The match would already be decided")
                 record.settings = game.settings_dict()
@@ -412,6 +432,7 @@ class GameService:
                 session.commit()
                 self._active = ActiveGame(
                     id=record.id,
+                    settings=dict(record.settings),
                     game=game,
                     players=[_player_info(gp) for gp in record.players],
                     created_at=record.created_at.isoformat(),
@@ -463,9 +484,15 @@ class GameService:
         if record is None:
             raise GameError("game_not_found", f"Game {game_id} not found")
         events = [_event_from_record(e) for e in record.events]
-        game = replay_game(record.mode, len(record.players), record.settings, events)
+        game = replay_game(
+            record.mode,
+            engine_players(record.settings, len(record.players)),
+            record.settings,
+            events,
+        )
         return ActiveGame(
             id=record.id,
+            settings=dict(record.settings),
             game=game,
             players=[_player_info(gp) for gp in record.players],
             created_at=record.created_at.isoformat(),
@@ -516,7 +543,7 @@ class GameService:
             record = session.get(GameRecord, active.id)
             assert record is not None
             for gp in record.players:
-                gp.stats = stats[gp.position].to_dict()
+                gp.stats = self._member_stats(active, stats, gp.position)
             if game.finished and record.status != "finished":
                 record.status, record.finished_at, record.winner_position = (
                     "finished",
@@ -556,6 +583,50 @@ class GameService:
         ]
         return dart_meta[-count:] if count else []
 
+    @staticmethod
+    def _team_of(active: ActiveGame, position: int) -> int | None:
+        teams = teams_of(active.settings)
+        if not teams:
+            return None
+        return next(t for t, members in enumerate(teams) if position in members)
+
+    def _member_stats(self, active: ActiveGame, stats: list[Any], position: int) -> dict[str, Any]:
+        team = self._team_of(active, position)
+        if team is None:
+            return dict(stats[position].to_dict())
+        return dict(stats[team].to_dict()) | {"team_game": True}
+
+    def _display_players(self, active: ActiveGame, stats: list[Any]) -> list[dict[str, Any]]:
+        """The players as the scoreboard shows them: in team games one entry per team."""
+        teams = teams_of(active.settings)
+        if not teams:
+            return [{**info, "stats": stats[info["position"]].to_dict()} for info in active.players]
+        result = []
+        for t, members in enumerate(teams):
+            infos = [active.players[m] for m in members]
+            result.append(
+                {
+                    "position": t,
+                    "player_id": None,
+                    "name": " & ".join(i["name"] for i in infos),
+                    "color": infos[0]["color"],
+                    "avatar": None,
+                    "guest": False,
+                    "bot_level": None,
+                    "bot_of": None,
+                    "members": infos,
+                    "stats": stats[t].to_dict(),
+                }
+            )
+        return result
+
+    def _thrower(self, active: ActiveGame) -> dict[str, Any] | None:
+        teams = teams_of(active.settings)
+        if not teams or active.game.finished:
+            return None
+        member = current_member(active.game, teams)
+        return {"team": active.game.current_player, **active.players[member]}
+
     def _state(self, active: ActiveGame) -> dict[str, Any]:
         game = active.game
         state = game.state()
@@ -572,9 +643,9 @@ class GameService:
             "turn_sources": [m.source for m in self._turn_meta(active)],
             # confidence of automatically detected darts of the shown turn (None if manual)
             "turn_confidence": [m.confidence for m in self._turn_meta(active)],
-            "players": [
-                {**info, "stats": stats[info["position"]].to_dict()} for info in active.players
-            ],
+            "players": self._display_players(active, stats),
+            # team games: who of the team at the board throws
+            "thrower": self._thrower(active),
             # the leg the history belongs to (the finished one until the darts are pulled)
             "history_leg": {"set": leg.set_number, "leg": leg.number},
             "history": [

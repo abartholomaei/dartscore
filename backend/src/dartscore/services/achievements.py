@@ -175,6 +175,8 @@ class AchievementService:
                         reached.setdefault(key, (when, record.id))
                 if all(key in reached for key in _CHECKS):
                     continue
+                if record.settings.get("teams"):
+                    continue  # team results are not personal achievements
                 events = [_event_from_record(e) for e in record.events]
                 game = replay_game(record.mode, len(record.players), record.settings, events)
                 ctx = _Context(record, game, gp.position, gp.stats or {})

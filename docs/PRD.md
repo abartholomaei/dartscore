@@ -588,7 +588,7 @@ Priorität für V2: **M** = zuerst, **S** = danach, **C** = bei Gelegenheit.
 - [ ] V2-15 Namen in Ansagen, Ton pro Modus schaltbar
 - [x] V2-16 Round the World, Bermuda, Random und Hidden Cricket, Checkout-Serie (Count Up/Power-Scoring = Punkte-Training)
 - [ ] V2-17 X01-Extras (Bull-Wertung, Rundenlimit, offizielles Ausbullen)
-- [ ] V2-18 Teams / Doppel
+- [x] V2-18 Teams / Doppel (X01/Cricket, 2-4 Teams mit 1-4 Spielern; Darts zählen für den Werfer, Match-Werte nicht persönlich)
 - [ ] V2-19 Mirror Match
 - [ ] V2-20 Sofort-Wiederholung
 - [ ] V2-21 Lokale Liga / Elo

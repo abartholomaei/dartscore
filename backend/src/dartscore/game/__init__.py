@@ -69,6 +69,7 @@ __all__ = [
 def create_game(mode: str, player_count: int, settings: dict[str, Any]) -> Game:
     """Creates a game from stored/requested settings (unknown keys are rejected)."""
     options = dict(settings)
+    options.pop("teams", None)  # handled around the engine, see game.teams
     try:
         match = MatchSettings(
             legs_to_win=int(options.pop("legs_to_win", 1)),

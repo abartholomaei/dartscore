@@ -344,3 +344,28 @@ def test_pin_protects_profile(client: TestClient) -> None:
     )
     assert cleared.json()["has_pin"] is False
     assert client.delete(f"/api/players/{a}").status_code == 204
+
+
+def test_play_on_extends_a_finished_match(client: TestClient) -> None:
+    client.post(
+        "/api/games",
+        json={"mode": "x01", "settings": {"start_score": 101, "legs_to_win": 1},
+              "players": [{"guest_name": "A"}, {"guest_name": "B"}]},
+    )  # fmt: skip
+    finished = throw(client, "T20", "S1", "D20")
+    assert finished["finished"] is True
+    assert (
+        client.post("/api/games/play-on", json={"legs_to_win": 1, "sets_to_win": 1}).status_code
+        == 422
+    )
+    resumed = client.post("/api/games/play-on", json={"legs_to_win": 2, "sets_to_win": 1})
+    assert resumed.status_code == 200, resumed.text
+    state = resumed.json()
+    assert state["finished"] is False
+    assert state["id"] == finished["id"]
+    assert state["legs_won"] == [1, 0]
+    assert state["current_player"] == 1  # the next leg starts with the other player
+    throw(client, "NEXT", "T20", "S1", "D20")
+    level = client.get(f"/api/games/{state['id']}").json()
+    assert level["legs_won"] == [1, 1]
+    assert level["finished"] is False  # first to 2: a deciding leg follows

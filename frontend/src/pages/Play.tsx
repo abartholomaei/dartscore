@@ -629,8 +629,24 @@ function Finished({ game }: { game: GameState }) {
   const winner = game.winner !== null ? game.players[game.winner] : null
   const x01 = game.mode === 'x01'
 
+  const errorText = useErrorText()
+  const [error, setError] = useState<string | null>(null)
   const rematch = async () => {
     setGame(await sendJson<GameState>('POST', '/api/games/rematch'))
+  }
+
+  // continue the match with a higher target: one more set if sets are played, else one more leg
+  const canPlayOn = game.mode === 'x01' || game.mode === 'cricket'
+  const legs = Number(game.settings.legs_to_win ?? 1)
+  const sets = Number(game.settings.sets_to_win ?? 1)
+  const next = sets > 1 ? { legs_to_win: legs, sets_to_win: sets + 1 } : { legs_to_win: legs + 1, sets_to_win: sets }
+  const playOn = async () => {
+    setError(null)
+    try {
+      setGame(await sendJson<GameState>('POST', '/api/games/play-on', next))
+    } catch (err) {
+      setError(errorText(err))
+    }
   }
 
   return (
@@ -700,6 +716,13 @@ function Finished({ game }: { game: GameState }) {
         <button className="button primary large" onClick={() => void rematch()}>
           {t('play.rematch')}
         </button>
+        {canPlayOn && (
+          <button className="button large" onClick={() => void playOn()}>
+            {sets > 1
+              ? t('play.playOnSets', { count: next.sets_to_win })
+              : t('play.playOnLegs', { count: next.legs_to_win })}
+          </button>
+        )}
         <Link to="/play/new" className="button large">
           {t('home.newGame')}
         </Link>
@@ -707,6 +730,7 @@ function Finished({ game }: { game: GameState }) {
           {t('nav.home')}
         </button>
       </div>
+      {error && <p className="error">{error}</p>}
     </div>
   )
 }

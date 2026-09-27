@@ -158,6 +158,7 @@ const de: Translations = {
     require: '{{name}}, du brauchst {{score}}',
   },
   errors: {
+    play_on_mode: 'Nur X01- und Cricket-Matches können fortgesetzt werden.',
     too_few_captures: 'Erst mindestens 8 Ansichten aufnehmen.',
     pin_required: 'Dieses Profil ist mit einer PIN geschützt.',
     wrong_pin: 'Falsche PIN.',
@@ -268,6 +269,10 @@ const de: Translations = {
     confirmAbort: 'Es läuft noch ein Spiel. Abbrechen und ein neues starten?',
   },
   play: {
+    playOnLegs_one: 'Weiterspielen: First to {{count}} Leg',
+    playOnLegs_other: 'Weiterspielen: First to {{count}} Legs',
+    playOnSets_one: 'Weiterspielen: First to {{count}} Set',
+    playOnSets_other: 'Weiterspielen: First to {{count}} Sets',
     segmentProgress_darts: '{{hits}} Treffer · {{darts}}/{{limit}} Darts',
     segmentProgress_hits: '{{hits}}/{{limit}} Treffer · {{darts}} Darts',
     checkout121: 'Ziel {{target}} · Versuch {{attempt}}/{{attempts}} · beste {{best}}',

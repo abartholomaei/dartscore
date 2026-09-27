@@ -132,6 +132,17 @@ def rematch(request: Request) -> GameState:
     return _service(request).rematch()
 
 
+class PlayOn(BaseModel):
+    legs_to_win: int = Field(ge=1, le=21)
+    sets_to_win: int = Field(ge=1, le=13)
+
+
+@router.post("/play-on")
+def play_on(request: Request, body: PlayOn) -> GameState:
+    """Continue the last finished match with a higher target."""
+    return _service(request).play_on(body.legs_to_win, body.sets_to_win)
+
+
 @router.get("/{game_id}")
 def get_game(request: Request, game_id: int) -> GameState:
     return _service(request).game_state(game_id)

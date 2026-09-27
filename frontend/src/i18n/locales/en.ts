@@ -157,6 +157,7 @@ const en = {
     require: '{{name}}, you require {{score}}',
   },
   errors: {
+    play_on_mode: 'Only X01 and Cricket matches can be continued.',
     too_few_captures: 'Capture at least 8 views first.',
     pin_required: 'This profile is protected by a PIN.',
     wrong_pin: 'Wrong PIN.',
@@ -267,6 +268,10 @@ const en = {
     confirmAbort: 'A game is still running. Abort it and start a new one?',
   },
   play: {
+    playOnLegs_one: 'Play on: first to {{count}} leg',
+    playOnLegs_other: 'Play on: first to {{count}} legs',
+    playOnSets_one: 'Play on: first to {{count}} set',
+    playOnSets_other: 'Play on: first to {{count}} sets',
     segmentProgress_darts: '{{hits}} hits · {{darts}}/{{limit}} darts',
     segmentProgress_hits: '{{hits}}/{{limit}} hits · {{darts}} darts',
     checkout121: 'target {{target}} · attempt {{attempt}}/{{attempts}} · best {{best}}',

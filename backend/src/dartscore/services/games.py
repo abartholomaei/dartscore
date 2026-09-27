@@ -295,6 +295,45 @@ class GameService:
             refs = refs[1:] + refs[:1]
             return self.create(mode, settings, refs, abort_active=True)
 
+    def play_on(self, legs_to_win: int, sets_to_win: int) -> dict[str, Any]:
+        """Continues the last finished X01/Cricket match with a higher target (e.g. first to 3
+        legs becomes first to 4). Games are event lists, so the match is simply replayed with
+        the new target and becomes active again."""
+        with self._lock:
+            if self._active is not None and not self._active.game.finished:
+                raise GameError("game_active", "Another game is still running")
+            with self._sessions() as session:
+                record = session.scalars(
+                    select(GameRecord).order_by(GameRecord.id.desc()).limit(1)
+                ).first()
+                if record is None or record.status != "finished":
+                    raise GameError("no_game", "There is no finished game to continue")
+                if record.mode not in ("x01", "cricket"):
+                    raise GameError("play_on_mode", "Only X01 and Cricket matches can continue")
+                old = record.settings
+                if (legs_to_win, sets_to_win) <= (old["legs_to_win"], old["sets_to_win"]) or (
+                    legs_to_win < old["legs_to_win"] or sets_to_win < old["sets_to_win"]
+                ):
+                    raise GameError("invalid_settings", "The new target must be higher")
+                settings = {**old, "legs_to_win": legs_to_win, "sets_to_win": sets_to_win}
+                events = [_event_from_record(e) for e in record.events]
+                game = replay_game(record.mode, len(record.players), settings, events)
+                if game.finished:
+                    raise GameError("invalid_settings", "The match would already be decided")
+                record.settings = game.settings_dict()
+                record.status, record.finished_at, record.winner_position = "active", None, None
+                session.commit()
+                self._active = ActiveGame(
+                    id=record.id,
+                    game=game,
+                    players=[_player_info(gp) for gp in record.players],
+                    created_at=record.created_at.isoformat(),
+                    meta=[EventMeta(e.source, e.x_mm, e.y_mm, e.confidence) for e in record.events],
+                )
+            log.info("game_continued", game_id=record.id, legs=legs_to_win, sets=sets_to_win)
+            self._notify("new_game")
+            return self._after_change(self._active)
+
     def bot_turn(self) -> tuple[int, Game, int] | None:
         """(game id, game, bot level) while a bot is in control of the board, else None."""
         with self._lock:

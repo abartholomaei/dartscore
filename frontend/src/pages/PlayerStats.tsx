@@ -14,6 +14,7 @@ import {
 } from '../api'
 import Avatar from '../components/Avatar'
 import DartBoard from '../components/DartBoard'
+import TrainingPlan from '../components/TrainingPlan'
 import { useErrorText } from '../helpers'
 import styles from './PlayerStats.module.css'
 
@@ -103,6 +104,8 @@ export default function PlayerStats() {
       </div>
 
       {Object.keys(stats.modes).length === 0 && <p className="muted">{t('stats.noGames')}</p>}
+
+      <TrainingPlan playerId={stats.player.id} />
 
       {x01 && (
         <section className="card">

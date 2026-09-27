@@ -23,6 +23,7 @@ from dartscore.api import (
     players,
     stats,
     tournaments,
+    training_plans,
     ws,
 )
 from dartscore.config import Settings
@@ -39,6 +40,7 @@ from dartscore.services.players import PlayerService
 from dartscore.services.recordings import RecordingIndex
 from dartscore.services.stats import StatsService
 from dartscore.services.tournaments import TournamentService
+from dartscore.services.training_plans import TrainingPlanService
 from dartscore.storage.backup import DailyBackup
 from dartscore.storage.db import create_db_engine, database_url, migrate, session_factory
 from dartscore.vision.camera import CameraManager
@@ -170,6 +172,7 @@ def create_app(settings: Settings, camera_manager: CameraManager | None = None) 
     app.state.exports = ExportService(sessions)
     app.state.achievements = AchievementService(sessions)
     app.state.tournaments = TournamentService(sessions, app.state.games)
+    app.state.training_plans = TrainingPlanService(sessions, app.state.games)
     detection_service = DetectionService(
         settings.detection,
         manager,
@@ -210,6 +213,7 @@ def create_app(settings: Settings, camera_manager: CameraManager | None = None) 
         detection,
         diagnostics,
         tournaments,
+        training_plans,
         ws,
     ):
         app.include_router(module.router)

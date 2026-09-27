@@ -118,3 +118,20 @@ class Tournament(Base):
     # active | finished
     status: Mapped[str] = mapped_column(String(10), default="active")
     created_at: Mapped[datetime] = mapped_column(default=utcnow)
+
+
+class TrainingPlanRecord(Base):
+    """A player working through a training plan (see services.training_plans)."""
+
+    __tablename__ = "training_plans"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    player_id: Mapped[int] = mapped_column(ForeignKey("players.id"), index=True)
+    # key of the built-in plan
+    plan: Mapped[str] = mapped_column(String(40))
+    # active | finished | stopped
+    status: Mapped[str] = mapped_column(String(10), default="active")
+    # [{"session": 0, "drill": 1, "game_id": 12, "score": 34, "achieved": true}]
+    results: Mapped[list[dict[str, Any]]] = mapped_column(JSON, default=list)
+    started_at: Mapped[datetime] = mapped_column(default=utcnow)
+    finished_at: Mapped[datetime | None] = mapped_column(default=None)

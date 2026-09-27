@@ -1,0 +1,105 @@
+.catalog {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  margin: 12px 0;
+}
+
+.planCard {
+  display: grid;
+  gap: 6px;
+  text-align: left;
+  font: inherit;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.planCard:hover {
+  border-color: var(--accent);
+}
+
+.meta {
+  color: var(--accent);
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.sessions {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.sessions > li {
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--bg);
+  border: 1px solid transparent;
+}
+
+.current {
+  border-color: var(--accent) !important;
+}
+
+.locked {
+  opacity: 0.5;
+}
+
+.sessionTitle {
+  font-family: var(--font-display);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+}
+
+.drills {
+  list-style: none;
+  margin: 6px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.drill {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.drillText {
+  flex: 1;
+  min-width: 0;
+}
+
+.goal {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+.check {
+  color: var(--accent);
+  font-weight: 800;
+  width: 1.2em;
+}
+
+.open {
+  color: var(--text-muted);
+  width: 1.2em;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 12px;
+}

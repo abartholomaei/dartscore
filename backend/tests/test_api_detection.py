@@ -149,3 +149,14 @@ def test_bumped_camera_is_realigned(
     response = client.post(f"/api/cameras/{cam.id}/calibration/realign")
     assert response.status_code == 200
     assert response.json()["moved_px"] < 0.5
+
+
+def test_diagnostics_reports_process_and_cameras(client: TestClient) -> None:
+    first = client.get("/api/diagnostics")
+    assert first.status_code == 200
+    data = client.get("/api/diagnostics").json()
+    assert data["process"]["memory_mb"] > 0
+    assert data["process"]["cpu_percent"] is not None
+    assert {c["id"] for c in data["cameras"]} == {"cam1", "cam2", "cam3"}
+    assert "step_ms" in data["detection"]
+    assert data["recent_darts"] == []

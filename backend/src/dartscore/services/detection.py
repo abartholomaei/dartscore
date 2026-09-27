@@ -8,6 +8,7 @@ stored (and possibly corrected) game events they form the training data for the 
 import json
 import threading
 import time
+from collections import deque
 from dataclasses import asdict, replace
 from datetime import datetime
 from pathlib import Path
@@ -54,6 +55,9 @@ class DetectionService:
         self._thread: threading.Thread | None = None
         self._stop = threading.Event()
         self._last_dart: dict[str, Any] | None = None
+        # for the diagnostics page: recent darts and how long an analysis step takes
+        self.recent_darts: deque[dict[str, Any]] = deque(maxlen=20)
+        self.step_ms: float = 0.0
         self._last_published_state = ""
         self._model = load_model(model_file)
         games.add_listener(self._on_game_event)
@@ -127,6 +131,8 @@ class DetectionService:
                 self._step(started)
             except Exception:
                 log.exception("detection_step_failed")
+            took = (time.monotonic() - started) * 1000
+            self.step_ms = took if not self.step_ms else self.step_ms * 0.95 + took * 0.05
             self._stop.wait(max(0.0, interval - (time.monotonic() - started)))
 
     def _step(self, now: float) -> None:
@@ -215,6 +221,13 @@ class DetectionService:
             "time": datetime.now().isoformat(timespec="milliseconds"),
         }
         self._last_dart = info
+        self.recent_darts.appendleft(
+            {
+                key: info.get(key)
+                for key in ("label", "live_label", "confidence", "accepted", "time")
+            }
+            | {"cameras": [h["camera_id"] for h in info.get("hits", []) if h.get("used")]}
+        )
         log.info(
             "dart_detected", label=dart.label, x=dart.x_mm, y=dart.y_mm, confidence=dart.confidence
         )

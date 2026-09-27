@@ -1,0 +1,55 @@
+.title {
+  font-size: clamp(1.5rem, 3vw, 2.25rem);
+}
+
+.tiles {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+}
+
+.tile {
+  display: grid;
+  gap: 2px;
+}
+
+.value {
+  font-family: var(--font-display);
+  font-size: 1.9rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.warn .value {
+  color: var(--warn);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+}
+
+.table th,
+.table td {
+  padding: 6px 8px;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+
+.ok {
+  color: var(--ok);
+}
+
+.bad {
+  color: var(--warn);
+}
+
+.muted {
+  opacity: 0.55;
+}
+
+.second {
+  color: var(--warn);
+  font-size: 0.9rem;
+}

@@ -2,6 +2,7 @@ import { BrowserRouter, Route, Routes } from 'react-router'
 import Layout from './components/Layout'
 import { LiveGameProvider } from './LiveGame'
 import Calibration from './pages/Calibration'
+import Diagnostics from './pages/Diagnostics'
 import Cameras from './pages/Cameras'
 import Home from './pages/Home'
 import NewGame from './pages/NewGame'
@@ -24,6 +25,7 @@ export default function App() {
             <Route path="settings" element={<Settings />} />
             <Route path="cameras" element={<Cameras />} />
             <Route path="calibration" element={<Calibration />} />
+            <Route path="diagnostics" element={<Diagnostics />} />
           </Route>
         </Routes>
       </BrowserRouter>

@@ -13,7 +13,17 @@ from starlette.responses import Response
 from starlette.types import Scope
 
 from dartscore import __version__
-from dartscore.api import calibration, cameras, detection, games, lens, players, stats, ws
+from dartscore.api import (
+    calibration,
+    cameras,
+    detection,
+    diagnostics,
+    games,
+    lens,
+    players,
+    stats,
+    ws,
+)
 from dartscore.config import Settings
 from dartscore.game import GameError
 from dartscore.services.achievements import AchievementService
@@ -181,7 +191,7 @@ def create_app(settings: Settings, camera_manager: CameraManager | None = None) 
         hub,
     )
     app.state.calibration_monitor = monitor
-    for module in (cameras, calibration, lens, players, games, stats, detection, ws):
+    for module in (cameras, calibration, lens, players, games, stats, detection, diagnostics, ws):
         app.include_router(module.router)
     app.include_router(stats.export_router)
 

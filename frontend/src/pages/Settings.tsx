@@ -34,6 +34,10 @@ export default function Settings() {
           <strong>{t('nav.calibration')}</strong>
           <span className="muted">{t('settings.calibrationHint')}</span>
         </Link>
+        <Link to="/diagnostics" className={`card ${styles.link}`}>
+          <strong>{t('diagnostics.title')}</strong>
+          <span className="muted">{t('diagnostics.linkHint')}</span>
+        </Link>
         <section className={`card ${styles.link}`}>
           <strong>{t('detection.title')}</strong>
           <span>

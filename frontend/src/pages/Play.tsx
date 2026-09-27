@@ -16,6 +16,7 @@ type InputMode = 'pad' | 'board'
 
 // automatic detections below this confidence are marked for checking
 const LOW_CONFIDENCE = 0.5
+const DISPLAY_KEY = 'dartscore.displayMode'
 
 export default function Play() {
   const { t } = useTranslation()
@@ -54,6 +55,25 @@ function Running({ game }: { game: GameState }) {
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const [inputMode, setInputMode] = useState<InputMode>('pad')
+  // display mode: only the scoreboard, large (remembered per browser)
+  const [displayMode, setDisplayMode] = useState(() => {
+    try {
+      return localStorage.getItem(DISPLAY_KEY) === '1'
+    } catch {
+      return false
+    }
+  })
+  const toggleDisplayMode = () => {
+    const next = !displayMode
+    setDisplayMode(next)
+    try {
+      localStorage.setItem(DISPLAY_KEY, next ? '1' : '0')
+    } catch {
+      // private mode
+    }
+    if (next && !document.fullscreenElement) void document.documentElement.requestFullscreen?.().catch(() => undefined)
+    if (!next && document.fullscreenElement) void document.exitFullscreen().catch(() => undefined)
+  }
   const [multiplier, setMultiplier] = useState<1 | 2 | 3>(1)
   // index of a dart of the shown turn that the next input replaces
   const [correcting, setCorrecting] = useState<number | null>(null)
@@ -124,7 +144,7 @@ function Running({ game }: { game: GameState }) {
   const legWinner = game.leg_winner !== null && game.awaiting_next ? game.players[game.leg_winner] : null
 
   return (
-    <div className={styles.layout}>
+    <div className={displayMode ? `${styles.layout} ${styles.displayMode}` : styles.layout}>
       <section className={styles.scores}>
         <MatchInfo game={game} />
         {game.mode === 'x01' ? (
@@ -235,7 +255,7 @@ function Running({ game }: { game: GameState }) {
       </section>
 
       <History game={game} />
-      <GameMenu />
+      <GameMenu displayMode={displayMode} onDisplayMode={toggleDisplayMode} />
     </div>
   )
 }
@@ -581,7 +601,7 @@ function History({ game }: { game: GameState }) {
   )
 }
 
-function GameMenu() {
+function GameMenu({ displayMode, onDisplayMode }: { displayMode: boolean; onDisplayMode: () => void }) {
   const { t } = useTranslation()
   const { setGame } = useLiveGame()
   const navigate = useNavigate()
@@ -593,6 +613,9 @@ function GameMenu() {
   }
   return (
     <div className={styles.menu}>
+      <button className="button" onClick={onDisplayMode} aria-pressed={displayMode} title={t('play.displayModeHint')}>
+        {displayMode ? t('play.displayModeOff') : t('play.displayModeOn')}
+      </button>
       <button className="button danger" onClick={() => void abort()}>
         {t('play.abort')}
       </button>

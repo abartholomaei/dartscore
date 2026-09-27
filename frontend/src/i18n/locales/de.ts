@@ -316,6 +316,9 @@ const de: Translations = {
     confirmAbort: 'Es läuft noch ein Spiel. Abbrechen und ein neues starten?',
   },
   play: {
+    displayModeOn: 'Anzeige-Modus',
+    displayModeOff: 'Anzeige-Modus beenden',
+    displayModeHint: 'Nur die Punkteanzeige, so groß wie möglich (für kleine Monitore und TVs). Die Kameras erkennen die Darts weiterhin.',
     playOnLegs_one: 'Weiterspielen: First to {{count}} Leg',
     playOnLegs_other: 'Weiterspielen: First to {{count}} Legs',
     playOnSets_one: 'Weiterspielen: First to {{count}} Set',

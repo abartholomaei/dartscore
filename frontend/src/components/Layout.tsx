@@ -16,7 +16,9 @@ export default function Layout() {
   return (
     <div className={styles.shell}>
       <header className={styles.header}>
-        <span className={styles.brand}>dartscore</span>
+        <span className={styles.brand}>
+          dart<span className={styles.brandAccent}>score</span>
+        </span>
         <nav className={styles.nav}>
           {links.map((link) => (
             <NavLink

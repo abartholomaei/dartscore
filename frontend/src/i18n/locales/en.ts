@@ -315,6 +315,9 @@ const en = {
     confirmAbort: 'A game is still running. Abort it and start a new one?',
   },
   play: {
+    displayModeOn: 'Display mode',
+    displayModeOff: 'Leave display mode',
+    displayModeHint: 'Scoreboard only, as large as possible (for small monitors and TVs). Darts are still detected by the cameras.',
     playOnLegs_one: 'Play on: first to {{count}} leg',
     playOnLegs_other: 'Play on: first to {{count}} legs',
     playOnSets_one: 'Play on: first to {{count}} set',

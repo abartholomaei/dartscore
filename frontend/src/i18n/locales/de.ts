@@ -399,6 +399,9 @@ const de: Translations = {
     instruction: 'Triff die Monster! (noch {{count}})',
     yourTurn: '{{name}}',
   },
+  voltage: {
+    board: 'Neon-Board',
+  },
   photos: {
     review: 'Nachprüfen',
     reviewing: 'prüfe…',
@@ -470,6 +473,8 @@ const de: Translations = {
     color: 'Farbe',
   },
   newGame: {
+    theme: 'Aussehen',
+    themes: { classic: 'Klassisch', voltage: '⚡ Voltage' },
     arcade: 'Arcade',
     difficulty: 'Schwierigkeit',
     difficulties: { easy: 'Leicht', medium: 'Mittel', hard: 'Schwer' },

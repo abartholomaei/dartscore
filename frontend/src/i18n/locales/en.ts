@@ -398,6 +398,9 @@ const en = {
     instruction: 'Hit the monsters! ({{count}} left)',
     yourTurn: '{{name}}',
   },
+  voltage: {
+    board: 'Neon board',
+  },
   photos: {
     review: 'Referee',
     reviewing: 'checking…',
@@ -469,6 +472,8 @@ const en = {
     color: 'Color',
   },
   newGame: {
+    theme: 'Look',
+    themes: { classic: 'Classic', voltage: '⚡ Voltage' },
     arcade: 'Arcade',
     difficulty: 'Difficulty',
     difficulties: { easy: 'Easy', medium: 'Medium', hard: 'Hard' },

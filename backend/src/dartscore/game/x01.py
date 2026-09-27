@@ -1,7 +1,7 @@
 """X01 (301, 501, ...): count down to exactly zero."""
 
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, Literal
 
 from dartscore.game.base import Game, GameError, MatchSettings, Turn
 from dartscore.game.checkout import InOutRule, is_valid_finisher, is_valid_opener, suggest_checkout
@@ -19,6 +19,8 @@ class X01Settings:
     preferred_doubles: tuple[int | None, ...] = ()
     # handicap: a different start score per player (None = start_score)
     start_scores: tuple[int | None, ...] = ()
+    # presentation only (the rules are the same): classic scoreboard or "voltage" (batteries)
+    theme: Literal["classic", "voltage"] = "classic"
 
     def __post_init__(self) -> None:
         object.__setattr__(self, "preferred_doubles", tuple(self.preferred_doubles))
@@ -96,6 +98,7 @@ class X01Game(Game):
             "out_rule": self.settings.out_rule,
             "preferred_doubles": list(self.settings.preferred_doubles),
             "start_scores": list(self.settings.start_scores),
+            "theme": self.settings.theme,
             "legs_to_win": self.match.legs_to_win,
             "sets_to_win": self.match.sets_to_win,
         }

@@ -22,6 +22,7 @@ type Saved = {
   outRule: InOut
   variant: 'standard' | 'cut_throat' | 'no_score'
   training: TrainingOptions
+  x01Theme?: 'classic' | 'voltage'
   legs: number
   sets: number
   playerIds: number[]
@@ -153,6 +154,7 @@ export default function NewGame() {
   const [teamPlay, setTeamPlay] = useState(false)
   const [teamCount, setTeamCount] = useState(2)
   const [teamOf, setTeamOf] = useState<Record<string, number>>({})
+  const [x01Theme, setX01Theme] = useState<'classic' | 'voltage'>(saved.x01Theme ?? 'classic')
   const [handicap, setHandicap] = useState(false)
   const [handicapScores, setHandicapScores] = useState<Record<string, number>>({})
 
@@ -226,6 +228,7 @@ export default function NewGame() {
       mode === 'x01'
         ? {
             start_score: startScore,
+            theme: x01Theme,
             in_rule: inRule,
             out_rule: outRule,
             legs_to_win: legs,
@@ -253,7 +256,7 @@ export default function NewGame() {
 
   const remember = () => {
     const toStore: Saved = {
-      mode, startScore, inRule, outRule, variant, training, legs, sets,
+      mode, startScore, inRule, outRule, variant, training, legs, sets, x01Theme,
       playerIds: participants.flatMap((p) => (p.playerId === null ? [] : [p.playerId])),
     }  // prettier-ignore
     try {
@@ -342,6 +345,10 @@ export default function NewGame() {
               <h3 className={styles.label}>{t('newGame.out')}</h3>
               <div className={styles.chips}>
                 {(['single', 'double', 'master'] as InOut[]).map((r) => choice(r, outRule, setOutRule, t(`newGame.rule.${r}`)))}
+              </div>
+              <h3 className={styles.label}>{t('newGame.theme')}</h3>
+              <div className={styles.chips}>
+                {(['classic', 'voltage'] as const).map((th) => choice(th, x01Theme, setX01Theme, t(`newGame.themes.${th}`)))}
               </div>
               <Toggle checked={handicap} onChange={setHandicap} label={t('newGame.handicap')} />
               {handicap && <p className="muted">{t('newGame.handicapHint')}</p>}

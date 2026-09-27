@@ -1,0 +1,329 @@
+.stage {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(130px, 1fr) minmax(0, 2.2fr) minmax(130px, 1fr);
+  gap: 12px;
+  align-items: center;
+  padding: 16px;
+  border-radius: var(--radius);
+  background:
+    linear-gradient(rgb(5 8 20 / 0.35), rgb(5 8 20 / 0.55)),
+    url('/arcade/voltage-city.webp') center / cover no-repeat,
+    #050814;
+  overflow: hidden;
+}
+
+@media (max-width: 700px) {
+  .stage {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .center {
+    grid-column: 1 / -1;
+    grid-row: 1;
+  }
+}
+
+.side {
+  display: grid;
+  gap: 12px;
+  align-content: center;
+}
+
+.battery {
+  display: grid;
+  gap: 6px;
+  justify-items: center;
+}
+
+.who {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 100%;
+}
+
+.name {
+  font-family: var(--font-display);
+  font-size: clamp(1.1rem, 2vw, 1.7rem);
+  font-weight: 700;
+  color: #e0f7ff;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.legs {
+  font-family: var(--font-display);
+  font-weight: 800;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: rgb(56 189 248 / 0.2);
+  color: #7dd3fc;
+}
+
+.cell {
+  position: relative;
+  width: min(100%, 150px);
+  aspect-ratio: 1 / 1.7;
+  border: 4px solid #7dd3fc;
+  border-radius: 14px;
+  background: rgb(2 6 23 / 0.8);
+  box-shadow: 0 0 14px rgb(56 189 248 / 0.35);
+  overflow: hidden;
+}
+
+/* the battery's plus pole */
+.cell::before {
+  content: '';
+  position: absolute;
+  top: -1px;
+  left: 50%;
+  width: 36%;
+  height: 7px;
+  transform: translateX(-50%);
+  border-radius: 0 0 6px 6px;
+  background: #7dd3fc;
+  z-index: 2;
+}
+
+.active .cell {
+  border-color: #e0f2fe;
+  box-shadow:
+    0 0 22px rgb(56 189 248 / 0.9),
+    0 0 60px rgb(56 189 248 / 0.35);
+  animation: hum 1.4s ease-in-out infinite;
+}
+
+.charge {
+  position: absolute;
+  left: 6px;
+  right: 6px;
+  bottom: 6px;
+  max-height: calc(100% - 12px);
+  border-radius: 8px;
+  transition:
+    height 0.9s cubic-bezier(0.3, 0.8, 0.3, 1),
+    background 0.9s;
+}
+
+.high {
+  background: linear-gradient(to top, #16a34a, #4ade80);
+  box-shadow: 0 0 18px rgb(74 222 128 / 0.6);
+}
+
+.mid {
+  background: linear-gradient(to top, #ca8a04, #facc15);
+  box-shadow: 0 0 18px rgb(250 204 21 / 0.6);
+}
+
+.low {
+  background: linear-gradient(to top, #b91c1c, #f87171);
+  box-shadow: 0 0 18px rgb(248 113 113 / 0.6);
+  animation: flicker 1.2s steps(2) infinite;
+}
+
+.remaining {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-family: var(--font-display);
+  font-size: clamp(2.4rem, 5vw, 4.4rem);
+  font-weight: 800;
+  color: #fff;
+  text-shadow:
+    0 0 10px rgb(0 0 0 / 0.9),
+    0 0 20px rgb(56 189 248 / 0.6);
+  font-variant-numeric: tabular-nums;
+  z-index: 1;
+}
+
+.avg {
+  color: #bae6fd;
+  font-variant-numeric: tabular-nums;
+}
+
+.bolt,
+.boltBig {
+  position: absolute;
+  left: 50%;
+  top: -5%;
+  height: 110%;
+  transform: translateX(-50%);
+  z-index: 3;
+  pointer-events: none;
+  animation: zap 0.9s ease-out forwards;
+}
+
+.boltBig {
+  animation: zap 1.5s ease-out forwards;
+}
+
+.center {
+  display: grid;
+  gap: 8px;
+  justify-items: center;
+}
+
+.board {
+  width: 100%;
+  max-height: 62vh;
+  aspect-ratio: 1;
+}
+
+.plate {
+  fill: rgb(2 6 23 / 0.82);
+  stroke: rgb(56 189 248 / 0.25);
+  stroke-width: 1;
+}
+
+.ring {
+  fill: none;
+  stroke: rgb(56 189 248 / 0.55);
+  stroke-width: 1;
+}
+
+.ringStrong {
+  fill: none;
+  stroke: #38bdf8;
+  stroke-width: 2;
+}
+
+.bull {
+  fill: #a78bfa;
+}
+
+.wire {
+  stroke: rgb(56 189 248 / 0.35);
+  stroke-width: 0.8;
+}
+
+.number {
+  fill: #bae6fd;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 13px;
+  text-anchor: middle;
+  dominant-baseline: central;
+}
+
+.dart circle {
+  fill: #fde047;
+}
+
+.dart .dartCore {
+  fill: #fff;
+}
+
+.dart {
+  animation: land 0.35s ease-out;
+}
+
+.route {
+  font-family: var(--font-display);
+  font-size: clamp(1.3rem, 2.6vw, 2.2rem);
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: #fde047;
+  text-shadow: 0 0 14px rgb(253 224 71 / 0.7);
+}
+
+.flash {
+  position: absolute;
+  inset: 0;
+  background: rgb(186 230 253 / 0.8);
+  pointer-events: none;
+  z-index: 5;
+  animation: flash 0.7s ease-out forwards;
+}
+
+@keyframes hum {
+  50% {
+    box-shadow:
+      0 0 30px rgb(56 189 248 / 1),
+      0 0 80px rgb(56 189 248 / 0.45);
+  }
+}
+
+@keyframes flicker {
+  50% {
+    opacity: 0.75;
+  }
+}
+
+@keyframes zap {
+  0% {
+    opacity: 0;
+    transform: translateX(-50%) scaleY(0.4);
+  }
+  10% {
+    opacity: 1;
+    transform: translateX(-50%) scaleY(1);
+  }
+  20% {
+    opacity: 0.3;
+  }
+  30% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(-50%) scaleY(1.05);
+  }
+}
+
+@keyframes land {
+  from {
+    transform: scale(2.6);
+    opacity: 0;
+  }
+}
+
+@keyframes flash {
+  0% {
+    opacity: 0.9;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .active .cell,
+  .low,
+  .bolt,
+  .boltBig,
+  .dart,
+  .trail,
+  .flash {
+    animation: none;
+  }
+
+  .bolt,
+  .boltBig,
+  .flash {
+    display: none;
+  }
+}
+
+.trail {
+  fill: none;
+  stroke: #fde047;
+  stroke-width: 2.5;
+  stroke-dasharray: 10 6;
+  stroke-linejoin: round;
+  animation: current 0.8s linear infinite;
+}
+
+.trailStop {
+  fill: none;
+  stroke: #fde047;
+  stroke-width: 2;
+}
+
+@keyframes current {
+  to {
+    stroke-dashoffset: -32;
+  }
+}

@@ -653,6 +653,11 @@ class GameService:
             "turn_sources": [m.source for m in self._turn_meta(active)],
             # confidence of automatically detected darts of the shown turn (None if manual)
             "turn_confidence": [m.confidence for m in self._turn_meta(active)],
+            # board positions (mm) of the shown turn's darts, None where unknown
+            "turn_positions": [
+                [m.x_mm, m.y_mm] if m.x_mm is not None and m.y_mm is not None else None
+                for m in self._turn_meta(active)
+            ],
             "players": self._display_players(active, stats),
             # team games: who of the team at the board throws
             "thrower": self._thrower(active),

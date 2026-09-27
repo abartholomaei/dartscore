@@ -12,6 +12,8 @@ from dartscore.game.checkout import suggest_checkout
 from dartscore.game.dart import BULL, Dart
 
 NUMBERS = tuple(range(1, 21))
+# the numbers clockwise around the board, starting at the top
+BOARD_ORDER = (20, 1, 18, 4, 13, 6, 10, 15, 2, 17, 3, 19, 7, 16, 8, 11, 14, 9, 12, 5)
 
 
 def _target_label(target: int, multiplier: int | None) -> str:
@@ -36,6 +38,8 @@ class AroundTheClockSettings:
     # (single variant) a double/triple of the target advances by two/three numbers
     skip_multiples: bool = False
     include_bull: bool = True
+    # "board": clockwise around the board from the 20 ("Round the World")
+    order: Literal["numbers", "board"] = "numbers"
 
 
 class AroundTheClockGame(Game):
@@ -43,7 +47,8 @@ class AroundTheClockGame(Game):
 
     def __init__(self, player_count: int, settings: AroundTheClockSettings) -> None:
         self.settings = settings
-        self.targets = NUMBERS + ((BULL,) if settings.include_bull else ())
+        numbers = BOARD_ORDER if settings.order == "board" else NUMBERS
+        self.targets = numbers + ((BULL,) if settings.include_bull else ())
         super().__init__(player_count, MatchSettings())
 
     def _start_leg(self) -> None:
@@ -97,6 +102,7 @@ class AroundTheClockGame(Game):
             "variant": self.settings.variant,
             "skip_multiples": self.settings.skip_multiples,
             "include_bull": self.settings.include_bull,
+            "order": self.settings.order,
         }
 
 

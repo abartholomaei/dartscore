@@ -16,7 +16,6 @@ import structlog
 from dartscore.game import Dart, GameError
 from dartscore.game.base import Game
 from dartscore.game.checkout import suggest_checkout
-from dartscore.game.cricket import TARGETS as CRICKET_TARGETS
 from dartscore.game.cricket import CricketGame
 from dartscore.game.dart import BULL
 from dartscore.game.x01 import X01Game
@@ -131,14 +130,14 @@ def _x01_target(game: X01Game, player: int) -> Dart:
 def _cricket_target(game: CricketGame, player: int) -> Dart:
     marks = game.marks
     others = [q for q in range(game.player_count) if q != player]
-    open_for_others = [t for t in CRICKET_TARGETS if any(marks[q][t] < 3 for q in others)]
+    open_for_others = [t for t in game.targets if any(marks[q][t] < 3 for q in others)]
     # close what the others could still score on, highest first; then score where they are open
-    for target in CRICKET_TARGETS:
+    for target in game.targets:
         if marks[player][target] < 3 and target in open_for_others:
             return _cricket_dart(target)
     if game.settings.variant != "no_score" and open_for_others:
         return _cricket_dart(open_for_others[0])
-    for target in CRICKET_TARGETS:
+    for target in game.targets:
         if marks[player][target] < 3:
             return _cricket_dart(target)
     return Dart(BULL, 2)

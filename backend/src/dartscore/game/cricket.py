@@ -1,6 +1,10 @@
-"""Cricket: close 15-20 and the bull, score on numbers the opponents have not closed."""
+"""Cricket: close 15-20 and the bull, score on numbers the opponents have not closed.
 
-from dataclasses import dataclass
+"Random" cricket plays six randomly drawn numbers (plus the bull) instead of 15-20.
+"""
+
+import random
+from dataclasses import dataclass, field
 from typing import Any, Literal
 
 from dartscore.game.base import Game, MatchSettings, Turn
@@ -15,6 +19,8 @@ CricketVariant = Literal["standard", "cut_throat", "no_score"]
 @dataclass(frozen=True)
 class CricketSettings:
     variant: CricketVariant = "standard"
+    numbers: Literal["standard", "random"] = "standard"
+    seed: int = field(default_factory=lambda: random.randint(1, 1_000_000))
 
 
 class CricketGame(Game):
@@ -22,10 +28,15 @@ class CricketGame(Game):
 
     def __init__(self, player_count: int, settings: CricketSettings, match: MatchSettings) -> None:
         self.settings = settings
+        if settings.numbers == "random":
+            drawn = sorted(random.Random(settings.seed).sample(range(1, 21), 6), reverse=True)
+            self.targets: tuple[int, ...] = (*drawn, BULL)
+        else:
+            self.targets = TARGETS
         super().__init__(player_count, match)
 
     def _start_leg(self) -> None:
-        self.marks = [dict.fromkeys(TARGETS, 0) for _ in range(self.player_count)]
+        self.marks = [dict.fromkeys(self.targets, 0) for _ in range(self.player_count)]
         self.points = [0] * self.player_count
 
     def _closed_by_all_others(self, player: int, target: int) -> bool:
@@ -35,7 +46,7 @@ class CricketGame(Game):
 
     def _score_dart(self, turn: Turn, dart: Dart) -> None:
         p = turn.player
-        if dart.segment not in TARGETS:
+        if dart.segment not in self.targets:
             turn.values.append(0)
         else:
             target = dart.segment
@@ -60,7 +71,7 @@ class CricketGame(Game):
                     self.points[q] += points
 
     def _has_won(self, player: int) -> bool:
-        if any(self.marks[player][t] < MARKS_TO_CLOSE for t in TARGETS):
+        if any(self.marks[player][t] < MARKS_TO_CLOSE for t in self.targets):
             return False
         others = [self.points[q] for q in range(self.player_count) if q != player]
         if not others or self.settings.variant == "no_score":
@@ -71,14 +82,16 @@ class CricketGame(Game):
 
     def _leg_state(self) -> dict[str, Any]:
         return {
-            "targets": list(TARGETS),
-            "marks": [[m[t] for t in TARGETS] for m in self.marks],
+            "targets": list(self.targets),
+            "marks": [[m[t] for t in self.targets] for m in self.marks],
             "points": list(self.points),
         }
 
     def settings_dict(self) -> dict[str, Any]:
         return {
             "variant": self.settings.variant,
+            "numbers": self.settings.numbers,
+            "seed": self.settings.seed,
             "legs_to_win": self.match.legs_to_win,
             "sets_to_win": self.match.sets_to_win,
         }

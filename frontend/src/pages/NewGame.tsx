@@ -37,6 +37,9 @@ type TrainingOptions = {
   dartsPerTarget: number
   doublesOrder: 'sequential' | 'random'
   killerLives: number
+  atcOrder: 'numbers' | 'board'
+  halveItTargets: 'halve_it' | 'bermuda'
+  cricketNumbers: 'standard' | 'random'
   segNumber: number
   segRing: 'any' | 'single' | 'double' | 'triple'
   segEnd: 'darts' | 'hits'
@@ -57,6 +60,9 @@ const DEFAULT_TRAINING: TrainingOptions = {
   dartsPerTarget: 9,
   doublesOrder: 'sequential',
   killerLives: 3,
+  atcOrder: 'numbers',
+  halveItTargets: 'halve_it',
+  cricketNumbers: 'standard',
   segNumber: 20,
   segRing: 'any',
   segEnd: 'darts',
@@ -72,7 +78,7 @@ const CHECKOUT_RANGES = ['2-40', '41-100', '61-120', '101-170']
 function trainingSettings(mode: GameMode, o: TrainingOptions): Record<string, unknown> {
   switch (mode) {
     case 'around_the_clock':
-      return { variant: o.atcVariant, skip_multiples: o.skipMultiples, include_bull: o.includeBull }
+      return { variant: o.atcVariant, skip_multiples: o.skipMultiples, include_bull: o.includeBull, order: o.atcOrder }
     case 'shanghai':
       return { rounds: o.shanghaiRounds }
     case 'checkout_training': {
@@ -83,6 +89,8 @@ function trainingSettings(mode: GameMode, o: TrainingOptions): Record<string, un
       return { order: o.doublesOrder, include_bull: o.includeBull }
     case 'killer':
       return { lives: o.killerLives }
+    case 'halve_it':
+      return { targets: o.halveItTargets }
     case 'segment_training': {
       const ring = o.segNumber === 25 && o.segRing === 'triple' ? 'any' : o.segRing
       const limits = o.segEnd === 'darts' ? [33, 66, 99] : [5, 10, 20, 50]
@@ -198,7 +206,7 @@ export default function NewGame() {
       mode === 'x01'
         ? { start_score: startScore, in_rule: inRule, out_rule: outRule, legs_to_win: legs, sets_to_win: sets }
         : mode === 'cricket'
-          ? { variant, legs_to_win: legs, sets_to_win: sets }
+          ? { variant, numbers: training.cricketNumbers, legs_to_win: legs, sets_to_win: sets }
           : trainingSettings(mode, training)
     return {
       mode,
@@ -307,6 +315,12 @@ export default function NewGame() {
                   choice(v, variant, setVariant, t(`newGame.variants.${v}`)),
                 )}
               </div>
+              <h3 className={styles.label}>{t('newGame.cricketNumbers')}</h3>
+              <div className={styles.chips}>
+                {(['standard', 'random'] as const).map((v) =>
+                  choice(v, training.cricketNumbers, setOption('cricketNumbers'), t(`newGame.cricketNumberSets.${v}`)),
+                )}
+              </div>
             </>
           )}
           {mode === 'around_the_clock' && (
@@ -315,6 +329,12 @@ export default function NewGame() {
               <div className={styles.chips}>
                 {(['single', 'double', 'triple'] as const).map((v) =>
                   choice(v, training.atcVariant, setOption('atcVariant'), t(`newGame.rings.${v}`)),
+                )}
+              </div>
+              <h3 className={styles.label}>{t('newGame.atcOrder')}</h3>
+              <div className={styles.chips}>
+                {(['numbers', 'board'] as const).map((v) =>
+                  choice(v, training.atcOrder, setOption('atcOrder'), t(`newGame.atcOrders.${v}`)),
                 )}
               </div>
               <Toggle checked={training.skipMultiples} onChange={setOption('skipMultiples')} label={t('newGame.skipMultiples')} />
@@ -437,7 +457,17 @@ export default function NewGame() {
               <p className="muted">{t('newGame.killerHint')}</p>
             </>
           )}
-          {mode === 'halve_it' && <p className="muted">{t('newGame.halveItHint')}</p>}
+          {mode === 'halve_it' && (
+            <>
+              <h3 className={styles.label}>{t('newGame.sequence')}</h3>
+              <div className={styles.chips}>
+                {(['halve_it', 'bermuda'] as const).map((v) =>
+                  choice(v, training.halveItTargets, setOption('halveItTargets'), t(`newGame.sequences.${v}`)),
+                )}
+              </div>
+              <p className="muted">{training.halveItTargets === 'bermuda' ? t('newGame.bermudaHint') : t('newGame.halveItHint')}</p>
+            </>
+          )}
           {mode === 'gotcha' && (
             <>
               <h3 className={styles.label}>{t('newGame.goal')}</h3>

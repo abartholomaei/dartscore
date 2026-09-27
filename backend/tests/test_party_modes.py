@@ -95,3 +95,33 @@ def test_score_training_sums_points_over_rounds() -> None:
     assert game.state()["scores"] == [900]
     with pytest.raises(GameError):
         create_game("score_training", 1, {"rounds": 7})
+
+
+def test_bermuda_uses_its_own_sequence() -> None:
+    from dartscore.game.party import BERMUDA_TARGETS
+
+    game = create_game("halve_it", 1, {"targets": "bermuda", "start": 0})
+    assert game.state()["target"] == "12"
+    assert game.state()["rounds"] == len(BERMUDA_TARGETS)
+    play(game, "S12", "T12", "MISS", "NEXT")
+    assert game.state()["scores"] == [48]
+    assert game.state()["target"] == "13"
+
+
+def test_round_the_world_follows_the_board() -> None:
+    game = create_game("around_the_clock", 1, {"order": "board", "include_bull": False})
+    assert game.state()["current_targets"] == ["20"]
+    play(game, "S20", "S1", "S2")  # 2 is not next on the board (18 is)
+    assert game.state()["current_targets"] == ["18"]
+
+
+def test_random_cricket_draws_six_numbers() -> None:
+    game = create_game("cricket", 2, {"numbers": "random", "seed": 3})
+    targets = game.state()["targets"]
+    assert len(targets) == 7
+    assert targets[-1] == 25
+    assert targets[:6] == sorted(targets[:6], reverse=True)
+    assert create_game("cricket", 2, {"numbers": "random", "seed": 3}).state()["targets"] == targets
+    number = targets[0]
+    play(game, f"T{number}")
+    assert game.state()["marks"][0][0] == 3

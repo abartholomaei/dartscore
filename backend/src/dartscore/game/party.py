@@ -2,7 +2,7 @@
 
 import random
 from dataclasses import dataclass, field
-from typing import Any
+from typing import Any, Literal
 
 from dartscore.game.base import Game, GameError, MatchSettings, Turn
 from dartscore.game.dart import BULL, Dart
@@ -98,11 +98,14 @@ class KillerGame(Game):
 
 # a target is a number (any ring), "D"/"T" (any double/triple) or 25 (bull, both rings)
 HALVE_IT_TARGETS: tuple[int | str, ...] = (20, 16, "D", 17, 18, "T", 19, BULL)
+# Bermuda: the same rules with a longer, fixed sequence
+BERMUDA_TARGETS: tuple[int | str, ...] = (12, 13, 14, "D", 15, 16, 17, "T", 18, 19, 20, BULL)
 
 
 @dataclass(frozen=True)
 class HalveItSettings:
     start: int = 40
+    targets: Literal["halve_it", "bermuda"] = "halve_it"
 
 
 class HalveItGame(Game):
@@ -113,6 +116,9 @@ class HalveItGame(Game):
 
     def __init__(self, player_count: int, settings: HalveItSettings) -> None:
         self.settings = settings
+        self.sequence: tuple[int | str, ...] = (
+            BERMUDA_TARGETS if settings.targets == "bermuda" else HALVE_IT_TARGETS
+        )
         super().__init__(player_count, MatchSettings())
 
     def _start_leg(self) -> None:
@@ -121,7 +127,7 @@ class HalveItGame(Game):
 
     def _target(self, turn: Turn) -> int | str:
         index = self.turns_of(turn.player).index(turn)
-        return HALVE_IT_TARGETS[min(index, len(HALVE_IT_TARGETS) - 1)]
+        return self.sequence[min(index, len(self.sequence) - 1)]
 
     @staticmethod
     def _hits(target: int | str, dart: Dart) -> bool:
@@ -141,7 +147,7 @@ class HalveItGame(Game):
     def _after_turn(self, turn: Turn) -> int | None:
         if not any(turn.values):
             self.scores[turn.player] //= 2
-        if all(len(self.turns_of(p)) >= len(HALVE_IT_TARGETS) for p in range(self.player_count)):
+        if all(len(self.turns_of(p)) >= len(self.sequence) for p in range(self.player_count)):
             return _best([float(s) for s in self.scores])
         return None
 
@@ -152,17 +158,17 @@ class HalveItGame(Game):
         rounds = len(self.turns_of(self.current_player))
         if self.current_turn is not None:
             rounds -= 1
-        index = min(rounds, len(HALVE_IT_TARGETS) - 1)
-        target = HALVE_IT_TARGETS[index]
+        index = min(rounds, len(self.sequence) - 1)
+        target = self.sequence[index]
         return {
             "scores": list(self.scores),
             "target": {"D": "D", "T": "T", BULL: "BULL"}.get(target, str(target)),
             "round": index + 1,
-            "rounds": len(HALVE_IT_TARGETS),
+            "rounds": len(self.sequence),
         }
 
     def settings_dict(self) -> dict[str, Any]:
-        return {"start": self.settings.start}
+        return {"start": self.settings.start, "targets": self.settings.targets}
 
 
 # --- Gotcha --------------------------------------------------------------------------------

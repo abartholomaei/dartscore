@@ -586,7 +586,7 @@ Priorität für V2: **M** = zuerst, **S** = danach, **C** = bei Gelegenheit.
 - [ ] V2-13 Automatische Bounce-out-Erkennung
 - [ ] V2-14 Diagnose-Ansicht
 - [ ] V2-15 Namen in Ansagen, Ton pro Modus schaltbar
-- [ ] V2-16 Round the World, Count Up, Bermuda, Random/Hidden Cricket, Power-Scoring, Checkout-Serie
+- [x] V2-16 Round the World, Bermuda, Random Cricket (Count Up/Power-Scoring = Punkte-Training; offen: Hidden Cricket, Checkout-Serie)
 - [ ] V2-17 X01-Extras (Bull-Wertung, Rundenlimit, offizielles Ausbullen)
 - [ ] V2-18 Teams / Doppel
 - [ ] V2-19 Mirror Match

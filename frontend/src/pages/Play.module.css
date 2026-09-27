@@ -686,3 +686,9 @@
 .displayMode .targetValue {
   font-size: clamp(5rem, 15vw, 13rem);
 }
+
+/* checkout route suggested in the empty dart fields */
+.slotSuggestion {
+  color: var(--accent);
+  opacity: 0.9;
+}

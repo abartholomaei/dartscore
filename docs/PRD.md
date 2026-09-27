@@ -612,6 +612,6 @@ Priorität für V2: **M** = zuerst, **S** = danach, **C** = bei Gelegenheit.
 - [ ] V2-39 QR-Code zum Verbinden
 - [ ] V2-40 Deutsche Stadionstimme
 - [ ] V2-41 Hilfe mit Spielregeln für alle Spielmodi (Setup und im Spiel)
-- [ ] V2-42 Checkout-Vorschlag als grüne Zahlen in den Wurffeldern
+- [x] V2-42 Checkout-Vorschlag als grüne Zahlen in den Wurffeldern
 
 **Quellen (Auswahl):** targetdarts.com/omni, dartcounter.net (Spiele, Ultimate, Release Notes v8.4/v9.0/v9.7), scoliadarts.com (Home 2, Vergleich, Software, FAQ, Social), autodarts.com (Preise, Updates), autodarts.diy (Spieleinstellungen, Desktop, AI Referee, Statistik), github.com/creazy231/tools-for-autodarts.

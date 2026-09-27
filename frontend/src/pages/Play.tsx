@@ -174,6 +174,9 @@ function Running({ game }: { game: GameState }) {
         <div className={styles.slots}>
           {[0, 1, 2].map((i) => {
             const label = shownDarts[i]
+            // empty fields show the rest of the checkout route in green
+            const suggestion =
+              !label && !game.awaiting_next && game.checkout ? game.checkout[i - shownDarts.length] : undefined
             return (
               <button
                 key={i}
@@ -182,7 +185,13 @@ function Running({ game }: { game: GameState }) {
                 onClick={() => setCorrecting(correcting === i ? null : i)}
                 aria-label={label ? t('play.correctDart', { n: i + 1 }) : undefined}
               >
-                <span className={styles.slotLabel}>{label ?? '–'}</span>
+                {suggestion ? (
+                  <span className={`${styles.slotLabel} ${styles.slotSuggestion}`} title={t('play.checkout')}>
+                    {suggestion}
+                  </span>
+                ) : (
+                  <span className={styles.slotLabel}>{label ?? '–'}</span>
+                )}
                 {label && game.turn_sources[i] === 'auto' && (
                   (game.turn_confidence[i] ?? 1) < LOW_CONFIDENCE ? (
                     <span className={styles.unsure} title={t('play.unsure')}>

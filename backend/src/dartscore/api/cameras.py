@@ -73,11 +73,12 @@ class JpegRenderer:
             return cached[1]
 
         image = frame.image
-        if undistorter is not None:
-            image = undistorter.undistort(image)
         h, w = image.shape[:2]
         if width < w:
             image = cv2.resize(image, (width, round(h * width / w)), interpolation=cv2.INTER_AREA)
+        # undistorting the downscaled image is much cheaper than the full frame
+        if undistorter is not None:
+            image = undistorter.undistort(image)
         ok, buf = cv2.imencode(".jpg", image, [cv2.IMWRITE_JPEG_QUALITY, self._stream.jpeg_quality])
         if not ok:
             raise RuntimeError("JPEG encoding failed")

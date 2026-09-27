@@ -87,6 +87,8 @@ class _Camera:
     ref_color: Image | None = None
     prev_ref_color: Image | None = None
     empty_small: Gray | None = None
+    # latest raw frame; its undistorted full-size version is computed only when needed
+    last_raw: Image | None = None
     last_color: Image | None = None
     last_full: Gray | None = None
 
@@ -112,7 +114,11 @@ def color_diff(a: Image, b: Image) -> Gray:
     """Per-pixel difference, taking the largest change over the color channels: a grey dart on
     a green field hardly differs in brightness but clearly in color."""
     diff = cv2.absdiff(a, b)
-    return np.asarray(diff.max(axis=2) if diff.ndim == 3 else diff, dtype=np.uint8)
+    if diff.ndim == 2:
+        return np.asarray(diff, dtype=np.uint8)
+    # per-channel maximum with OpenCV: ~20x faster than numpy's max(axis=2)
+    c0, c1, c2 = cv2.split(diff)
+    return np.asarray(cv2.max(cv2.max(c0, c1), c2), dtype=np.uint8)
 
 
 def _gray(image: Image) -> Gray:
@@ -306,7 +312,8 @@ class DartDetector:
         }
 
     def current_images(self) -> dict[str, Image]:
-        return {cid: c.last_color for cid, c in self._cameras.items() if c.last_color is not None}
+        images = {cid: self._color(c) for cid, c in self._cameras.items()}
+        return {cid: image for cid, image in images.items() if image is not None}
 
     def process(self, frames: dict[str, Image], now: float) -> list[DetectionEvent]:
         cfg = self.config
@@ -315,14 +322,17 @@ class DartDetector:
             image = frames.get(cid)
             if image is None:
                 continue
-            if cam.undistorter is not None:
-                image = cam.undistorter.undistort(image)
+            # Undistorting every full frame of every camera is expensive; motion detection only
+            # needs the small image, so that is undistorted after downscaling.
             self._prepare(cam, image)
             small = self._small(cam, image)
-            cam.last_color = image
+            cam.last_raw = image
+            cam.last_color = None  # undistorted lazily, see _color
             cam.last_full = None  # computed lazily when needed
             if cam.ref_small is None:
-                self._set_reference(cam, image, small, empty=True)
+                color = self._color(cam)
+                assert color is not None
+                self._set_reference(cam, color, small, empty=True)
             if cam.prev_small is not None and cam.mask_small is not None:
                 motion = _changed_fraction(
                     cam.prev_small, small, cam.mask_small, cfg.pixel_threshold, cam.roi_pixels_small
@@ -361,6 +371,14 @@ class DartDetector:
         cam.mask_full = _roi_mask(cam.calibration, (w, h), 1.0)
         cam.roi_pixels_small = max(1, int(np.count_nonzero(cam.mask_small)))
 
+    def _color(self, cam: _Camera) -> Image | None:
+        """The latest frame at full size, undistorted if the camera has a lens calibration."""
+        if cam.last_color is None and cam.last_raw is not None:
+            cam.last_color = (
+                cam.undistorter.undistort(cam.last_raw) if cam.undistorter else cam.last_raw
+            )
+        return cam.last_color
+
     def _small(self, cam: _Camera, image: Image) -> Gray:
         # colors are kept: see color_diff
         small = np.asarray(image, dtype=np.uint8)
@@ -369,6 +387,8 @@ class DartDetector:
                 cv2.resize(small, None, fx=cam.scale, fy=cam.scale, interpolation=cv2.INTER_AREA),
                 dtype=np.uint8,
             )
+        if cam.undistorter is not None:
+            small = np.asarray(cam.undistorter.undistort(small), dtype=np.uint8)
         return np.asarray(cv2.GaussianBlur(small, (5, 5), 0), dtype=np.uint8)
 
     def _set_reference(self, cam: _Camera, image: Image, small: Gray, empty: bool = False) -> None:
@@ -471,17 +491,19 @@ class DartDetector:
 
     def _absorb_current(self, empty: bool) -> None:
         for cam in self._cameras.values():
-            if cam.last_color is not None and cam.prev_small is not None:
-                self._set_reference(cam, cam.last_color, cam.prev_small, empty=empty)
+            color = self._color(cam)
+            if color is not None and cam.prev_small is not None:
+                self._set_reference(cam, color, cam.prev_small, empty=empty)
 
     def _locate(self, camera_ids: list[str]) -> DartDetection | None:
         cfg = self.config
         hits: list[CameraHit] = []
         for cid in camera_ids:
             cam = self._cameras[cid]
-            if cam.ref_full is None or cam.last_color is None or cam.mask_full is None:
+            color = self._color(cam)
+            if cam.ref_full is None or color is None or cam.mask_full is None:
                 continue
-            current = np.asarray(cam.last_color, dtype=np.uint8)
+            current = np.asarray(color, dtype=np.uint8)
             min_px = int(cfg.min_dart_area * cam.roi_pixels_small / (cam.scale**2) * 0.5)
             found = find_dart_tip(
                 cam.ref_full, current, cam.mask_full, cfg.pixel_threshold, max(20, min_px)

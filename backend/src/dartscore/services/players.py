@@ -111,6 +111,16 @@ class PlayerService:
             session.commit()
             return player
 
+    def set_avatar(self, player_id: int, avatar: str | None, pin: str | None = None) -> Player:
+        with self._sessions() as session:
+            player = session.get(Player, player_id)
+            if player is None:
+                raise GameError("player_not_found", f"Player {player_id} not found")
+            check_pin(player, pin)
+            player.avatar = avatar
+            session.commit()
+            return player
+
     def delete(self, player_id: int, pin: str | None = None) -> bool:
         """Deletes a player without games; players with games are archived so their
         statistics survive. Returns True if the player was deleted, False if archived."""

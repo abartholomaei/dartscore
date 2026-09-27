@@ -109,6 +109,16 @@ export async function sendJson<T>(
     headers: { ...(body === undefined ? {} : { 'Content-Type': 'application/json' }), ...headers },
     body: body === undefined ? undefined : JSON.stringify(body),
   })
+  return parseResponse<T>(res)
+}
+
+/** Sends a file (e.g. a profile photo) as the raw request body. */
+export async function sendBlob<T>(method: 'PUT' | 'POST', path: string, blob: Blob, headers?: Record<string, string>): Promise<T> {
+  const res = await fetch(path, { method, headers: { 'Content-Type': blob.type, ...headers }, body: blob })
+  return parseResponse<T>(res)
+}
+
+async function parseResponse<T>(res: Response): Promise<T> {
   if (!res.ok) {
     let message = `HTTP ${res.status}`
     let code: string | undefined
@@ -154,6 +164,8 @@ export type Player = {
   throwing_hand: 'right' | 'left' | null
   default_mode: GameMode | null
   has_pin: boolean
+  // picture URL (photo or gallery), null = initial letter
+  avatar: string | null
 }
 
 export type PlayerGameStats = {
@@ -186,6 +198,7 @@ export type GamePlayer = {
   name: string
   color: string
   guest: boolean
+  avatar?: string | null
   bot_level: number | null
   stats: PlayerGameStats
 }
@@ -366,7 +379,7 @@ export type AggregateStats = {
 }
 
 export type PlayerStats = {
-  player: { id: number; name: string; color: string }
+  player: { id: number; name: string; color: string; avatar: string | null }
   modes: Partial<Record<GameMode, AggregateStats>>
 }
 

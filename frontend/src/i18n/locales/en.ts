@@ -169,6 +169,16 @@ const en = {
     hintT20: 'While scoring in X01 the treble 20 is assumed as the target (only darts near it count). Each dot is a dart, the green dot is the average; rings every 10 mm.',
     hint: 'Measured against the field you had to hit (e.g. the double on a finish). "Out" means towards the edge of the board. Rings every 10 mm.',
   },
+  avatar: {
+    title: 'Profile picture',
+    takePhoto: 'Take photo',
+    choosePhoto: 'Choose picture',
+    gallery: 'Gallery',
+    remove: 'Remove',
+    zoom: 'Zoom',
+    cropHint: 'Drag the picture to position it.',
+    use: 'Use picture',
+  },
   photos: {
     review: 'Referee',
     reviewing: 'checking…',
@@ -191,6 +201,7 @@ const en = {
     require: '{{name}}, you require {{score}}',
   },
   errors: {
+    invalid_image: 'This picture could not be used.',
     play_on_mode: 'Only X01 and Cricket matches can be continued.',
     too_few_captures: 'Capture at least 8 views first.',
     pin_required: 'This profile is protected by a PIN.',

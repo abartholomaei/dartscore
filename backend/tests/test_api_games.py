@@ -447,3 +447,33 @@ def test_correct_event_reaches_earlier_legs(client: TestClient) -> None:
     # 60 + 2 + 40 no longer checks out 101: leg 1 is open again
     assert corrected.json()["legs_won"] == [0, 0]
     assert client.put("/api/games/active/events/99", json={"dart": "S2"}).status_code == 422
+
+
+def test_avatar_photo_and_gallery(client: TestClient) -> None:
+    import cv2
+    import numpy as np
+
+    (a,) = make_players(client, "A")
+    image = np.zeros((600, 900, 3), np.uint8)
+    image[:, :450] = (0, 0, 255)
+    ok, jpeg = cv2.imencode(".jpg", image)
+    assert ok
+    uploaded = client.put(f"/api/players/{a}/avatar", content=jpeg.tobytes(),
+                          headers={"content-type": "image/jpeg"})  # fmt: skip
+    assert uploaded.status_code == 200, uploaded.text
+    url = uploaded.json()["avatar"]
+    assert url.startswith(f"/api/players/{a}/avatar.jpg?v=")
+    stored = cv2.imdecode(np.frombuffer(client.get(url).content, np.uint8), cv2.IMREAD_COLOR)
+    assert stored is not None
+    assert stored.shape == (512, 512, 3)  # cropped square and scaled down
+    assert client.put(f"/api/players/{a}/avatar", content=b"not an image").status_code == 422
+
+    gallery = client.get("/api/players/avatars/gallery").json()
+    chosen = client.put(f"/api/players/{a}/avatar/gallery", json={"name": gallery[0]}).json()
+    assert chosen["avatar"] == f"/avatars/{gallery[0]}.svg"
+    assert client.get(f"/api/players/{a}/avatar.jpg").status_code == 404  # photo removed
+
+    client.patch(f"/api/players/{a}", json={"new_pin": "1234"})
+    assert client.delete(f"/api/players/{a}/avatar").status_code == 403
+    cleared = client.delete(f"/api/players/{a}/avatar", headers={"X-Player-Pin": "1234"})
+    assert cleared.json()["avatar"] is None

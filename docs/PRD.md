@@ -556,6 +556,7 @@ Priorität für V2: **M** = zuerst, **S** = danach, **C** = bei Gelegenheit.
 | V2-38 | Bildschirmschoner / Leerlauf-Ansicht | Wenn kein Spiel läuft: rotierende Bestenliste, letzte Highlights, Uhr; Erkennung wacht beim ersten Dart auf und schlägt ein Spiel vor | eigene Idee | mittel / gering | C |
 | V2-39 | QR-Code zum Verbinden | QR-Code auf dem großen Bildschirm öffnet dartscore direkt am Handy (für Profil-Editor, Eingabe, Zuschauer) | eigene Idee, Tools for Autodarts | mittel / gering | S |
 | V2-40 | Deutsche Stadionstimme | Zweiter Satz Caller-Clips auf Deutsch; optional Spielernamen als Clip erzeugen | eigene Idee | mittel / gering | C |
+| V2-41 | Hilfe mit Spielregeln | Zu jedem Spielmodus eine Regel-Erklärung (Ablauf, Wertung, Sieg, Varianten, Beispiel), aufrufbar beim Spiel-Setup und während des Spiels über ein „?“; EN/DE | Wunsch des Nutzers | hoch / gering | S |
 
 ### 11.2 Hinweise
 
@@ -563,7 +564,7 @@ Priorität für V2: **M** = zuerst, **S** = danach, **C** = bei Gelegenheit.
 - **V2-2** ist zugleich eine Quelle für genauere Trainingsdaten (siehe Epic 3b).
 - **V2-10 und V2-23** passen gut zum vorhandenen Home Assistant auf dem Mac mini.
 - **V2-24 Themes:** Entschieden und umgesetzt (2026-09-26): schwarz-graues Grundschema mit Board-Grün als Akzent; Rot nur für Fehler und Bust. Weitere Themes bleiben optional.
-- **V2-26 bis V2-29** gehören zusammen („Look & Feel“): Profilbilder erscheinen in Spielanzeige, Statistik und Intro; die Design-Überarbeitung legt Schrift, Größen und einen Anzeige-Modus für kleine Displays fest. Fotos bleiben lokal auf dem Mac mini (keine Cloud), werden verkleinert gespeichert und sind im Export/Backup enthalten.
+- **V2-26 bis V2-29** gehören zusammen („Look & Feel“): Profilbilder erscheinen in Spielanzeige, Statistik und Intro; die Design-Überarbeitung legt Schrift, Größen und einen Anzeige-Modus für kleine Displays fest. Fotos bleiben lokal auf dem Mac mini (keine Cloud), werden quadratisch auf 512 px verkleinert und ohne Metadaten in `data/avatars` gespeichert.
 - **V2-30 Animationen:** leichtgewichtig im Browser (CSS/Canvas, keine großen Videos), damit auch ältere Tablets flüssig bleiben; Einstellung „Animationen: an / reduziert / aus“.
 - **V2-31 Weiterspielen:** technisch einfach, weil Spiele ereignisbasiert sind – die Match-Einstellung wird geändert und das Spiel wieder aktiv gesetzt; die Statistik rechnet automatisch neu.
 
@@ -594,8 +595,8 @@ Priorität für V2: **M** = zuerst, **S** = danach, **C** = bei Gelegenheit.
 - [ ] V2-23 Lokale Ereignis-Schnittstelle
 - [ ] V2-24 Themes, Board-Skins, Startspieler per Münzwurf
 - [ ] V2-25 Arcade-Spiele
-- [ ] V2-26 Profil-Editor mit Foto (Handykamera/Upload, Zuschnitt)
-- [ ] V2-27 Avatar-Galerie
+- [x] V2-26 Profil-Editor mit Foto (Handykamera/Upload, Zuschnitt)
+- [x] V2-27 Avatar-Galerie (16 Figuren)
 - [ ] V2-28 Design-Überarbeitung (eigene Schrift, Typo, Icons)
 - [ ] V2-29 Große Anzeige für kleine Displays / Anzeige-Modus
 - [ ] V2-30 Animationen und Partikeleffekte (abschaltbar)
@@ -609,5 +610,6 @@ Priorität für V2: **M** = zuerst, **S** = danach, **C** = bei Gelegenheit.
 - [ ] V2-38 Bildschirmschoner / Leerlauf-Ansicht
 - [ ] V2-39 QR-Code zum Verbinden
 - [ ] V2-40 Deutsche Stadionstimme
+- [ ] V2-41 Hilfe mit Spielregeln für alle Spielmodi (Setup und im Spiel)
 
 **Quellen (Auswahl):** targetdarts.com/omni, dartcounter.net (Spiele, Ultimate, Release Notes v8.4/v9.0/v9.7), scoliadarts.com (Home 2, Vergleich, Software, FAQ, Social), autodarts.com (Preise, Updates), autodarts.diy (Spieleinstellungen, Desktop, AI Referee, Statistik), github.com/creazy231/tools-for-autodarts.

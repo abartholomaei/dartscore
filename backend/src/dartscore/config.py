@@ -124,6 +124,10 @@ class Settings(BaseSettings):
         return self.data_dir / "calibration"
 
     @property
+    def avatars_dir(self) -> Path:
+        return self.data_dir / "avatars"
+
+    @property
     def recordings_dir(self) -> Path:
         return self.data_dir / "recordings"
 

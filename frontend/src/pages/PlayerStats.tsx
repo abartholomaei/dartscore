@@ -12,6 +12,7 @@ import {
   type Player,
   type PlayerStats as Stats,
 } from '../api'
+import Avatar from '../components/Avatar'
 import DartBoard from '../components/DartBoard'
 import { useErrorText } from '../helpers'
 import styles from './PlayerStats.module.css'
@@ -81,9 +82,7 @@ export default function PlayerStats() {
   return (
     <>
       <div className={styles.header}>
-        <span className={styles.avatar} style={{ background: stats.player.color }}>
-          {stats.player.name.slice(0, 1).toUpperCase()}
-        </span>
+        <Avatar name={stats.player.name} color={stats.player.color} avatar={stats.player.avatar} size={64} />
         <h1 className={styles.title}>{stats.player.name}</h1>
         <select
           className={styles.select}

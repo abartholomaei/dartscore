@@ -31,6 +31,8 @@ class Player(Base):
     default_mode: Mapped[str | None] = mapped_column(String(20), default=None)
     # optional PIN against accidental edits (not a security feature): "salt$scrypt-hash"
     pin_hash: Mapped[str | None] = mapped_column(String(128), default=None)
+    # profile picture: "photo:<version>" (file in data/avatars) or "gallery:<name>"
+    avatar: Mapped[str | None] = mapped_column(String(40), default=None)
 
 
 class GameRecord(Base):

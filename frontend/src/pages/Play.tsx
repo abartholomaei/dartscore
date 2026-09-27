@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useNavigate } from 'react-router'
 import { sendJson, type CricketVariant, type GamePlayer, type GameState, type InOutRule } from '../api'
+import Avatar from '../components/Avatar'
 import DartBoard from '../components/DartBoard'
 import DetectionBadge from '../components/DetectionBadge'
 import VisitPhotos, { type VisitRef } from '../components/VisitPhotos'
@@ -269,7 +270,11 @@ function PlayerHeader({ game, player }: { game: GameState; player: GamePlayer })
   const legs = Number(game.settings.legs_to_win) > 1 || sets
   return (
     <div className={styles.playerHeader}>
-      <span className={styles.dot} style={{ background: player.color }} />
+      {player.avatar ? (
+        <Avatar name={player.name} color={player.color} avatar={player.avatar} size={40} />
+      ) : (
+        <span className={styles.dot} style={{ background: player.color }} />
+      )}
       <span className={styles.playerName}>
         {player.bot_level ? '🤖 ' : ''}
         {player.name}

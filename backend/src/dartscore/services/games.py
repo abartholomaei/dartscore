@@ -24,6 +24,7 @@ from dartscore.game import (
     replay_game,
 )
 from dartscore.game.stats import game_stats
+from dartscore.services.avatars import avatar_url
 from dartscore.services.hub import EventHub
 from dartscore.storage.models import GameEventRecord, GamePlayer, GameRecord, Player, utcnow
 
@@ -75,6 +76,7 @@ def _player_info(gp: GamePlayer) -> dict[str, Any]:
             "player_id": gp.player_id,
             "name": gp.player.name,
             "color": gp.player.color,
+            "avatar": avatar_url(gp.player.id, gp.player.avatar),
             "guest": False,
             "bot_level": None,
             "bot_of": None,

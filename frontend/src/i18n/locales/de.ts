@@ -170,6 +170,16 @@ const de: Translations = {
     hintT20: 'Beim Scoren in X01 wird die Triple 20 als Ziel angenommen (es zählen nur Darts in ihrer Nähe). Jeder Punkt ist ein Dart, der grüne Punkt der Durchschnitt; Ringe alle 10 mm.',
     hint: 'Gemessen am Feld, das getroffen werden musste (z. B. das Doppel beim Checkout). „Außen“ heißt Richtung Board-Rand. Ringe alle 10 mm.',
   },
+  avatar: {
+    title: 'Profilbild',
+    takePhoto: 'Foto aufnehmen',
+    choosePhoto: 'Bild auswählen',
+    gallery: 'Galerie',
+    remove: 'Entfernen',
+    zoom: 'Zoom',
+    cropHint: 'Bild verschieben, um den Ausschnitt zu wählen.',
+    use: 'Bild übernehmen',
+  },
   photos: {
     review: 'Nachprüfen',
     reviewing: 'prüfe…',
@@ -192,6 +202,7 @@ const de: Translations = {
     require: '{{name}}, du brauchst {{score}}',
   },
   errors: {
+    invalid_image: 'Dieses Bild konnte nicht verwendet werden.',
     play_on_mode: 'Nur X01- und Cricket-Matches können fortgesetzt werden.',
     too_few_captures: 'Erst mindestens 8 Ansichten aufnehmen.',
     pin_required: 'Dieses Profil ist mit einer PIN geschützt.',

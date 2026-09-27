@@ -5,6 +5,7 @@ import { ApiError, BOT_MODES, getJson, sendJson, PARTY_MODES, TRAINING_MODES, ty
 import { useLiveGame } from '../LiveGame'
 import { PENDING_KEY, useErrorText } from '../helpers'
 import { PlayerForm } from './Players'
+import Avatar from '../components/Avatar'
 import styles from './NewGame.module.css'
 
 type Participant = { key: string; playerId: number | null; guestName: string | null; botLevel?: number; botOf?: number }
@@ -468,7 +469,7 @@ export default function NewGame() {
                   aria-pressed={on}
                   onClick={() => toggle(p)}
                 >
-                  <span className={styles.dot} style={{ background: p.color }} />
+                  <Avatar name={p.name} color={p.color} avatar={p.avatar} size={24} />
                   {p.name}
                 </button>
               )

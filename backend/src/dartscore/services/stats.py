@@ -8,6 +8,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session, aliased, sessionmaker
 
 from dartscore.game import GameError
+from dartscore.services.avatars import avatar_url
 from dartscore.services.export import _since
 from dartscore.storage.models import GamePlayer, GameRecord, Player
 
@@ -113,7 +114,12 @@ class StatsService:
             for record, gp in rows:
                 by_mode.setdefault(record.mode, []).append((record, gp))
             return {
-                "player": {"id": player.id, "name": player.name, "color": player.color},
+                "player": {
+                    "id": player.id,
+                    "name": player.name,
+                    "color": player.color,
+                    "avatar": avatar_url(player.id, player.avatar),
+                },
                 "modes": {mode: _aggregate(items) for mode, items in by_mode.items()},
             }
 

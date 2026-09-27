@@ -1,0 +1,74 @@
+.editor {
+  display: grid;
+  gap: 12px;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(56px, 1fr));
+  gap: 8px;
+}
+
+.galleryItem {
+  padding: 0;
+  border: 2px solid transparent;
+  border-radius: 50%;
+  background: none;
+  cursor: pointer;
+}
+
+.galleryItem:hover,
+.galleryItem:focus-visible {
+  border-color: var(--accent);
+}
+
+.galleryItem img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1;
+}
+
+.crop {
+  display: grid;
+  gap: 10px;
+  justify-items: start;
+}
+
+.window {
+  position: relative;
+  overflow: hidden;
+  border-radius: 50%;
+  background: #000;
+  touch-action: none;
+  cursor: grab;
+  box-shadow: 0 0 0 3px var(--accent);
+}
+
+.window img {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  max-width: none;
+  user-select: none;
+  pointer-events: none;
+}
+
+.zoom {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 400;
+}

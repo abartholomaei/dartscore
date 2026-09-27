@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
-import { ApiError, getJson, sendJson, PARTY_MODES, TRAINING_MODES, type GameMode, type Player } from '../api'
+import { ApiError, getJson, sendBlob, sendJson, PARTY_MODES, TRAINING_MODES, type GameMode, type Player } from '../api'
 import { PLAYER_COLORS, useErrorText } from '../helpers'
+import Avatar from '../components/Avatar'
+import AvatarEditor, { type AvatarChange } from '../components/AvatarEditor'
 import styles from './Players.module.css'
 
 export default function Players() {
@@ -66,9 +68,7 @@ export default function Players() {
       <ul className={styles.list}>
         {players?.map((p) => (
           <li key={p.id} className={`card ${styles.item} ${p.archived ? styles.archived : ''}`}>
-            <span className={styles.avatar} style={{ background: p.color }}>
-              {p.name.slice(0, 1).toUpperCase()}
-            </span>
+            <Avatar name={p.name} color={p.color} avatar={p.avatar} size={44} />
             <Link to={`/players/${p.id}`} className={styles.name}>
               {p.name}
             </Link>
@@ -103,6 +103,7 @@ export function PlayerForm({ player, onDone }: { player: Player | null; onDone: 
   const [favoriteDouble, setFavoriteDouble] = useState<number | null>(player?.favorite_double ?? null)
   const [hand, setHand] = useState<Player['throwing_hand']>(player?.throwing_hand ?? null)
   const [defaultMode, setDefaultMode] = useState<GameMode | null>(player?.default_mode ?? null)
+  const [avatarChange, setAvatarChange] = useState<AvatarChange | null>(null)
   const [newPin, setNewPin] = useState('')
   const [removePin, setRemovePin] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -117,13 +118,31 @@ export function PlayerForm({ player, onDone }: { player: Player | null; onDone: 
       }
       if (newPin) changes.new_pin = newPin
       else if (removePin) changes.new_pin = null
-      const saved = player
-        ? await withPin(t('players.enterPin'), (headers) =>
-            sendJson<Player>('PATCH', `/api/players/${player.id}`, { name, color, ...changes }, headers),
+      // the PIN is asked once and reused for the picture
+      const pin: { headers?: Record<string, string> } = {}
+      let saved = player
+        ? await withPin(
+            t('players.enterPin'),
+            (headers) => sendJson<Player>('PATCH', `/api/players/${player.id}`, { name, color, ...changes }, headers),
+            pin,
           )
         : await sendJson<Player>('POST', '/api/players', { name, color }).then((created) =>
             sendJson<Player>('PATCH', `/api/players/${created.id}`, changes),
           )
+      if (avatarChange) {
+        const path = `/api/players/${saved.id}/avatar`
+        const change = avatarChange
+        saved = await withPin(
+          t('players.enterPin'),
+          (headers) =>
+            change.kind === 'photo'
+              ? sendBlob<Player>('PUT', path, change.blob, headers)
+              : change.kind === 'gallery'
+                ? sendJson<Player>('PUT', `${path}/gallery`, { name: change.name }, headers)
+                : sendJson<Player>('DELETE', path, undefined, headers),
+          pin,
+        )
+      }
       onDone(saved)
     } catch (err) {
       setError(errorText(err))
@@ -136,6 +155,10 @@ export function PlayerForm({ player, onDone }: { player: Player | null; onDone: 
         {t('players.name')}
         <input value={name} maxLength={40} required autoFocus onChange={(e) => setName(e.target.value)} />
       </label>
+      <div className={styles.field}>
+        {t('avatar.title')}
+        <AvatarEditor name={name} color={color} current={player?.avatar ?? null} onChange={setAvatarChange} />
+      </div>
       <div className={styles.field}>
         {t('players.color')}
         <div className={styles.colors}>
@@ -223,13 +246,18 @@ export function PlayerForm({ player, onDone }: { player: Player | null; onDone: 
 }
 
 /** Runs a change; if the profile is PIN-protected, asks for the PIN and tries again. */
-async function withPin<T>(question: string, run: (headers?: Record<string, string>) => Promise<T>): Promise<T> {
+async function withPin<T>(
+  question: string,
+  run: (headers?: Record<string, string>) => Promise<T>,
+  remembered: { headers?: Record<string, string> } = {},
+): Promise<T> {
   try {
-    return await run()
+    return await run(remembered.headers)
   } catch (err) {
     if (!(err instanceof ApiError) || err.code !== 'pin_required') throw err
     const pin = window.prompt(question)
     if (pin === null) throw err
-    return run({ 'X-Player-Pin': pin })
+    remembered.headers = { 'X-Player-Pin': pin }
+    return run(remembered.headers)
   }
 }

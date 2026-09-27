@@ -614,4 +614,67 @@ Priorität für V2: **M** = zuerst, **S** = danach, **C** = bei Gelegenheit.
 - [x] V2-41 Hilfe mit Spielregeln für alle Spielmodi (Setup und im Spiel)
 - [x] V2-42 Checkout-Vorschlag als grüne Zahlen in den Wurffeldern
 
+### 11.4 Konzept V2-25: Arcade-Spiele
+
+Animierte Spiele, bei denen die Scheibe der Controller ist: Jedes Feld (Zahl, Ring, Bull) ist eine Eingabe. Ziel ist ein „Spielhallen“-Erlebnis auf dem Monitor – für Kinder, Gäste und als Abwechslung zum Training. Vorbild ist Scolia Social; dartscore läuft dabei komplett lokal.
+
+#### Grundidee: die Scheibe als Controller
+
+- **Zahl (1–20)** = Richtung bzw. Spur: Die 20 Segmente liegen kreisförmig wie ein Radar um die Mitte. Die Spielwelt wird ebenfalls kreisförmig um das Zentrum aufgebaut, so dass „Treffer auf die 5“ intuitiv „unten links“ bedeutet.
+- **Ring** = Entfernung bzw. Stärke: Doppel = außen/weit weg, Single außen, Triple = mittlere Entfernung, Single innen = nah. Triple und Doppel zählen zusätzlich als „starker Schuss“.
+- **Bull** = Spezialaktion (Bombe, Schild, Joker); Bullseye stärker als 25.
+- **Daneben** = Fehlschuss (kurze Animation, kein Abzug außer Zeit/Munition).
+
+Damit bleibt das Werfen normales Darts-Training (Präzision auf Segment und Ring), nur verpackt in ein Spiel.
+
+#### Spielideen (Auswahl)
+
+| Spiel | Spieler | Ablauf | Darts-Bezug | Aufwand |
+| --- | --- | --- | --- | --- |
+| **Zombie-Abwehr** | 1–4, kooperativ | Zombies laufen aus allen 20 Richtungen auf die Mitte (das „Lager“) zu. Treffer auf die Zahl der Spur trifft den vordersten Zombie dort; Triple = Kopfschuss (sofort erledigt), Bull = Granate (alle nahen Zombies). Wellen werden schneller; erreicht ein Zombie das Lager, kostet das ein Leben. | Segmente schnell und sicher treffen | mittel |
+| **Asteroiden-Sturm** | 1–4, kooperativ | Asteroiden fliegen aus verschiedenen Richtungen auf den Planeten in der Mitte. Man muss die Richtung **und** den Ring der aktuellen Entfernung treffen (weit = Doppel, mittel = Triple, nah = Single innen). Große Asteroiden zerfallen in kleine. | Ringe gezielt treffen | mittel |
+| **Schiffe versenken** | 2 (oder 2 Teams), gegeneinander | Jeder versteckt vorab seine Flotte auf Feldern der Scheibe (am Handy, verdeckt). Abwechselnd wird auf Felder „geschossen“; Treffer, Versenkt, Wasser mit Animation. | Feld-Präzision, Taktik | gering–mittel |
+| **Darts-Rennen** | 2–8, Party | Jeder hat ein Fahrzeug/Tier auf einer Rennstrecke; Punkte bewegen nach vorn (Triple = Turbo, Doppel = Überholen, Bull = Abkürzung, daneben = Boxenstopp). | Scoring, kinderfreundlich | gering |
+| **Boss-Kampf** | 1–4, kooperativ | Ein riesiger Boss mit Lebensbalken; wechselnde „Schwachstellen“ (leuchtende Felder) richten dreifachen Schaden an. Mehrere Phasen mit Angriffen, die man mit dem Bull abwehrt. | Ziel wechseln, Druck | mittel–hoch |
+| **Ballon-Party** | 1–8, Kinder | Ballons mit Zahlen schweben über die Scheibe; ein Treffer auf die Zahl lässt ihn platzen, Sonderballons geben Punkte-Bonus. Zeitlimit pro Runde. | Zahlen lernen, einfache Ziele | gering |
+
+**MVP-Vorschlag:** Zuerst **Zombie-Abwehr** (zeigt das Konzept am besten, kooperativ), dann **Darts-Rennen** (einfach, für Kinder/Party), dann **Schiffe versenken**.
+
+#### Technik
+
+- **Spiellogik im Backend** wie alle Modi: ereignisbasiert (Darts, „Weiter“), zufällige Wellen über einen Seed reproduzierbar – damit funktionieren automatische Erkennung, Rückgängig, Korrektur, Bot und Statistik ohne Sonderwege. Zeitabhängiges (z. B. „Zombie läuft weiter“) wird in **Aufnahmen/Takten** gerechnet, nicht in Echtzeit: Jede Aufnahme ist ein Takt, in dem sich die Gegner einen Schritt bewegen. Das passt zum Werfen (Pausen fürs Ziehen) und bleibt fair.
+- **Darstellung im Browser** mit **PixiJS** (WebGL, Sprites, Partikel, 60 fps). Die Animation zwischen zwei Spielständen (Gegner rücken vor, Treffer, Explosion) wird im Browser interpoliert; die Spielregeln kennt nur das Backend.
+- **Vollbild** auf dem Monitor (Anzeige-Modus), Eingabe weiter über Kameras oder Handy. Ton: Soundeffekte und Musik lokal, Stadionsprecher-Clips für Ansagen („Wave 3!“).
+- **Leistung:** Zielplattform ist der Mac mini (Intel HD 4000, Firefox). Budget: ≤ 300 gleichzeitige Sprites, Texturen als Sprite-Atlas (≤ 2048 px), Test in 1080p.
+
+#### Grafiken mit OpenAI (einmalig generiert, danach offline)
+
+Wie beim Stadionsprecher werden die Grafiken **einmalig erzeugt** und als Dateien im Projekt abgelegt; beim Spielen ist kein Internet nötig.
+
+- **Werkzeug:** Bild-API von OpenAI (z. B. `gpt-image-1`) per Skript `tools/arcade/generate.py`, Schlüssel aus einer Datei (`~/.env/openai-key`, nie im Repo). Alternativ Bilder manuell in ChatGPT erzeugen und in einen Ordner legen.
+- **Einheitlicher Stil:** ein fester Stil-Prompt pro Spiel (z. B. „farbenfroher Comic-Stil, dicke Konturen, leicht isometrisch, dunkler Hintergrund passend zu Schwarz/Grün“) plus Referenzbild für alle Folgebilder, damit Figuren zusammenpassen.
+- **Freigestellte Sprites:** Figuren/Objekte mit transparentem Hintergrund (PNG), Hintergründe separat.
+- **Animation:** Bild-KI liefert Einzelbilder, keine flüssigen Animationen. Daher:
+  1. **Prozedural** (bevorzugt): Einzelsprite + Bewegung im Code (Wackeln, Laufen durch Auf-/Ab-Bewegung, Drehen, Squash & Stretch, Aufblitzen bei Treffer) und Partikel (Explosion, Staub, Funken). Zuverlässig und leicht.
+  2. **Wenige Einzelbilder** pro Figur (z. B. 3–4 Laufposen, „getroffen“, „besiegt“) per Bild-Bearbeitung mit Referenz, zu einem Sprite-Atlas zusammengesetzt.
+  3. Effekte (Explosion, Blitz) teils als kurze Bildfolgen.
+- **Mengengerüst MVP (Zombie-Abwehr):** Hintergrund, Lager in der Mitte, 3–4 Zombie-Typen × 4–6 Posen, Treffer-/Explosionseffekte, UI-Elemente (Wellen-Anzeige, Leben) – rund 30–40 Bilder. Kosten grob 5–10 € einmalig (je nach Qualitätsstufe).
+- **Rechte:** Nach den OpenAI-Nutzungsbedingungen gehören die erzeugten Bilder dem Nutzer; für den privaten Einsatz unproblematisch. Keine bekannten Figuren/Marken nachbauen (eigene Designs).
+
+#### Offene Entscheidungen
+
+- OpenAI-API-Schlüssel oder manuelle Erzeugung in ChatGPT?
+- Stil: Comic, Pixel-Art oder „Neon“ passend zum schwarz-grünen Design?
+- Erstes Spiel: Zombie-Abwehr, Darts-Rennen oder etwas anderes?
+- Kinderfreundlich (keine Gewalt-Optik) – statt Zombies z. B. „Weltraum-Schleim“?
+
+#### To-Dos (MVP)
+
+- [ ] Arcade-Grundgerüst: Modus-Typ „arcade“ im Backend (Takt-Modell, Seed), PixiJS-Vollbildansicht, Asset-Manifest
+- [ ] Generator-Skript für Grafiken (Stil-Prompt, Referenzbild, transparente PNGs, Sprite-Atlas)
+- [ ] Spiel 1: Zombie-Abwehr (Regeln, Wellen, Grafiken, Effekte, Sounds)
+- [ ] Spiel 2: Darts-Rennen
+- [ ] Spiel 3: Schiffe versenken (Flotte verdeckt am Handy platzieren)
+- [ ] Performance-Test auf dem Mac mini (1080p, Firefox)
+
 **Quellen (Auswahl):** targetdarts.com/omni, dartcounter.net (Spiele, Ultimate, Release Notes v8.4/v9.0/v9.7), scoliadarts.com (Home 2, Vergleich, Software, FAQ, Social), autodarts.com (Preise, Updates), autodarts.diy (Spieleinstellungen, Desktop, AI Referee, Statistik), github.com/creazy231/tools-for-autodarts.

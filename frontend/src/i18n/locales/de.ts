@@ -295,6 +295,12 @@ const de: Translations = {
       },
     },
   },
+  connect: {
+    title: 'Am Handy öffnen',
+    hint: 'Code mit der Handykamera scannen (gleiches WLAN) - z. B. für dein Profilbild oder um Darts einzugeben.',
+    qrAlt: 'QR-Code für {{url}}',
+    otherAddress: 'Andere Adresse',
+  },
   photos: {
     review: 'Nachprüfen',
     reviewing: 'prüfe…',

@@ -1,0 +1,23 @@
+.qr {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px;
+}
+
+.qr img {
+  border-radius: 8px;
+  background: #fff;
+}
+
+.text {
+  display: grid;
+  gap: 6px;
+  justify-items: start;
+  max-width: 320px;
+}
+
+.text code {
+  font-size: 1rem;
+  color: var(--accent);
+}

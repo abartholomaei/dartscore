@@ -609,7 +609,7 @@ Priorität für V2: **M** = zuerst, **S** = danach, **C** = bei Gelegenheit.
 - [ ] V2-36 Tägliche Challenge und Serien
 - [ ] V2-37 Highlight-Galerie
 - [ ] V2-38 Bildschirmschoner / Leerlauf-Ansicht
-- [ ] V2-39 QR-Code zum Verbinden
+- [x] V2-39 QR-Code zum Verbinden
 - [ ] V2-40 Deutsche Stadionstimme
 - [x] V2-41 Hilfe mit Spielregeln für alle Spielmodi (Setup und im Spiel)
 - [x] V2-42 Checkout-Vorschlag als grüne Zahlen in den Wurffeldern

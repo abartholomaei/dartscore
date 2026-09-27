@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
 import { sendJson, type CameraStatus, type DetectionStatus, type Health } from '../api'
+import ConnectQr from '../components/ConnectQr'
 import DetectionBadge from '../components/DetectionBadge'
 import { useLiveGame } from '../LiveGame'
 import { setAudioPref, speechAvailable, stadiumVoiceAvailable, useAudioPrefs, type CallerVoice } from '../caller'
@@ -85,6 +86,9 @@ export default function Settings() {
             {t('settings.sounds')}
           </label>
           <span className="muted">{speechAvailable ? t('settings.audioHint') : t('settings.noSpeech')}</span>
+        </section>
+        <section className={`card ${styles.link}`}>
+          <ConnectQr />
         </section>
         {synthetic && (
           <section className={`card ${styles.link}`}>

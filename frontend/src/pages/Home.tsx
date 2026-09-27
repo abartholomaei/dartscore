@@ -4,6 +4,7 @@ import { Link } from 'react-router'
 import { getJson, type HistoryEntry } from '../api'
 import { gameTitle } from '../helpers'
 import { useLiveGame } from '../LiveGame'
+import ConnectQr from '../components/ConnectQr'
 import styles from './Home.module.css'
 
 export default function Home() {
@@ -73,6 +74,9 @@ export default function Home() {
           </ul>
         </section>
       )}
+      <section className="card">
+        <ConnectQr size={120} />
+      </section>
     </>
   )
 }

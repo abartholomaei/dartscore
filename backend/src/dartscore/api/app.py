@@ -1,4 +1,5 @@
 import asyncio
+import socket
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
@@ -67,6 +68,31 @@ class HealthResponse(BaseModel):
     status: str
     version: str
     cameras_configured: int
+
+
+class NetworkResponse(BaseModel):
+    # addresses other devices in the home network can open (for the QR code)
+    urls: list[str]
+
+
+def lan_addresses() -> list[str]:
+    """IPv4 addresses of this machine in the local network (the one used for the default
+    route first; no packet is sent by connecting a UDP socket)."""
+    found: list[str] = []
+    try:
+        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
+            s.connect(("192.0.2.1", 9))  # TEST-NET address, only selects the outgoing interface
+            found.append(s.getsockname()[0])
+    except OSError:
+        pass
+    try:
+        for info in socket.getaddrinfo(socket.gethostname(), None, socket.AF_INET):
+            address = str(info[4][0])
+            if address not in found and not address.startswith("127."):
+                found.append(address)
+    except OSError:
+        pass
+    return found
 
 
 def load_undistorters(settings: Settings) -> dict[str, Undistorter]:
@@ -173,6 +199,11 @@ def create_app(settings: Settings, camera_manager: CameraManager | None = None) 
             version=__version__,
             cameras_configured=len(settings.cameras),
         )
+
+    @app.get("/api/network")
+    def network(request: Request) -> NetworkResponse:
+        port = request.url.port or settings.server.port
+        return NetworkResponse(urls=[f"http://{address}:{port}" for address in lan_addresses()])
 
     # mount last so /api/... takes precedence
     if (settings.frontend_dir / "index.html").is_file():

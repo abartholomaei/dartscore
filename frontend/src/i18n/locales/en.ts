@@ -294,6 +294,12 @@ const en = {
       },
     },
   },
+  connect: {
+    title: 'Open on your phone',
+    hint: 'Scan the code with the phone camera (same Wi-Fi) - e.g. to edit your profile picture or enter darts.',
+    qrAlt: 'QR code for {{url}}',
+    otherAddress: 'Other address',
+  },
   photos: {
     review: 'Referee',
     reviewing: 'checking…',

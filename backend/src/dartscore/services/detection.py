@@ -8,7 +8,7 @@ stored (and possibly corrected) game events they form the training data for the 
 import json
 import threading
 import time
-from dataclasses import asdict
+from dataclasses import asdict, replace
 from datetime import datetime
 from pathlib import Path
 from typing import Any
@@ -26,6 +26,7 @@ from dartscore.vision.camera import CameraManager
 from dartscore.vision.detection import DartDetection, DartDetector, Takeout
 from dartscore.vision.intrinsics import Undistorter
 from dartscore.vision.model import TipModel, load_model
+from dartscore.vision.referee import is_uncertain, review_images
 
 log = structlog.get_logger(__name__)
 
@@ -152,7 +153,45 @@ class DetectionService:
             self._last_published_state = state
             self._publish_status()
 
+    def _second_look(self, detector: DartDetector, dart: DartDetection) -> DartDetection:
+        """Uncertain detections get the referee's more thorough evaluation (~0.5 s)."""
+        if not self.config.second_look or not is_uncertain(dart.hits):
+            return dart
+        try:
+            verdict = review_images(
+                detector.previous_reference_images(),
+                detector.reference_images(),
+                detector.calibration_info(),
+                self.config,
+                self._model,
+                list(detector.board_darts or [])[:-1],
+            )
+        except Exception:
+            log.exception("second_look_failed")
+            return dart
+        if verdict.label is None or verdict.x_mm is None or verdict.y_mm is None:
+            return dart
+        log.info("second_look", live=dart.label, referee=verdict.label, unanimous=verdict.unanimous)
+        if verdict.label == dart.label:
+            return dart
+        segment, multiplier = (
+            Dart.parse(verdict.label).segment,
+            Dart.parse(verdict.label).multiplier,
+        )
+        return replace(
+            dart,
+            x_mm=verdict.x_mm,
+            y_mm=verdict.y_mm,
+            label=verdict.label,
+            segment=segment,
+            multiplier=multiplier,
+            # the referee overruled the fast detection: keep it marked for checking
+            confidence=min(dart.confidence, 0.49),
+        )
+
     def _on_dart(self, detector: DartDetector, dart: DartDetection) -> None:
+        live_label = dart.label
+        dart = self._second_look(detector, dart)
         game_state: dict[str, Any] | None = None
         accepted = False
         active = self._games.active_state()
@@ -170,6 +209,8 @@ class DetectionService:
                 log.warning("detected_dart_rejected", code=exc.code)
         info = {
             **asdict(dart),
+            # the fast result, if the second look changed it
+            "live_label": live_label if live_label != dart.label else None,
             "accepted": accepted,
             "time": datetime.now().isoformat(timespec="milliseconds"),
         }

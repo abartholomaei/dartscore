@@ -8,8 +8,10 @@ reports what every camera saw, so a disputed dart can be decided with the photos
 
 import json
 import statistics
+from collections.abc import Mapping
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Any
 
 import cv2
 import numpy as np
@@ -26,6 +28,7 @@ from dartscore.vision.detection import (
     refine_with_model,
 )
 from dartscore.vision.model import TipModel
+from dartscore.vision.sources import Image
 
 # offsets to the configured difference threshold that are tried per camera; only equal or
 # more sensitive ones: a stricter threshold loses the thin tip and moves it up the dart
@@ -57,12 +60,36 @@ def review_recording(
     folder: Path, config: DetectionConfig, model: TipModel | None = None
 ) -> Verdict:
     meta = json.loads((folder / "meta.json").read_text())
-    known = [tuple(p) for p in (meta.get("board_darts") or [])[:-1]]
     calibrations = meta.get("calibrations", {})
+    befores = {cid: cv2.imread(str(folder / f"{cid}_before.jpg")) for cid in calibrations}
+    afters = {cid: cv2.imread(str(folder / f"{cid}_after.jpg")) for cid in calibrations}
+    known = [(float(p[0]), float(p[1])) for p in (meta.get("board_darts") or [])[:-1]]
+    return review_images(befores, afters, calibrations, config, model, known)
+
+
+def is_uncertain(hits: tuple[CameraHit, ...]) -> bool:
+    """The live result deserves a second look: the cameras it was fused from name different
+    fields, or only one camera saw the dart. On 606 real throws, re-checking exactly these
+    (~30 %) gave the best result (596 vs 593 right; checking every dart: 595)."""
+    used = [h for h in hits if h.used]
+    return len(used) < 2 or len({board.score_at(*h.board_mm).label for h in used}) > 1
+
+
+def review_images(
+    befores: Mapping[str, Image | None],
+    afters: Mapping[str, Image | None],
+    calibrations: Mapping[str, Mapping[str, Any]],
+    config: DetectionConfig,
+    model: TipModel | None = None,
+    known: list[tuple[float, float]] | None = None,
+) -> Verdict:
+    """The referee on in-memory images (live) or loaded recordings: ``calibrations`` as in
+    the recording meta (homography, undistorted)."""
+    known = known or []
     per_camera: list[tuple[str, CameraHit | None, int]] = []
     for cid, cal_info in calibrations.items():
-        before = cv2.imread(str(folder / f"{cid}_before.jpg"))
-        after = cv2.imread(str(folder / f"{cid}_after.jpg"))
+        before = befores.get(cid)
+        after = afters.get(cid)
         if before is None or after is None:
             per_camera.append((cid, None, 0))
             continue

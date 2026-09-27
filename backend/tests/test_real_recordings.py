@@ -47,3 +47,29 @@ def test_referee_agrees_on_real_throws(recording: str, expected: str) -> None:
     assert len(verdict.cameras) == 3
     assert sum(c.used for c in verdict.cameras) >= 2
     assert all(c.found > 0 for c in verdict.cameras if c.used)
+
+
+def test_uncertainty_rule_and_in_memory_review() -> None:
+    import json
+
+    import cv2
+
+    from dartscore.vision.detection import CameraHit
+    from dartscore.vision.referee import is_uncertain, review_images, review_recording
+
+    agree = (CameraHit("a", (0, 0), (0.0, 110.0), 500), CameraHit("b", (0, 0), (1.0, 111.0), 500))
+    assert not is_uncertain(agree)
+    disagree = (CameraHit("a", (0, 0), (0.0, 103.0), 500), CameraHit("b", (0, 0), (0.0, 97.0), 500))
+    assert is_uncertain(disagree)  # T20 vs S20
+    assert is_uncertain(agree[:1])  # a single camera
+
+    folder = FIXTURES / "164040_069580"
+    meta = json.loads((folder / "meta.json").read_text())
+    cams = meta["calibrations"]
+    verdict = review_images(
+        {c: cv2.imread(str(folder / f"{c}_before.jpg")) for c in cams},
+        {c: cv2.imread(str(folder / f"{c}_after.jpg")) for c in cams},
+        cams,
+        DetectionConfig(),
+    )
+    assert verdict == review_recording(folder, DetectionConfig())

@@ -61,6 +61,8 @@ class DetectionConfig(BaseModel):
     """Automatic dart detection (classic image processing on the calibrated cameras)."""
 
     enabled: bool = True
+    # re-check uncertain darts more thoroughly (cameras disagree or only one saw the dart)
+    second_look: bool = True
     # analysis rate; the cameras keep running at full frame rate
     rate_hz: float = Field(default=15.0, ge=2, le=30)
     # frames are downscaled to this width for motion detection

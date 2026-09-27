@@ -618,33 +618,52 @@ Priorität für V2: **M** = zuerst, **S** = danach, **C** = bei Gelegenheit.
 
 Animierte Spiele, bei denen die Scheibe der Controller ist: Jedes Feld (Zahl, Ring, Bull) ist eine Eingabe. Ziel ist ein „Spielhallen“-Erlebnis auf dem Monitor – für Kinder, Gäste und als Abwechslung zum Training. Vorbild ist Scolia Social; dartscore läuft dabei komplett lokal.
 
-#### Grundidee: die Scheibe als Controller
+#### Vorbild Scolia Social (recherchiert 2026-09-27)
 
-- **Zahl (1–20)** = Richtung bzw. Spur: Die 20 Segmente liegen kreisförmig wie ein Radar um die Mitte. Die Spielwelt wird ebenfalls kreisförmig um das Zentrum aufgebaut, so dass „Treffer auf die 5“ intuitiv „unten links“ bedeutet.
-- **Ring** = Entfernung bzw. Stärke: Doppel = außen/weit weg, Single außen, Triple = mittlere Entfernung, Single innen = nah. Triple und Doppel zählen zusätzlich als „starker Schuss“.
-- **Bull** = Spezialaktion (Bombe, Schild, Joker); Bullseye stärker als 25.
-- **Daneben** = Fehlschuss (kurze Animation, kein Abzug außer Zeit/Munition).
+Scolia Social hat 6 Spiele: Killer (Western), Shanghai, Voltage X01 (Neon/Strom), Lumberjack, Zombie Shooter und Asteroid. Das gemeinsame Muster:
 
-Damit bleibt das Werfen normales Darts-Training (Präzision auf Segment und Ring), nur verpackt in ein Spiel.
+- **Die Scheibe ist die Spielwelt:** In der Bildmitte liegt immer ein großes, thematisch gestaltetes Board. Jeder Dart erscheint an seiner **echten Position**, und die Spielobjekte (Zombies, Asteroiden-Stücke, Holzstücke) liegen auf echten Stellen der Scheibe. Das Prinzip „triff das Ding dort, wo es steht“ versteht jeder sofort.
+- **Drei Arten von Eingabe:**
+  1. klassische Feldregeln mit neuer Optik (Killer, Shanghai, Voltage X01)
+  2. stufenlose Präzision (Lumberjack: je näher am Bull, desto größer das abgehackte Stück)
+  3. Objekt-Ziele, die sich bewegen oder drehen (Zombies wandern, der Asteroid rotiert)
+- **Aufholmechaniken:** Ein verfehlter Zombie wird größer, ist aber weniger Punkte wert. Die letzte Runde zählt doppelt. Ein Shanghai gewinnt sofort.
+- **Gleiches Layout in allen Spielen:** Spielerkarten mit Foto, Rundenanzeige oben, ein Banner unten mit Anweisung („Triff die 4“) und Rückmeldung. Dazu kurze Einblendungen über den ganzen Bildschirm („Runde 1“, „Mach dich bereit, Alex“, Sieger-Podest) und große Punkte-Popups („+420“).
+- **Onboarding:** pro Spiel „So geht’s“ mit 3–4 kurzen Karten und einem Vorschau-Video.
+- **Stil:** 2D-Cartoon, gemalt und pro Spiel eigenes Thema; nur der Asteroid wirkt realistischer (Sci-Fi-HUD).
+- **Was wir nicht übernehmen:** Cloud-Pflicht, Abo, Session-Timer fürs Personal und das manuelle „Ist die Scheibe frei?“ beim Spielerwechsel. Bei uns ist alles lokal, und das Ziehen erkennen die Kameras.
 
-#### Spielideen (Auswahl)
+**Unser Vorteil:** Die Erkennung liefert schon jetzt die Position jedes Darts in Millimetern. Genau diese Positionen braucht das Prinzip „Scheibe als Spielwelt“.
 
-| Spiel | Spieler | Ablauf | Darts-Bezug | Aufwand |
+#### Eingabe: die Scheibe als Spielwelt
+
+- Das Board wird thematisch gestaltet in der Mitte gezeigt, mit den Darts an ihrer echten Position.
+- **Objekt-Treffer** zählen nach **Abstand** zwischen Dart und Objekt in mm, nicht nach Feld. Größere Objekte sind leichter zu treffen.
+- **Feld-Regeln** (Zahl, Ring, Bull) gibt es weiter für Spiele mit klassischen Regeln.
+- **Stufenlose Präzision:** Der Abstand zum Bull oder zu einem Zielpunkt ergibt die Punkte.
+- **Handeingabe als Rückfallebene:** Ohne Kamera zählt die Mitte des getippten Felds als Position.
+
+#### Spielideen (überarbeitet, eigene Themen)
+
+| Spiel | Spieler | Ablauf | Eingabe-Art | Aufwand |
 | --- | --- | --- | --- | --- |
-| **Zombie-Abwehr** | 1–4, kooperativ | Zombies laufen aus allen 20 Richtungen auf die Mitte (das „Lager“) zu. Treffer auf die Zahl der Spur trifft den vordersten Zombie dort; Triple = Kopfschuss (sofort erledigt), Bull = Granate (alle nahen Zombies). Wellen werden schneller; erreicht ein Zombie das Lager, kostet das ein Leben. | Segmente schnell und sicher treffen | mittel |
-| **Asteroiden-Sturm** | 1–4, kooperativ | Asteroiden fliegen aus verschiedenen Richtungen auf den Planeten in der Mitte. Man muss die Richtung **und** den Ring der aktuellen Entfernung treffen (weit = Doppel, mittel = Triple, nah = Single innen). Große Asteroiden zerfallen in kleine. | Ringe gezielt treffen | mittel |
-| **Schiffe versenken** | 2 (oder 2 Teams), gegeneinander | Jeder versteckt vorab seine Flotte auf Feldern der Scheibe (am Handy, verdeckt). Abwechselnd wird auf Felder „geschossen“; Treffer, Versenkt, Wasser mit Animation. | Feld-Präzision, Taktik | gering–mittel |
-| **Darts-Rennen** | 2–8, Party | Jeder hat ein Fahrzeug/Tier auf einer Rennstrecke; Punkte bewegen nach vorn (Triple = Turbo, Doppel = Überholen, Bull = Abkürzung, daneben = Boxenstopp). | Scoring, kinderfreundlich | gering |
-| **Boss-Kampf** | 1–4, kooperativ | Ein riesiger Boss mit Lebensbalken; wechselnde „Schwachstellen“ (leuchtende Felder) richten dreifachen Schaden an. Mehrere Phasen mit Angriffen, die man mit dem Bull abwehrt. | Ziel wechseln, Druck | mittel–hoch |
-| **Ballon-Party** | 1–8, Kinder | Ballons mit Zahlen schweben über die Scheibe; ein Treffer auf die Zahl lässt ihn platzen, Sonderballons geben Punkte-Bonus. Zeitlimit pro Runde. | Zahlen lernen, einfache Ziele | gering |
+| **Monster-Jagd** | 2–8, gegeneinander | Kleine Monster sitzen auf Stellen der Scheibe, mit Punktwert. Ein Treffer in der Nähe erledigt sie; ein verfehltes Monster wächst (leichter zu treffen), bringt aber weniger Punkte. Manche wandern pro Aufnahme weiter. Die letzte Runde zählt doppelt. | Objekt-Ziele | mittel |
+| **Meteoriten-Abwehr** | 1–4, kooperativ (optional gegeneinander) | Ein Meteorit bedeckt die Scheibe, aufgeteilt in Stücke. Jeder Dart zerstört das Stück darunter. Der Meteorit dreht sich pro Aufnahme und nähert sich der Erde; ist er nicht rechtzeitig zerlegt, verliert das Team. 3 Schwierigkeitsstufen. | Objekt-Ziele, Drehung | mittel |
+| **Eisschollen / Holzfäller-Variante** | 2–8 | Eine runde Fläche um das Bull; jeder Dart schlägt ein Stück heraus, je näher am Bull, desto größer und punkteträchtiger. Wo schon nichts mehr ist, gibt es keine Punkte. | stufenlose Präzision | gering–mittel |
+| **Darts-Rennen** | 2–8, Party | Fahrzeuge auf einer Rennstrecke; Punkte bewegen nach vorn (Triple = Turbo, Bull = Abkürzung). Kinderfreundlich. | Feld-Regeln | gering |
+| **Themen-Skins** für bestehende Modi | wie Modus | X01 als „Strom“-Batterie, Killer im Western-Stil, Shanghai im Asien-Stil – nur neue Optik und Einblendungen, gleiche Regeln. | Feld-Regeln | gering pro Skin |
+| **Schiffe versenken** | 2 / 2 Teams | Flotte verdeckt am Handy auf Stellen der Scheibe platzieren, abwechselnd „schießen“. | Objekt-Ziele (verdeckt) | mittel |
 
-**MVP-Vorschlag:** Zuerst **Zombie-Abwehr** (zeigt das Konzept am besten, kooperativ), dann **Darts-Rennen** (einfach, für Kinder/Party), dann **Schiffe versenken**.
+**MVP-Vorschlag (neu):**
+1. Das gemeinsame **Arcade-Grundgerüst**: themen-fähiges Board mit echten Dart-Positionen, Spielerkarten mit Foto, Banner, Einblendungen, Punkte-Popups, „So geht’s“-Karten.
+2. **Monster-Jagd** als erstes Objekt-Spiel.
+3. Ein **Themen-Skin für X01**: zeigt schnell viel, weil die Regeln schon da sind.
 
 #### Technik
 
 - **Spiellogik im Backend** wie alle Modi: ereignisbasiert (Darts, „Weiter“), zufällige Wellen über einen Seed reproduzierbar – damit funktionieren automatische Erkennung, Rückgängig, Korrektur, Bot und Statistik ohne Sonderwege. Zeitabhängiges (z. B. „Zombie läuft weiter“) wird in **Aufnahmen/Takten** gerechnet, nicht in Echtzeit: Jede Aufnahme ist ein Takt, in dem sich die Gegner einen Schritt bewegen. Das passt zum Werfen (Pausen fürs Ziehen) und bleibt fair.
 - **Darstellung im Browser** mit **PixiJS** (WebGL, Sprites, Partikel, 60 fps). Die Animation zwischen zwei Spielständen (Gegner rücken vor, Treffer, Explosion) wird im Browser interpoliert; die Spielregeln kennt nur das Backend.
-- **Vollbild** auf dem Monitor (Anzeige-Modus), Eingabe weiter über Kameras oder Handy. Ton: Soundeffekte und Musik lokal, Stadionsprecher-Clips für Ansagen („Wave 3!“).
+- **Vollbild** auf dem Monitor (Anzeige-Modus), Eingabe weiter über Kameras oder Handy. Ton: Soundeffekte und Musik lokal, Stadionsprecher-Clips für Ansagen (z. B. „Round three!“).
 - **Leistung:** Zielplattform ist der Mac mini (Intel HD 4000, Firefox). Budget: ≤ 300 gleichzeitige Sprites, Texturen als Sprite-Atlas (≤ 2048 px), Test in 1080p.
 
 #### Grafiken mit OpenAI (einmalig generiert, danach offline)
@@ -658,23 +677,25 @@ Wie beim Stadionsprecher werden die Grafiken **einmalig erzeugt** und als Dateie
   1. **Prozedural** (bevorzugt): Einzelsprite + Bewegung im Code (Wackeln, Laufen durch Auf-/Ab-Bewegung, Drehen, Squash & Stretch, Aufblitzen bei Treffer) und Partikel (Explosion, Staub, Funken). Zuverlässig und leicht.
   2. **Wenige Einzelbilder** pro Figur (z. B. 3–4 Laufposen, „getroffen“, „besiegt“) per Bild-Bearbeitung mit Referenz, zu einem Sprite-Atlas zusammengesetzt.
   3. Effekte (Explosion, Blitz) teils als kurze Bildfolgen.
-- **Mengengerüst MVP (Zombie-Abwehr):** Hintergrund, Lager in der Mitte, 3–4 Zombie-Typen × 4–6 Posen, Treffer-/Explosionseffekte, UI-Elemente (Wellen-Anzeige, Leben) – rund 30–40 Bilder. Kosten grob 5–10 € einmalig (je nach Qualitätsstufe).
+- **Mengengerüst MVP (Monster-Jagd):** Board-Skin, Hintergrund, 4–5 Monster-Typen × 4–6 Posen, Treffer-/Explosionseffekte, UI-Elemente (Wellen-Anzeige, Leben) – rund 30–40 Bilder. Kosten grob 5–10 € einmalig (je nach Qualitätsstufe).
 - **Rechte:** Nach den OpenAI-Nutzungsbedingungen gehören die erzeugten Bilder dem Nutzer; für den privaten Einsatz unproblematisch. Keine bekannten Figuren/Marken nachbauen (eigene Designs).
 
 #### Offene Entscheidungen
 
 - OpenAI-API-Schlüssel oder manuelle Erzeugung in ChatGPT?
 - Stil: Comic, Pixel-Art oder „Neon“ passend zum schwarz-grünen Design?
-- Erstes Spiel: Zombie-Abwehr, Darts-Rennen oder etwas anderes?
-- Kinderfreundlich (keine Gewalt-Optik) – statt Zombies z. B. „Weltraum-Schleim“?
+- Erstes Spiel: Monster-Jagd, Meteoriten-Abwehr oder ein X01-Themen-Skin?
+- Kinderfreundlich (niedliche Monster statt Grusel)?
 
 #### To-Dos (MVP)
 
 - [ ] Arcade-Grundgerüst: Modus-Typ „arcade“ im Backend (Takt-Modell, Seed), PixiJS-Vollbildansicht, Asset-Manifest
 - [ ] Generator-Skript für Grafiken (Stil-Prompt, Referenzbild, transparente PNGs, Sprite-Atlas)
-- [ ] Spiel 1: Zombie-Abwehr (Regeln, Wellen, Grafiken, Effekte, Sounds)
-- [ ] Spiel 2: Darts-Rennen
-- [ ] Spiel 3: Schiffe versenken (Flotte verdeckt am Handy platzieren)
+- [ ] Gemeinsames Layout: Spielerkarten mit Foto, Banner, Einblendungen, Punkte-Popups, „So geht’s“-Karten
+- [ ] Spiel 1: Monster-Jagd (Objekte auf Board-Positionen, Treffer nach Abstand in mm, Wachsen bei Fehlwurf)
+- [ ] Spiel 2: Themen-Skin für X01
+- [ ] Spiel 3: Meteoriten-Abwehr (kooperativ, Drehung, Annäherung)
+- [ ] Weitere: Eisschollen/Holzfäller-Variante, Darts-Rennen, Schiffe versenken
 - [ ] Performance-Test auf dem Mac mini (1080p, Firefox)
 
 **Quellen (Auswahl):** targetdarts.com/omni, dartcounter.net (Spiele, Ultimate, Release Notes v8.4/v9.0/v9.7), scoliadarts.com (Home 2, Vergleich, Software, FAQ, Social), autodarts.com (Preise, Updates), autodarts.diy (Spieleinstellungen, Desktop, AI Referee, Statistik), github.com/creazy231/tools-for-autodarts.

@@ -182,13 +182,28 @@ export default function ArcadeStage({
             >
               <circle r={m.radius} className={styles.hitArea} />
               <g className={styles.bob} style={{ animationDelay: `${(m.id * 0.37) % 1.5}s` }}>
-                <image
-                  href={`/arcade/monsters/${m.kind}.webp`}
-                  x={-m.radius * 1.6}
-                  y={-m.radius * 1.6}
-                  width={m.radius * 3.2}
-                  height={m.radius * 3.2}
-                />
+                {/* animated sprite strip (4 frames of 256 px): idle loop, or the "caught" once */}
+                <svg
+                  x={-m.radius * 1.75}
+                  y={-m.radius * 1.75}
+                  width={m.radius * 3.5}
+                  height={m.radius * 3.5}
+                  viewBox="0 0 256 256"
+                  overflow="hidden"
+                >
+                  <clipPath id={`cell-${m.id}`}>
+                    <rect width={256} height={256} />
+                  </clipPath>
+                  <g clipPath={`url(#cell-${m.id})`}>
+                    <image
+                      href={`/arcade/monsters/${m.kind}-${m.alive ? 'idle' : 'hurt'}.webp`}
+                      width={1024}
+                      height={256}
+                      className={m.alive ? styles.stripLoop : styles.stripOnce}
+                      style={{ animationDelay: m.alive ? `-${(m.id * 0.29) % 0.8}s` : undefined }}
+                    />
+                  </g>
+                </svg>
               </g>
               {m.alive && (
                 <text y={m.radius * 1.6 + 8} className={styles.value}>

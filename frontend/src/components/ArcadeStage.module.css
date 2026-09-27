@@ -162,10 +162,41 @@
   transition: transform 0.6s ease-in-out;
 }
 
-.monster image,
-.monsterGone image {
-  transition: all 0.4s ease-out;
+.monster svg,
+.monsterGone svg {
+  transition:
+    x 0.4s ease-out,
+    y 0.4s ease-out,
+    width 0.4s ease-out,
+    height 0.4s ease-out;
+}
+
+.bob {
   filter: drop-shadow(0 2px 1.5px rgb(0 0 0 / 0.65));
+}
+
+/* sprite strips: 4 frames side by side, 256 px each */
+.stripLoop {
+  animation: strip 0.8s steps(4) infinite;
+}
+
+.stripOnce {
+  animation: stripOnce 0.45s steps(4, jump-none) forwards;
+}
+
+@keyframes strip {
+  to {
+    transform: translateX(-1024px);
+  }
+}
+
+@keyframes stripOnce {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-768px);
+  }
 }
 
 .wobble .bob {
@@ -201,7 +232,8 @@
 }
 
 .monsterGone {
-  animation: vanish 0.55s ease-in forwards;
+  /* the "caught" frames play first, then it disappears in the poof */
+  animation: vanish 0.8s ease-in 0.35s forwards;
 }
 
 .bob {
@@ -403,6 +435,8 @@
   .bob,
   .dart,
   .monsterGone,
+  .stripLoop,
+  .stripOnce,
   .poof,
   .dust,
   .pulse,

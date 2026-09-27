@@ -32,3 +32,24 @@ Processing: the PNGs were trimmed to their content, padded to a square and saved
 
 All sprite prompts end with: "Front view, centered, full body, no text, no shadow, transparent
 background (PNG), square."
+
+## Animations (sprite-gen)
+
+The idle and "caught" animations were made from the still sprites with
+[sprite-gen](https://github.com/aldegad/sprite-gen) (Apache-2.0), using the Codex CLI logged in
+with ChatGPT as the image provider (`codex login`, Codex ≥ 0.157):
+
+```bash
+sprite-gen prepare --out-dir runs/<kind> --character-id <kind> --base-image <kind>.png \
+  --description "…" --style "colorful cartoon, thick dark outlines, soft cel shading" \
+  --cell-size 256 --request sprite-gen/<kind>-request.json
+sprite-gen gen-set --run-dir runs/<kind> --provider codex --concurrency 2   # ~1 min per row
+sprite-gen extract --run-dir runs/<kind>
+sprite-gen compose-atlas --run-dir runs/<kind>
+```
+
+The four 256 px frames of each state (`frames/<state>/frame-N.png`) were joined into one
+horizontal strip `frontend/public/arcade/monsters/<kind>-<state>.webp` (1024×256); the arcade
+stage clips one cell and steps through the strip with CSS (`idle` loops, `hurt` plays once when
+the monster is caught). The request files with the per-state action prompts are in
+`sprite-gen/`.

@@ -690,7 +690,7 @@ Wie beim Stadionsprecher werden die Grafiken **einmalig erzeugt** und als Dateie
 #### To-Dos (MVP)
 
 - [x] Arcade-Grundgerüst: Dart-Positionen in der Spiellogik (Kamera, Tippen aufs Board, sonst Feldmitte), Arcade-Bühne (SVG/CSS statt PixiJS – reicht für wenige Sprites und läuft auf dem Mac mini)
-- [ ] Generator-Skript für Grafiken (Stil-Prompt, Referenzbild, transparente PNGs, Sprite-Atlas)
+- [x] Grafiken: Monster, Hintergrund und Effekt in ChatGPT erzeugt (ein Chat, fester Stil), Animationen (idle/gefangen, je 4 Bilder) mit sprite-gen über Codex; Prompts in tools/arcade/README.md
 - [x] Gemeinsames Layout: Spielerkarten mit Foto, Banner, Einblendungen, Punkte-Popups, „So geht’s“-Karten (über die Regel-Hilfe)
 - [x] Spiel 1: Monster-Jagd (Objekte auf Board-Positionen, Treffer nach Abstand in mm, Wachsen bei Fehlwurf) – vorerst mit Platzhalter-Grafiken
 - [ ] Spiel 2: Themen-Skin für X01

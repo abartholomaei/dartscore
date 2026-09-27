@@ -1,0 +1,4 @@
+{"states": {
+  "idle": {"frames": 4, "fps": 5, "loop": true, "action": "wobbly jelly idle: gentle squash and stretch like jelly, and one blink; stays in place, same size"},
+  "hurt": {"frames": 4, "fps": 10, "loop": false, "action": "caught: startled jump with big surprised eyes, then squashes flat and dizzy; no detached effects, same character"}
+}}

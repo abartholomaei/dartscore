@@ -555,6 +555,7 @@ const de: Translations = {
     gamesCount_other: '{{count}} Spiele',
   },
   settings: {
+    effects: 'Effekte: Konfetti, Feuerwerk und Staub bei 180, Checkout und Bust',
     voice: 'Stimme',
     voiceStadium: 'Stadionsprecher (Englisch, Stimme von ElevenLabs)',
     voiceBrowser: 'Browser-Stimme',

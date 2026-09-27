@@ -600,7 +600,7 @@ Priorität für V2: **M** = zuerst, **S** = danach, **C** = bei Gelegenheit.
 - [x] V2-27 Avatar-Galerie (16 Figuren)
 - [x] V2-28 Design-Überarbeitung (eigene Schrift Barlow/Barlow Condensed lokal eingebunden, Typo-Hierarchie; Icons offen)
 - [x] V2-29 Große Anzeige für kleine Displays / Anzeige-Modus
-- [ ] V2-30 Animationen und Partikeleffekte (abschaltbar)
+- [x] V2-30 Animationen und Partikeleffekte (abschaltbar)
 - [x] V2-31 Weiterspielen nach Spielende (X01/Cricket: Match-Ziel erhöhen)
 - [ ] V2-32 Walk-on-Musik pro Profil
 - [ ] V2-33 Spieler-Intro vor dem Match

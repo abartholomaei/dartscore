@@ -7,9 +7,9 @@ import { targetClips, targetSpeech, trainingTarget } from './target'
 /** Caller voice (Web Speech API), short sounds and celebration banners for the running game. */
 
 export type CallerVoice = 'stadium' | 'browser'
-export type AudioPrefs = { caller: boolean; sounds: boolean; voice: CallerVoice }
+export type AudioPrefs = { caller: boolean; sounds: boolean; voice: CallerVoice; effects: boolean }
 const STORAGE_KEY = 'dartscore.audio'
-const DEFAULTS: AudioPrefs = { caller: true, sounds: true, voice: 'stadium' }
+const DEFAULTS: AudioPrefs = { caller: true, sounds: true, voice: 'stadium', effects: true }
 
 function load(): AudioPrefs {
   try {

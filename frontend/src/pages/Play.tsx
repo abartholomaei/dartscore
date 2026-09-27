@@ -3,13 +3,14 @@ import { useTranslation } from 'react-i18next'
 import { Link, useNavigate } from 'react-router'
 import { sendJson, type CricketVariant, type GamePlayer, type GameState, type InOutRule } from '../api'
 import Avatar from '../components/Avatar'
+import Particles from '../components/Particles'
 import RulesDialog, { RulesButton } from '../components/RulesDialog'
 import DartBoard from '../components/DartBoard'
 import DetectionBadge from '../components/DetectionBadge'
 import VisitPhotos, { type VisitRef } from '../components/VisitPhotos'
 import { dartLabel, dartPoints } from '../dart'
 import { useLiveGame } from '../LiveGame'
-import { useCaller } from '../caller'
+import { useAudioPrefs, useCaller } from '../caller'
 import { PENDING_KEY, useErrorText, type PendingGame } from '../helpers'
 import { trainingTarget, useTargetText } from '../target'
 import styles from './Play.module.css'
@@ -24,6 +25,9 @@ export default function Play() {
   const { t } = useTranslation()
   const { game, connected } = useLiveGame()
   const celebration = useCaller(game)
+  const audio = useAudioPrefs()
+  const reducedMotion = typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+  const effect = celebration && audio.effects && !reducedMotion && <Particles key={`p${celebration.key}`} effect={celebration.kind} />
   const banner = celebration && (
     <div key={celebration.key} className={`${styles.celebration} ${styles[`celebration_${celebration.kind}`]}`} aria-live="assertive">
       {celebration.text}
@@ -44,6 +48,7 @@ export default function Play() {
   if (game.finished && game.mode === 'bull_off') return <BullOffResult game={game} />
   return (
     <>
+      {effect}
       {banner}
       {game.finished ? <Finished game={game} /> : <Running game={game} />}
     </>

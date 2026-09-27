@@ -82,6 +82,10 @@ export default function Settings() {
             </label>
           )}
           <label className={styles.check}>
+            <input type="checkbox" checked={audio.effects} onChange={(e) => setAudioPref('effects', e.target.checked)} />
+            {t('settings.effects')}
+          </label>
+          <label className={styles.check}>
             <input type="checkbox" checked={audio.sounds} onChange={(e) => setAudioPref('sounds', e.target.checked)} />
             {t('settings.sounds')}
           </label>

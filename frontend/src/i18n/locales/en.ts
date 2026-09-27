@@ -554,6 +554,7 @@ const en = {
     gamesCount_other: '{{count}} games',
   },
   settings: {
+    effects: 'Effects: confetti, fireworks and dust for 180, checkout and bust',
     voice: 'Voice',
     voiceStadium: 'Stadium announcer (English, voice by ElevenLabs)',
     voiceBrowser: 'Browser voice',

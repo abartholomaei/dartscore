@@ -99,3 +99,44 @@ def test_bots_only_play_x01_and_cricket(client: TestClient) -> None:
     )
     assert response.status_code in (409, 422)
     assert response.json()["detail"]["code"] == "bot_mode"
+
+
+def test_offset_is_relative_to_the_target() -> None:
+    from dartscore.services.bot import offset_xy
+
+    # at the top (T20): outward = up, clockwise = right
+    x, y = offset_xy(Dart(20, 3), 5.0, 2.0)
+    assert (round(x, 6), round(y, 6)) == (2.0, 5.0)
+    # at the bottom (T3): outward = down, clockwise = left
+    x, y = offset_xy(Dart(3, 3), 5.0, 2.0)
+    assert (round(x, 6), round(y, 6)) == (-2.0, -5.0)
+
+
+def test_personal_bot_takes_level_and_bias_from_the_player(client: TestClient) -> None:
+    from dartscore.services.aim import personal_profile
+
+    games = client.app.state.games  # type: ignore[attr-defined]
+    pid = client.post("/api/players", json={"name": "Alex"}).json()["id"]
+    client.post("/api/games", json={"mode": "x01", "settings": {"start_score": 501},
+                                    "players": [{"player_id": pid}]})  # fmt: skip
+    # 21 scoring darts, all 6 mm high and 2 mm left of the T20
+    for i in range(21):
+        # scored as a miss so the remaining score stays above 170 (the label does not matter)
+        games.throw(Dart.miss(), source="auto", x_mm=-2.0, y_mm=109.0, confidence=0.9)
+        if i % 3 == 2:
+            games.next_turn()
+    client.post("/api/games/active/abort")
+    profile = personal_profile(client.app.state.sessions, pid, 60)  # type: ignore[attr-defined]
+    assert profile.bias == (6.0, -2.0)
+    assert profile.double_sigma is None  # no doubles data yet
+
+    created = client.post(
+        "/api/games",
+        json={"mode": "x01", "settings": {"start_score": 501},
+              "players": [{"player_id": pid}, {"bot_of": pid}], "abort_active": True},
+    )  # fmt: skip
+    assert created.status_code == 201, created.text
+    bot = created.json()["players"][1]
+    assert bot["name"] == "Alex (Bot)"
+    assert bot["bot_of"] == pid
+    assert bot["bot_level"] == 50  # no finished X01 game yet: default level

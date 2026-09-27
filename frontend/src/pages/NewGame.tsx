@@ -7,7 +7,7 @@ import { PENDING_KEY, useErrorText } from '../helpers'
 import { PlayerForm } from './Players'
 import styles from './NewGame.module.css'
 
-type Participant = { key: string; playerId: number | null; guestName: string | null; botLevel?: number }
+type Participant = { key: string; playerId: number | null; guestName: string | null; botLevel?: number; botOf?: number }
 type InOut = 'single' | 'double' | 'master'
 
 const START_SCORES = [301, 501, 701, 901]
@@ -126,7 +126,8 @@ export default function NewGame() {
   const [players, setPlayers] = useState<Player[]>([])
   const [participants, setParticipants] = useState<Participant[]>([])
   const [guestName, setGuestName] = useState('')
-  const [botLevel, setBotLevel] = useState(60)
+  // "60" = bot with that average, "of:3" = personal bot imitating player 3
+  const [botChoice, setBotChoice] = useState('60')
   const [adding, setAdding] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -161,7 +162,14 @@ export default function NewGame() {
 
   const addBot = () => {
     setParticipants((list) =>
-      list.length >= 8 ? list : [...list, { key: `b${Date.now()}`, playerId: null, guestName: null, botLevel }],
+      list.length >= 8
+        ? list
+        : [
+            ...list,
+            botChoice.startsWith('of:')
+              ? { key: `b${Date.now()}`, playerId: null, guestName: null, botOf: Number(botChoice.slice(3)) }
+              : { key: `b${Date.now()}`, playerId: null, guestName: null, botLevel: Number(botChoice) },
+          ],
     )
   }
 
@@ -177,7 +185,9 @@ export default function NewGame() {
 
   const shuffle = () => setParticipants((list) => [...list].sort(() => Math.random() - 0.5))
 
-  const nameOf = (p: Participant) => (p.botLevel ? `Bot ${p.botLevel}` : null) ?? p.guestName ?? players.find((pl) => pl.id === p.playerId)?.name ?? '?'
+  const nameOf = (p: Participant) =>
+    (p.botOf ? t('newGame.botOf', { name: players.find((pl) => pl.id === p.botOf)?.name ?? '?' }) : null) ??
+    (p.botLevel ? `Bot ${p.botLevel}` : null) ?? p.guestName ?? players.find((pl) => pl.id === p.playerId)?.name ?? '?'
   const colorOf = (p: Participant) => players.find((pl) => pl.id === p.playerId)?.color ?? '#9e9e9e'
 
   const buildRequest = () => {
@@ -191,7 +201,7 @@ export default function NewGame() {
       mode,
       settings,
       players: participants.map((p) =>
-        p.botLevel ? { bot_level: p.botLevel } : p.playerId === null ? { guest_name: p.guestName } : { player_id: p.playerId },
+        p.botOf ? { bot_of: p.botOf } : p.botLevel ? { bot_level: p.botLevel } : p.playerId === null ? { guest_name: p.guestName } : { player_id: p.playerId },
       ),
     }
   }
@@ -493,12 +503,21 @@ export default function NewGame() {
           </div>
           {BOT_MODES.includes(mode) && (
             <div className={styles.guest}>
-              <select value={botLevel} onChange={(e) => setBotLevel(Number(e.target.value))} aria-label={t('newGame.botLevel')}>
+              <select value={botChoice} onChange={(e) => setBotChoice(e.target.value)} aria-label={t('newGame.botLevel')}>
                 {BOT_LEVELS.map((level) => (
-                  <option key={level} value={level}>
+                  <option key={level} value={String(level)}>
                     {t('newGame.botAverage', { average: level })}
                   </option>
                 ))}
+                {players.length > 0 && (
+                  <optgroup label={t('newGame.personalBots')}>
+                    {players.map((p) => (
+                      <option key={p.id} value={`of:${p.id}`}>
+                        {t('newGame.botOf', { name: p.name })}
+                      </option>
+                    ))}
+                  </optgroup>
+                )}
               </select>
               <button type="button" className="button" onClick={addBot}>
                 {t('newGame.addBot')}
@@ -515,7 +534,7 @@ export default function NewGame() {
                 <span className={styles.orderName}>
                   {nameOf(p)}
                   {p.guestName && <span className="muted"> · {t('newGame.guest')}</span>}
-                  {p.botLevel && <span className="muted"> · {t('newGame.bot')}</span>}
+                  {(p.botLevel || p.botOf) && <span className="muted"> · {t('newGame.bot')}</span>}
                 </span>
                 <button type="button" aria-label={t('newGame.up')} onClick={() => move(i, -1)} disabled={i === 0}>
                   ↑

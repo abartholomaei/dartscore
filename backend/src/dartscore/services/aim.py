@@ -18,7 +18,7 @@ from dartscore.game.base import Game
 from dartscore.game.dart import BULL, Dart
 from dartscore.game.practice import RING_MULTIPLIER, SegmentTrainingGame
 from dartscore.game.x01 import X01Game
-from dartscore.services.bot import aim_point
+from dartscore.services.bot import BotProfile, aim_point, sigma_for_average
 from dartscore.services.export import _since, _targeted_double, iter_darts
 from dartscore.storage.models import GamePlayer, GameRecord
 
@@ -110,3 +110,29 @@ def aim_stats(
         "overall": summary(everything) if everything else None,
         "targets": {name: summary(points) for name, points in groups.items()},
     }
+
+
+# darts needed before a direction/doubles profile is trusted
+MIN_BIAS_DARTS = 20
+MIN_DOUBLE_DARTS = 10
+
+
+def personal_profile(sessions: sessionmaker[Session], player_id: int, level: int) -> BotProfile:
+    """A bot that throws like this player: scatter from their X01 average, the systematic
+    offset of their scoring darts and, with enough data, their own accuracy on doubles."""
+    stats = aim_stats(sessions, player_id)
+    sigma = sigma_for_average(level)
+    bias = (0.0, 0.0)
+    t20 = stats["targets"].get("T20")
+    if t20 and t20["darts"] >= MIN_BIAS_DARTS:
+        bias = (t20["radial_mm"], t20["sideways_mm"])
+    double_sigma, double_bias = None, (0.0, 0.0)
+    doubles = stats["targets"].get("doubles")
+    if doubles and doubles["darts"] >= MIN_DOUBLE_DARTS:
+        points = doubles["points"]
+        mr = sum(p[0] for p in points) / len(points)
+        ms = sum(p[1] for p in points) / len(points)
+        spread = sum((p[0] - mr) ** 2 + (p[1] - ms) ** 2 for p in points) / len(points)
+        double_sigma = max(3.0, math.sqrt(spread / 2))
+        double_bias = (mr, ms)
+    return BotProfile(sigma, bias, double_sigma, double_bias)

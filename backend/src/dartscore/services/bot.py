@@ -8,6 +8,8 @@ import itertools
 import math
 import random
 import threading
+from collections.abc import Callable
+from dataclasses import dataclass
 
 import structlog
 
@@ -70,9 +72,40 @@ def aim_point(dart: Dart) -> tuple[float, float]:
     return r * math.cos(angle), r * math.sin(angle)
 
 
-def throw_at(target: Dart, sigma: float, rng: random.Random) -> tuple[Dart, float, float]:
+@dataclass(frozen=True)
+class BotProfile:
+    """How a bot throws: scatter (mm) and systematic offset (radial = towards the board edge,
+    sideways = clockwise, mm), separately for doubles where a personal bot has data."""
+
+    sigma: float
+    bias: tuple[float, float] = (0.0, 0.0)
+    double_sigma: float | None = None
+    double_bias: tuple[float, float] = (0.0, 0.0)
+
+    def for_target(self, target: Dart) -> tuple[float, tuple[float, float]]:
+        if target.multiplier == 2 and self.double_sigma is not None:
+            return self.double_sigma, self.double_bias
+        return self.sigma, self.bias
+
+
+def offset_xy(target: Dart, radial: float, sideways: float) -> tuple[float, float]:
+    """Converts an offset relative to the target field into board x/y (mm)."""
+    if target.segment == BULL:
+        return sideways, radial
     x0, y0 = aim_point(target)
-    x, y = rng.gauss(x0, sigma), rng.gauss(y0, sigma)
+    angle = math.atan2(y0, x0)
+    return (
+        radial * math.cos(angle) + sideways * math.sin(angle),
+        radial * math.sin(angle) - sideways * math.cos(angle),
+    )
+
+
+def throw_at(
+    target: Dart, sigma: float, rng: random.Random, bias: tuple[float, float] = (0.0, 0.0)
+) -> tuple[Dart, float, float]:
+    x0, y0 = aim_point(target)
+    bx, by = offset_xy(target, *bias)
+    x, y = rng.gauss(x0 + bx, sigma), rng.gauss(y0 + by, sigma)
     score = score_at(x, y)
     return Dart(score.segment, score.multiplier), x, y
 
@@ -127,8 +160,16 @@ def choose_target(game: Game) -> Dart:
 class BotService:
     """Plays the bots' turns: throws their darts one by one, then passes on."""
 
-    def __init__(self, games: GameService, seed: int | None = None) -> None:
+    def __init__(
+        self,
+        games: GameService,
+        seed: int | None = None,
+        profile_source: Callable[[int, int], BotProfile] | None = None,
+    ) -> None:
         self._games = games
+        # builds the profile of a personal bot from the imitated player's darts
+        self._profile_source = profile_source
+        self._profiles: dict[tuple[int, int], BotProfile] = {}
         self._rng = random.Random(seed)
         self._wake = threading.Event()
         self._stop = threading.Event()
@@ -162,7 +203,7 @@ class BotService:
         turn = self._games.bot_turn()
         if turn is None:
             return False
-        game_id, game, level = turn
+        game_id, game, level, bot_of = turn
         state = game.state()
         pull = state["awaiting_next"] or state["leg_winner"] is not None
         events = len(game.events)
@@ -177,9 +218,23 @@ class BotService:
             if pull:
                 self._games.next_turn(source="bot")
             else:
-                dart, x, y = throw_at(choose_target(game), sigma_for_average(level), self._rng)
+                target = choose_target(game)
+                sigma, bias = self._profile(game_id, level, bot_of).for_target(target)
+                dart, x, y = throw_at(target, sigma, self._rng, bias)
                 self._games.throw(dart, source="bot", x_mm=x, y_mm=y)
         except GameError as exc:
             log.warning("bot_move_rejected", code=exc.code)
             return False
         return True
+
+    def _profile(self, game_id: int, level: int, bot_of: int | None) -> BotProfile:
+        if bot_of is None or self._profile_source is None:
+            return BotProfile(sigma_for_average(level))
+        key = (game_id, bot_of)
+        if key not in self._profiles:
+            try:
+                self._profiles[key] = self._profile_source(bot_of, level)
+            except Exception:
+                log.exception("bot_profile_failed", player=bot_of)
+                self._profiles[key] = BotProfile(sigma_for_average(level))
+        return self._profiles[key]

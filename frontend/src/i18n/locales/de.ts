@@ -234,6 +234,8 @@ const de: Translations = {
     color: 'Farbe',
   },
   newGame: {
+    botOf: 'Bot wie {{name}}',
+    personalBots: 'Persönliche Bots (werfen wie der Spieler)',
     segment: 'Ziel',
     randomTarget: 'Zufall',
     segRings: { any: 'Jeder Ring', single: 'Single', double: 'Doppel', triple: 'Triple' },

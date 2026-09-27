@@ -9,6 +9,7 @@ from pydantic import BaseModel, Field, model_validator
 from dartscore.game import Dart, GameError
 from dartscore.services.games import GameService, PlayerRef
 from dartscore.services.recordings import RecordingIndex
+from dartscore.services.stats import StatsService
 
 router = APIRouter(prefix="/api/games", tags=["games"])
 
@@ -20,10 +21,12 @@ class Participant(BaseModel):
     guest_name: str | None = Field(default=None, max_length=40)
     # a computer opponent with this target 3-dart average
     bot_level: int | None = Field(default=None, ge=20, le=120)
+    # a personal bot that throws like this player
+    bot_of: int | None = None
 
     @model_validator(mode="after")
     def exactly_one(self) -> "Participant":
-        given = [self.player_id, self.guest_name, self.bot_level]
+        given = [self.player_id, self.guest_name, self.bot_level or self.bot_of]
         if sum(value is not None for value in given) != 1:
             raise ValueError("Give one of player_id, guest_name or bot_level")
         return self
@@ -91,9 +94,19 @@ def history(request: Request, limit: int = 20, player_id: int | None = None) -> 
     return _service(request).history(min(limit, 200), player_id)
 
 
+def _ref(request: Request, p: Participant) -> PlayerRef:
+    if p.bot_of is None:
+        return PlayerRef(p.player_id, p.guest_name, p.bot_level)
+    # a personal bot plays at the imitated player's X01 average
+    stats: StatsService = request.app.state.stats
+    average = (stats.player(p.bot_of)["modes"].get("x01") or {}).get("average")
+    level = round(min(120, max(20, average))) if average else 50
+    return PlayerRef(None, None, level, p.bot_of)
+
+
 @router.post("", status_code=201)
 def create_game(request: Request, body: GameCreate) -> GameState:
-    refs = [PlayerRef(p.player_id, p.guest_name, p.bot_level) for p in body.players]
+    refs = [_ref(request, p) for p in body.players]
     return _service(request).create(body.mode, body.settings, refs, body.abort_active)
 
 

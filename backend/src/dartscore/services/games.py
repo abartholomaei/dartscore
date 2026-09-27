@@ -39,6 +39,8 @@ class PlayerRef:
     player_id: int | None = None
     guest_name: str | None = None
     bot_level: int | None = None
+    # personal bot: imitates this player (bot_level is then that player's average)
+    bot_of: int | None = None
 
 
 @dataclass
@@ -75,6 +77,7 @@ def _player_info(gp: GamePlayer) -> dict[str, Any]:
             "color": gp.player.color,
             "guest": False,
             "bot_level": None,
+            "bot_of": None,
         }
     return {
         "position": gp.position,
@@ -83,6 +86,7 @@ def _player_info(gp: GamePlayer) -> dict[str, Any]:
         "color": "#9e9e9e",
         "guest": True,
         "bot_level": gp.bot_level,
+        "bot_of": gp.bot_of,
     }
 
 
@@ -181,10 +185,19 @@ class GameService:
                             raise GameError("player_not_found", f"Player {ref.player_id} not found")
                         gp = GamePlayer(position=position, player_id=ref.player_id)
                     elif ref.bot_level:
+                        bot_name = f"Bot {ref.bot_level}"
+                        if ref.bot_of is not None:
+                            model = session.get(Player, ref.bot_of)
+                            if model is None:
+                                raise GameError(
+                                    "player_not_found", f"Player {ref.bot_of} not found"
+                                )
+                            bot_name = f"{model.name} (Bot)"[:40]
                         gp = GamePlayer(
                             position=position,
-                            guest_name=f"Bot {ref.bot_level}",
+                            guest_name=bot_name,
                             bot_level=ref.bot_level,
+                            bot_of=ref.bot_of,
                         )
                     else:
                         name = " ".join((ref.guest_name or "").split())[:40] or None
@@ -288,7 +301,12 @@ class GameService:
                 if last is None:
                     raise GameError("no_game", "No previous game")
                 refs = [
-                    PlayerRef(gp.player_id, None if gp.bot_level else gp.guest_name, gp.bot_level)
+                    PlayerRef(
+                        gp.player_id,
+                        None if gp.bot_level else gp.guest_name,
+                        gp.bot_level,
+                        gp.bot_of,
+                    )
                     for gp in last.players
                 ]
                 mode, settings = last.mode, dict(last.settings)
@@ -373,15 +391,18 @@ class GameService:
             self._notify("new_game")
             return self._after_change(self._active)
 
-    def bot_turn(self) -> tuple[int, Game, int] | None:
-        """(game id, game, bot level) while a bot is in control of the board, else None."""
+    def bot_turn(self) -> tuple[int, Game, int, int | None] | None:
+        """(game id, game, bot level, imitated player) while a bot is in control of the board,
+        else None."""
         with self._lock:
             active = self._active
             if active is None:
                 return None
             owner = self._turn_owner(active)
-            level = active.players[owner].get("bot_level") if owner is not None else None
-            return (active.id, active.game, level) if level else None
+            if owner is None or not active.players[owner].get("bot_level"):
+                return None
+            info = active.players[owner]
+            return active.id, active.game, int(info["bot_level"]), info.get("bot_of")
 
     # --- internals ----------------------------------------------------------------------
 

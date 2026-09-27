@@ -233,6 +233,8 @@ const en = {
     color: 'Color',
   },
   newGame: {
+    botOf: 'Bot like {{name}}',
+    personalBots: 'Personal bots (throw like the player)',
     segment: 'Target',
     randomTarget: 'Random',
     segRings: { any: 'Any ring', single: 'Single', double: 'Double', triple: 'Triple' },

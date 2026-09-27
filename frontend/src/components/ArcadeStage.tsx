@@ -164,15 +164,15 @@ export default function ArcadeStage({
               <circle r={m.radius} className={styles.hitArea} />
               <g className={styles.bob} style={{ animationDelay: `${(m.id * 0.37) % 1.5}s` }}>
                 <image
-                  href={`/arcade/monsters/${m.kind}.svg`}
-                  x={-m.radius * 1.25}
-                  y={-m.radius * 1.25}
-                  width={m.radius * 2.5}
-                  height={m.radius * 2.5}
+                  href={`/arcade/monsters/${m.kind}.webp`}
+                  x={-m.radius * 1.6}
+                  y={-m.radius * 1.6}
+                  width={m.radius * 3.2}
+                  height={m.radius * 3.2}
                 />
               </g>
               {m.alive && (
-                <text y={m.radius * 1.25 + 9} className={styles.value}>
+                <text y={m.radius * 1.6 + 8} className={styles.value}>
                   {m.value}
                 </text>
               )}

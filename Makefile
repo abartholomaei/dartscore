@@ -1,4 +1,4 @@
-.PHONY: install dev-backend dev-frontend format lint typecheck test check hooks
+.PHONY: install dev-backend dev-frontend format lint typecheck test check hooks pages
 
 install:
 	cd backend && uv sync
@@ -30,3 +30,7 @@ check: lint typecheck test
 
 hooks:
 	cd backend && uv run pre-commit install
+
+# Publish the project page (docs/site) to the gh-pages branch served by GitHub Pages
+pages:
+	git push origin `git subtree split --prefix docs/site HEAD`:refs/heads/gh-pages

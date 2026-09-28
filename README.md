@@ -55,7 +55,7 @@
 | --- | --- |
 | `backend/` | Python package `dartscore`: FastAPI server, game logic (`game`), detection (`vision`), persistence (`storage`) |
 | `frontend/` | Web UI (React + TypeScript + Vite), responsive for phone, tablet, desktop and TV |
-| `docs/` | PRD, hardware notes and the project page (`docs/site`, published to GitHub Pages) |
+| `docs/` | PRD, hardware notes and the project page (`docs/site`, published with `make pages`) |
 | `config.example.toml` | Example configuration (server, cameras, logging) |
 
 ## Requirements

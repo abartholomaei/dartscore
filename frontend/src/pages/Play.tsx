@@ -24,7 +24,6 @@ type InputMode = 'pad' | 'board'
 
 // automatic detections below this confidence are marked for checking
 const LOW_CONFIDENCE = 0.5
-const DISPLAY_KEY = 'dartscore.displayMode'
 
 export default function Play() {
   const { t } = useTranslation()
@@ -66,35 +65,22 @@ export default function Play() {
 
 function Running({ game }: { game: GameState }) {
   const { t } = useTranslation()
-  const { setGame } = useLiveGame()
+  const { setGame, detection } = useLiveGame()
   const errorText = useErrorText()
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const [inputMode, setInputMode] = useState<InputMode>('pad')
-  // display mode: only the scoreboard, large (remembered per browser)
-  const [displayMode, setDisplayMode] = useState(() => {
-    try {
-      return localStorage.getItem(DISPLAY_KEY) === '1'
-    } catch {
-      return false
-    }
-  })
-  const toggleDisplayMode = () => {
-    const next = !displayMode
-    setDisplayMode(next)
-    try {
-      localStorage.setItem(DISPLAY_KEY, next ? '1' : '0')
-    } catch {
-      // private mode
-    }
-    if (next && !document.fullscreenElement) void document.documentElement.requestFullscreen?.().catch(() => undefined)
-    if (!next && document.fullscreenElement) void document.exitFullscreen().catch(() => undefined)
-  }
   const [multiplier, setMultiplier] = useState<1 | 2 | 3>(1)
   // index of a dart of the shown turn that the next input replaces
   const [correcting, setCorrecting] = useState<number | null>(null)
-  // full-screen themes: keypad + correction popup open
+  // keypad + correction popup open
   const [panel, setPanel] = useState(false)
+  const openPanel = (dart: number | null) => {
+    setCorrecting(dart)
+    setPanel(true)
+  }
+  // with the cameras detecting, typing is the exception; without them the board takes taps
+  const auto = Boolean(detection?.available && detection.enabled)
 
   // Inputs are queued, never dropped: fast taps are sent one after another, each seeing
   // the state returned by the previous request.
@@ -162,7 +148,7 @@ function Running({ game }: { game: GameState }) {
   const current = game.players[showTurn && turn ? turn.player : game.current_player]
   const legWinner = game.leg_winner !== null && game.awaiting_next ? game.players[game.leg_winner] : null
 
-  const turnCard = (
+  const turnCardFor = (inPanel: boolean) => (
       <section className={`card ${styles.turn}`} aria-live="polite">
         <div className={styles.turnHeader}>
           <span className={styles.dot} style={{ background: current.color }} />
@@ -188,7 +174,7 @@ function Running({ game }: { game: GameState }) {
                 key={i}
                 className={`${styles.slot} ${correcting === i ? styles.slotSelected : ''}`}
                 disabled={!label || busy}
-                onClick={() => setCorrecting(correcting === i ? null : i)}
+                onClick={() => (inPanel ? setCorrecting(correcting === i ? null : i) : openPanel(i))}
                 aria-label={label ? t('play.correctDart', { n: i + 1 }) : undefined}
               >
                 {suggestion ? (
@@ -223,7 +209,7 @@ function Running({ game }: { game: GameState }) {
             )}
           </div>
         </div>
-        {correcting !== null && <p className={styles.hint}>{t('play.correctHint', { n: correcting + 1 })}</p>}
+        {inPanel && correcting !== null && <p className={styles.hint}>{t('play.correctHint', { n: correcting + 1 })}</p>}
         {legWinner && <p className={styles.legWon}>{t('play.legWon', { name: legWinner.name })}</p>}
         {game.awaiting_next && !legWinner && <p className={styles.hint}>{t('play.pullDarts')}</p>}
       </section>
@@ -276,7 +262,7 @@ function Running({ game }: { game: GameState }) {
         setCorrecting(null)
       }}
     >
-      {turnCard}
+      {turnCardFor(true)}
       {inputCard}
       <GameMenu />
     </InputPanel>
@@ -291,15 +277,12 @@ function Running({ game }: { game: GameState }) {
           game={game}
           onTap={(label, x, y) => void enter(label, [x, y])}
           disabled={busy}
-          onCorrect={(i) => {
-            setCorrecting(i)
-            setPanel(true)
-          }}
+          onCorrect={openPanel}
         >
           <button className={styles.voltButton} onClick={() => void undo()} disabled={busy}>
             ↶ {t('play.undo')}
           </button>
-          <button className={styles.voltButton} onClick={() => setPanel(true)}>
+          <button className={styles.voltButton} onClick={() => openPanel(null)}>
             ✎ {t('play.correct')}
           </button>
           <button className={`${styles.voltButton} ${styles.voltPrimary}`} onClick={() => void next()} disabled={busy}>
@@ -318,15 +301,12 @@ function Running({ game }: { game: GameState }) {
       <>
         <VoltageStage
           game={game}
-          onCorrect={(i) => {
-            setCorrecting(i)
-            setPanel(true)
-          }}
+          onCorrect={openPanel}
         >
           <button className={styles.voltButton} onClick={() => void undo()} disabled={busy}>
             ↶ {t('play.undo')}
           </button>
-          <button className={styles.voltButton} onClick={() => setPanel(true)}>
+          <button className={styles.voltButton} onClick={() => openPanel(null)}>
             ✎ {t('play.correct')}
           </button>
           <button className={`${styles.voltButton} ${styles.voltPrimary}`} onClick={() => void next()} disabled={busy}>
@@ -339,11 +319,16 @@ function Running({ game }: { game: GameState }) {
     )
   }
 
+  // The board in the middle shows the darts and what to aim at, the players
+  // are listed at the side; typing and correcting darts happens in a popup.
+  const aim = boardTargets(game)
   return (
-    <div className={displayMode ? `${styles.layout} ${styles.displayMode}` : styles.layout}>
-      <section className={styles.scores}>
+    <div className={styles.stage}>
+      <div className={styles.stageTop}>
         <MatchInfo game={game} />
-        <TargetBanner game={game} />
+        <FullscreenButton />
+      </div>
+      <aside className={styles.stagePlayers}>
         {game.mode === 'x01' ? (
           <X01Scores game={game} />
         ) : game.mode === 'cricket' ? (
@@ -351,13 +336,82 @@ function Running({ game }: { game: GameState }) {
         ) : (
           <TrainingScores game={game} />
         )}
-      </section>
-
-      {turnCard}
-      {inputCard}
-      <History game={game} />
-      <GameMenu displayMode={displayMode} onDisplayMode={toggleDisplayMode} />
+      </aside>
+      <div className={styles.stageBoard}>
+        <DartBoard
+          darts={shownDarts}
+          positions={showTurn ? game.turn_positions : []}
+          targets={aim.targets}
+          dimmed={aim.dimmed}
+          emphasizeFirst={aim.emphasizeFirst}
+          onSelect={auto ? undefined : (l) => void enter(l)}
+        />
+      </div>
+      <div className={styles.stageSide}>
+        <TargetBanner game={game} />
+        {turnCardFor(false)}
+        {error && !panel && <p className="error">{error}</p>}
+        <History game={game} />
+      </div>
+      <div className={styles.stageToolbar}>
+        <button className="button large" onClick={() => void undo()} disabled={busy}>
+          ↶ {t('play.undo')}
+        </button>
+        <button className="button large" onClick={() => openPanel(null)}>
+          ✎ {auto ? t('play.correct') : t('play.input.pad')}
+        </button>
+        <button className={`button large primary ${styles.stageNext}`} onClick={() => void next()} disabled={busy}>
+          {game.awaiting_next ? t('play.nextPlayer') : t('play.endTurn')}
+        </button>
+      </div>
+      {popupPanel}
     </div>
+  )
+}
+
+/** What the board highlights: the checkout route, the training target, or in Cricket the
+ *  numbers the current player still has to close (numbers closed by everyone fade out). */
+function boardTargets(game: GameState): { targets: string[]; dimmed: string[]; emphasizeFirst: boolean } {
+  const none = { targets: [], dimmed: [], emphasizeFirst: true }
+  if (game.awaiting_next) return none
+  if (game.mode === 'cricket') {
+    const marks = game.marks ?? []
+    const own = marks[game.current_player] ?? []
+    const label = (n: number) => (n === 25 ? 'S25' : String(n))
+    const shown = (game.targets ?? []).map((n, i) => ({ n, i })).filter(({ i }) => !game.hidden?.[i])
+    return {
+      targets: shown.filter(({ i }) => (own[i] ?? 0) < 3 && !marks.every((m) => m[i] >= 3)).map(({ n }) => label(n)),
+      dimmed: shown.filter(({ i }) => marks.length > 0 && marks.every((m) => m[i] >= 3)).map(({ n }) => label(n)),
+      emphasizeFirst: false,
+    }
+  }
+  if (game.mode === 'bull_off') return { ...none, targets: ['BULL'] }
+  if (game.checkout) return { ...none, targets: game.checkout }
+  const target = trainingTarget(game)
+  return target ? { ...none, targets: [target] } : none
+}
+
+function FullscreenButton() {
+  const { t } = useTranslation()
+  const [fullscreen, setFullscreen] = useState(() => !!document.fullscreenElement)
+  useEffect(() => {
+    const update = () => setFullscreen(!!document.fullscreenElement)
+    document.addEventListener('fullscreenchange', update)
+    return () => document.removeEventListener('fullscreenchange', update)
+  }, [])
+  if (!document.documentElement.requestFullscreen) return null
+  return (
+    <button
+      className="button"
+      aria-pressed={fullscreen}
+      onClick={() =>
+        void (document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen()).catch(
+          () => undefined,
+        )
+      }
+    >
+      ⛶ {t('play.fullscreen')}
+    </button>
   )
 }
 
@@ -734,7 +788,7 @@ function History({ game }: { game: GameState }) {
   )
 }
 
-function GameMenu({ displayMode, onDisplayMode }: { displayMode?: boolean; onDisplayMode?: () => void }) {
+function GameMenu() {
   const { t } = useTranslation()
   const { setGame } = useLiveGame()
   const navigate = useNavigate()
@@ -746,11 +800,6 @@ function GameMenu({ displayMode, onDisplayMode }: { displayMode?: boolean; onDis
   }
   return (
     <div className={styles.menu}>
-      {onDisplayMode && (
-        <button className="button" onClick={onDisplayMode} aria-pressed={displayMode} title={t('play.displayModeHint')}>
-          {displayMode ? t('play.displayModeOff') : t('play.displayModeOn')}
-        </button>
-      )}
       <button className="button danger" onClick={() => void abort()}>
         {t('play.abort')}
       </button>

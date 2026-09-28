@@ -599,7 +599,7 @@ Priorität für V2: **M** = zuerst, **S** = danach, **C** = bei Gelegenheit.
 - [x] V2-26 Profil-Editor mit Foto (Handykamera/Upload, Zuschnitt)
 - [x] V2-27 Avatar-Galerie (16 Figuren)
 - [x] V2-28 Design-Überarbeitung (eigene Schrift Barlow/Barlow Condensed lokal eingebunden, Typo-Hierarchie; Icons offen)
-- [x] V2-29 Große Anzeige für kleine Displays / Anzeige-Modus
+- [x] V2-29 Große Anzeige für kleine Displays / Anzeige-Modus (2026-09-28 ersetzt durch das Board-Layout: Scheibe mit Treffern und Zielen in der Mitte, Spieler an der Seite, Eingabe/Korrektur im Popup, Vollbild-Knopf)
 - [x] V2-30 Animationen und Partikeleffekte (abschaltbar)
 - [x] V2-31 Weiterspielen nach Spielende (X01/Cricket: Match-Ziel erhöhen)
 - [ ] V2-32 Walk-on-Musik pro Profil

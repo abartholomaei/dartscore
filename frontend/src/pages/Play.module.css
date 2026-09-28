@@ -47,36 +47,116 @@
   gap: 8px;
 }
 
-/* --- display mode: scores only, as large as possible (small monitors, TV) ------------ */
+/* --- board layout: players | board | turn, toolbar below; typing happens in a popup ---- */
 
-.displayMode {
-  grid-template-columns: 1fr !important;
-  grid-template-areas: 'scores' 'turn' 'menu' !important;
+.stage {
+  display: grid;
+  gap: 12px var(--gutter);
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas: 'top' 'players' 'board' 'side' 'toolbar';
 }
 
-.displayMode .input,
-.displayMode .history {
-  display: none;
+.stageTop {
+  grid-area: top;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 16px;
 }
 
-.displayMode .playerGrid {
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+.stagePlayers {
+  grid-area: players;
+  min-width: 0;
 }
 
-.displayMode .playerName {
-  font-size: clamp(1.75rem, 4.5vw, 4rem);
+.stageBoard {
+  grid-area: board;
+  display: grid;
+  place-items: center;
+  min-width: 0;
+  min-height: 0;
 }
 
-.displayMode .remaining {
-  font-size: clamp(5rem, 17vw, 16rem);
+.stageBoard > svg {
+  width: min(100%, 560px);
 }
 
-.displayMode .playerStats {
-  font-size: clamp(1rem, 1.8vw, 1.5rem);
+.stageSide {
+  grid-area: side;
+  display: grid;
+  gap: 12px;
+  align-content: start;
+  min-width: 0;
 }
 
-.displayMode .matchInfo {
-  font-size: clamp(1rem, 2vw, 1.75rem);
+/* the turn and history cards carry grid areas of the old layout */
+.stageSide > * {
+  grid-area: auto;
+}
+
+.stageToolbar {
+  grid-area: toolbar;
+  position: sticky;
+  bottom: 0;
+  z-index: 5;
+  /* undo and keypad side by side, the main action wide below */
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  padding: 8px 0 max(8px, env(safe-area-inset-bottom));
+  background: linear-gradient(transparent, var(--bg) 25%);
+}
+
+.stageToolbar > * {
+  min-width: 0;
+  padding: 12px;
+  white-space: nowrap;
+}
+
+.stageToolbar > .stageNext {
+  grid-column: 1 / -1;
+}
+
+/* wide screens and TVs: everything on one screen, the board as large as the height allows */
+@media (min-width: 1000px) and (min-aspect-ratio: 5/4) {
+  .stage {
+    /* the page below the app header */
+    height: calc(100dvh - 64px - 2 * var(--gutter));
+    grid-template-columns: minmax(240px, 1fr) auto minmax(360px, 1fr);
+    grid-template-rows: auto minmax(0, 1fr) auto;
+    grid-template-areas:
+      'top top top'
+      'players board side'
+      'players board toolbar';
+  }
+
+  .stagePlayers,
+  .stageSide {
+    min-height: 0;
+    overflow-y: auto;
+  }
+
+  .stageBoard > svg {
+    width: auto;
+    height: 100%;
+    max-width: min(46vw, 100%);
+    max-height: 100%;
+  }
+
+  .stageToolbar {
+    position: static;
+    padding: 0;
+    background: none;
+  }
+
+  .stagePlayers .playerGrid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .stagePlayers .remaining {
+    font-size: clamp(2.5rem, 5.5vw, 6rem);
+  }
 }
 
 .empty {
@@ -681,10 +761,6 @@
   font-size: clamp(1rem, 2vw, 1.75rem);
   font-weight: 700;
   color: var(--text-muted);
-}
-
-.displayMode .targetValue {
-  font-size: clamp(5rem, 15vw, 13rem);
 }
 
 /* checkout route suggested in the empty dart fields */

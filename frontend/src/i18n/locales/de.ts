@@ -196,7 +196,7 @@ const de: Translations = {
     example: 'Beispiel',
     open: 'Regeln',
     modes: {
-      melon_samurai: {
+      fruit_samurai: {
         goal: 'Möglichst viel Obst abschneiden: je größer das Stück, desto mehr Punkte.',
         play: 'In jeder Aufnahme liegt eine frische Frucht auf der Scheibe. Jeder Dart ist ein gerader Schwerthieb durch die Stelle, an der er steckt, quer zur Linie zum Bull; das Stück auf der Seite des Darts fliegt weg. Ein Dart zählt dort, wo er steckt, nicht nach Feld.',
         scoring: 'Die Punkte entsprechen der Größe des Stücks - eine ganze Frucht ist 1000 wert. Je näher am Bull, desto größer das Stück. Ein Dart hinter dem Bull, wo keine Frucht mehr ist, schneidet nur Luft. Das Bullseye schneidet alles ab, was übrig ist. Die letzte Runde ist eine große Wassermelone und zählt doppelt.',
@@ -404,7 +404,7 @@ const de: Translations = {
       dragonfruit: 'Drachenfrucht',
       lime: 'Limette',
     },
-    melon: {
+    fruit: {
       blades: 'Hiebe',
       board: 'Obst-Scheibe',
       instruction: '{{fruit}}: dicht am Bull schneiden!',
@@ -513,7 +513,7 @@ const de: Translations = {
     arcade: 'Arcade',
     difficulty: 'Schwierigkeit',
     difficulties: { easy: 'Leicht', medium: 'Mittel', hard: 'Schwer' },
-    melonSamuraiHint: 'Eine Frucht liegt auf der Scheibe; jeder Dart schneidet das Stück auf seiner Seite ab - je näher am Bull, desto größer. Hinter dem Bull ist nichts mehr zum Schneiden. Das Bullseye nimmt alles, die letzte Runde zählt doppelt. Am besten mit den Kameras (oder aufs Board tippen).',
+    fruitSamuraiHint: 'Eine Frucht liegt auf der Scheibe; jeder Dart schneidet das Stück auf seiner Seite ab - je näher am Bull, desto größer. Hinter dem Bull ist nichts mehr zum Schneiden. Das Bullseye nimmt alles, die letzte Runde zählt doppelt. Am besten mit den Kameras (oder aufs Board tippen).',
     monsterHuntHint: 'Immer steht ein Monster auf der Scheibe - triff es dort, wo es ist. Ein Dart in die Mitte ist ein Kopftreffer, ein Streifschuss kostet ein Leben. Ein Fehlwurf macht es größer, aber weniger wert. Die letzte Runde zählt doppelt. Am besten mit den Kameras (oder aufs Board tippen).',
     teams: 'In Teams spielen',
     teamCount: 'Teams',
@@ -766,7 +766,7 @@ const de: Translations = {
   },
   modes: {
     monster_hunt: 'Monster-Jagd',
-    melon_samurai: 'Melonen-Samurai',
+    fruit_samurai: 'Fruit Samurai',
     segment_training: 'Segment-Training',
     checkout_121: '121-Checkout',
     bull_off: 'Ausbullen',

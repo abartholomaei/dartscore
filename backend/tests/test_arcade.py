@@ -3,7 +3,7 @@ from pathlib import Path
 from typing import Any
 
 from dartscore.game import Dart, create_game
-from dartscore.game.arcade import MelonSamuraiGame, MonsterHuntGame
+from dartscore.game.arcade import FruitSamuraiGame, MonsterHuntGame
 
 OFF = (300.0, 300.0)  # far off the board
 
@@ -132,12 +132,12 @@ def test_positions_survive_a_replay_from_the_database(tmp_path: Path) -> None:
         assert client.get("/api/games/active").json()["scores"] == live
 
 
-# --- Melon samurai ---------------------------------------------------------------------------
+# --- Fruit samurai ---------------------------------------------------------------------------
 
 
-def samurai(players: int = 1, rounds: int = 5) -> MelonSamuraiGame:
-    game = create_game("melon_samurai", players, {"rounds": rounds})
-    assert isinstance(game, MelonSamuraiGame)
+def samurai(players: int = 1, rounds: int = 5) -> FruitSamuraiGame:
+    game = create_game("fruit_samurai", players, {"rounds": rounds})
+    assert isinstance(game, FruitSamuraiGame)
     return game
 
 
@@ -217,3 +217,16 @@ def test_the_cut_fruit_stays_until_the_darts_are_pulled() -> None:
     state = game.state()
     assert state["fruit_share"] == 1.0
     assert state["arcade_darts"] == []
+
+
+def test_cuts_and_holes_stay_on_the_board_for_the_whole_round() -> None:
+    game = samurai(2)
+    game.throw(Dart(20, 1), (0.0, 30.0))
+    game.throw(Dart(25, 2))  # no cut line, but a hole
+    game.next_turn()
+    game.throw(Dart(6, 1), (40.0, 0.0))
+    marks = game.state()["board_marks"]
+    assert len(marks["cuts"]) == 2  # Alex's cut and Jens's
+    assert len(marks["holes"]) == 3
+    game.next_turn()
+    assert game.state()["board_marks"] == {"cuts": [], "holes": []}  # round 2: a fresh board

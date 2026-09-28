@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { Link, useNavigate } from 'react-router'
 import { getJson, sendJson, type CricketVariant, type GamePlayer, type GameState, type InOutRule } from '../api'
 import ArcadeStage from '../components/ArcadeStage'
-import MelonStage from '../components/MelonStage'
+import FruitStage from '../components/FruitStage'
 import VoltageStage from '../components/VoltageStage'
 import Avatar from '../components/Avatar'
 import Particles from '../components/Particles'
@@ -283,8 +283,8 @@ function Running({ game }: { game: GameState }) {
   )
 
   // the arcade games fill the whole screen too; typing and correcting darts in the popup
-  if (game.mode === 'monster_hunt' || game.mode === 'melon_samurai') {
-    const Stage = game.mode === 'monster_hunt' ? ArcadeStage : MelonStage
+  if (game.mode === 'monster_hunt' || game.mode === 'fruit_samurai') {
+    const Stage = game.mode === 'monster_hunt' ? ArcadeStage : FruitStage
     return (
       <>
         <Stage

@@ -10,10 +10,10 @@ from dartscore.game import GameError
 
 AVATAR_SIZE = 512
 MAX_UPLOAD_BYTES = 12 * 1024 * 1024
-# the pictures shipped with the web app (frontend/public/avatars/<name>.svg)
+# the pictures shipped with the web app (frontend/public/avatars/<name>.webp)
 GALLERY = (
     "fox", "owl", "bear", "cat", "dog", "panda", "frog", "penguin",
-    "tiger", "rabbit", "monkey", "unicorn", "robot", "alien", "ghost", "pirate",
+    "tiger", "lion", "monkey", "unicorn", "robot", "alien", "ghost", "pirate",
 )  # fmt: skip
 
 
@@ -24,7 +24,7 @@ def avatar_url(player_id: int, avatar: str | None) -> str | None:
     if kind == "photo":
         return f"/api/players/{player_id}/avatar.jpg?v={value}"
     if kind == "gallery":
-        return f"/avatars/{value}.svg"
+        return f"/avatars/{value}.webp"
     return None
 
 

@@ -470,7 +470,7 @@ def test_avatar_photo_and_gallery(client: TestClient) -> None:
 
     gallery = client.get("/api/players/avatars/gallery").json()
     chosen = client.put(f"/api/players/{a}/avatar/gallery", json={"name": gallery[0]}).json()
-    assert chosen["avatar"] == f"/avatars/{gallery[0]}.svg"
+    assert chosen["avatar"] == f"/avatars/{gallery[0]}.webp"
     assert client.get(f"/api/players/{a}/avatar.jpg").status_code == 404  # photo removed
 
     client.patch(f"/api/players/{a}", json={"new_pin": "1234"})

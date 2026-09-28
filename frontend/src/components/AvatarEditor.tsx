@@ -82,7 +82,7 @@ export default function AvatarEditor({
 
   const pickGallery = (entry: string) => {
     onChange({ kind: 'gallery', name: entry })
-    setPreview(`/avatars/${entry}.svg`)
+    setPreview(`/avatars/${entry}.webp`)
     setGallery(null)
   }
 
@@ -128,7 +128,7 @@ export default function AvatarEditor({
         <div className={styles.gallery}>
           {gallery.map((entry) => (
             <button key={entry} type="button" className={styles.galleryItem} onClick={() => pickGallery(entry)} aria-label={entry}>
-              <img src={`/avatars/${entry}.svg`} alt="" />
+              <img src={`/avatars/${entry}.webp`} alt="" />
             </button>
           ))}
         </div>

@@ -690,7 +690,7 @@ Wie beim Stadionsprecher werden die Grafiken **einmalig erzeugt** und als Dateie
 #### To-Dos (MVP)
 
 - [x] Arcade-Grundgerüst: Dart-Positionen in der Spiellogik (Kamera, Tippen aufs Board, sonst Feldmitte), Arcade-Bühne (SVG/CSS statt PixiJS – reicht für wenige Sprites und läuft auf dem Mac mini)
-- [x] Grafiken: Monster, Hintergrund und Effekt in ChatGPT erzeugt (ein Chat, fester Stil), Animationen (idle/besiegt, je 8 Bilder) mit sprite-gen über Codex, Nacht-Friedhof als Hintergrund; Prompts in tools/arcade/README.md
+- [x] Grafiken: Monster, Hintergrund und Effekt in ChatGPT erzeugt (ein Chat, fester Stil), Animationen als Puppen im Code (ein Standbild pro Monster, per WebGL verformt: Atmen, Arme, Flügel, Blinzeln, Treffer, Umfallen; KI-Einzelbilder ruckelten), Nacht-Friedhof als Hintergrund; Prompts in tools/arcade/README.md
 - [x] Gemeinsames Layout: Spielerkarten mit Foto, Banner, Einblendungen, Punkte-Popups, „So geht’s“-Karten (über die Regel-Hilfe)
 - [x] Spiel 1: Monster-Jagd (Objekte auf Board-Positionen, Treffer nach Abstand in mm, Wachsen bei Fehlwurf)
 - [x] Monster-Jagd im Scolia-Stil (2026-09-28): Vollbild, ein Monster nach dem anderen mit Leben und Kopftreffer, Darts als Patronen mit Hülsenauswurf, Einschusslöcher mit Funken und Rauch, Bildschirmwackeln, Glühwürmchen, Nebel und Blätter

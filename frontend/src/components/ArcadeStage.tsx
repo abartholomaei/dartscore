@@ -4,6 +4,7 @@ import { Link } from 'react-router'
 import type { GameState } from '../api'
 import { R, SEGMENT_DEG, SEGMENTS, scoreAt } from '../dart'
 import Avatar from './Avatar'
+import MonsterPuppets, { type PuppetMonster, type PuppetShot } from './MonsterPuppets'
 import styles from './ArcadeStage.module.css'
 
 export type Monster = NonNullable<GameState['monsters']>[number]
@@ -11,7 +12,6 @@ type Effect = NonNullable<GameState['last_effect']>
 type Popup = { key: number; x: number; y: number; text: string; tone: 'good' | 'great' | 'bad' }
 
 const VIEW = 200 // mm shown around the bull (the board ends at 170)
-const FRAMES = 8 // frames per sprite strip (256 px each)
 const HEADSHOT: Record<string, number> = { easy: 0.45, medium: 0.35, hard: 0.3 } // as in the backend
 
 /** Deterministic 0..1 noise, so a bullet hole keeps its cracks across renders. */
@@ -139,7 +139,16 @@ export default function ArcadeStage({
   // on the board: the monster to shoot, and the one that just went down (it plays its fall)
   const shown = monsters.filter((m) => m.status === 'active' || (inTurn && effect?.killed && effect.target === m.id))
   const headshot = HEADSHOT[String(game.settings.difficulty)] ?? HEADSHOT.medium
-  const flinch = shot && !shot.effect.killed && shot.effect.hit ? (shot.key % 2 ? styles.flinchA : styles.flinchB) : ''
+  const puppets: PuppetMonster[] = shown.map((m) => ({ key: `${introKey}-${m.id}`, kind: m.kind, x: m.x, y: m.y, radius: m.radius, dying: m.status === 'dead' }))
+  const puppetShot: PuppetShot | null =
+    shot && inTurn
+      ? {
+          key: shot.key,
+          target: shot.effect.target === null ? null : `${introKey}-${shot.effect.target}`,
+          kind: shot.effect.killed ? (shot.effect.headshot ? 'headshot' : 'kill') : shot.effect.hit ? 'hit' : 'miss',
+          fromX: shot.effect.position?.[0] ?? 0,
+        }
+      : null
   // two copies of each keyframe set, alternated, so the animation restarts on every dart
   const shake = shot && inTurn ? styles[`shake${shot.effect.headshot ? 'Big' : ''}${shot.key % 2 ? 'A' : 'B'}`] : ''
   const turnPoints = game.turn && game.turn.player === game.current_player ? game.turn.values.reduce((a, b) => a + b, 0) : 0
@@ -201,14 +210,8 @@ export default function ArcadeStage({
         </aside>
 
         <div className={`${styles.center} ${shake}`}>
-          <svg
-            ref={svg}
-            className={`${styles.board} ${onTap && !disabled ? styles.tappable : ''}`}
-            viewBox={`${-VIEW} ${-VIEW} ${2 * VIEW} ${2 * VIEW}`}
-            onClick={tap}
-            role="img"
-            aria-label={t('arcade.board')}
-          >
+          <div className={styles.board}>
+          <svg className={styles.layer} viewBox={`${-VIEW} ${-VIEW} ${2 * VIEW} ${2 * VIEW}`} aria-hidden>
             <defs>
               <radialGradient id="arcadeFade">
                 <stop offset="78%" stopColor="#fff" />
@@ -221,11 +224,6 @@ export default function ArcadeStage({
                 <stop offset="0%" stopColor="#d9fff5" />
                 <stop offset="35%" stopColor="#5eead4" stopOpacity="0.8" />
                 <stop offset="100%" stopColor="#5eead4" stopOpacity="0" />
-              </radialGradient>
-              <radialGradient id="arcadeFlash">
-                <stop offset="0%" stopColor="#fff" />
-                <stop offset="40%" stopColor="#fde68a" stopOpacity="0.9" />
-                <stop offset="100%" stopColor="#f97316" stopOpacity="0" />
               </radialGradient>
               <radialGradient id="arcadeShadow">
                 <stop offset="0%" stopColor="#000" stopOpacity="0.55" />
@@ -283,48 +281,47 @@ export default function ArcadeStage({
                 />
               ))}
 
-            {shown.map((m) => {
-              const dying = m.status === 'dead'
-              return (
+            {shown.map((m) =>
+              m.status === 'dead' ? null : (
                 <g key={`${introKey}-${m.id}`} className={styles.monster} style={{ transform: `translate(${m.x}px, ${-m.y}px)` }}>
-                  <g className={dying ? styles.gone : styles.spawn}>
-                    {!dying && (
-                      <g className={styles.reticle}>
-                        <circle r={m.radius} className={styles.reticleRing} />
-                        <circle r={m.radius * headshot} className={styles.reticleCore} />
-                        {[0, 90, 180, 270].map((a) => (
-                          <line
-                            key={a}
-                            x1={Math.cos((a * Math.PI) / 180) * (m.radius - 4)}
-                            y1={Math.sin((a * Math.PI) / 180) * (m.radius - 4)}
-                            x2={Math.cos((a * Math.PI) / 180) * (m.radius + 4)}
-                            y2={Math.sin((a * Math.PI) / 180) * (m.radius + 4)}
-                            className={styles.reticleTick}
-                          />
-                        ))}
-                      </g>
-                    )}
-                    <ellipse cy={m.radius * 1.05} rx={m.radius * 0.95} ry={m.radius * 0.32} fill="url(#arcadeShadow)" className={styles.shadow} />
-                    <g className={`${styles.bob} ${dying ? '' : flinch}`} style={{ animationDelay: `${-((m.id * 0.37) % 1.6)}s` }}>
-                      {/* animated sprite strip: idle loop, or the fall once */}
-                      <svg
-                        x={-m.radius * 1.75}
-                        y={-m.radius * 1.85}
-                        width={m.radius * 3.5}
-                        height={m.radius * 3.5}
-                        viewBox="0 0 256 256"
-                        overflow="hidden"
-                      >
-                        <image
-                          href={`/arcade/monsters/${m.kind}-${dying ? 'hurt' : 'idle'}.webp`}
-                          width={256 * FRAMES}
-                          height={256}
-                          className={dying ? styles.stripOnce : styles.stripLoop}
+                  <g className={styles.spawn}>
+                    <ellipse cy={m.radius * 1.05} rx={m.radius * 0.95} ry={m.radius * 0.32} fill="url(#arcadeShadow)" />
+                    <g className={styles.reticle}>
+                      <circle r={m.radius} className={styles.reticleRing} />
+                      <circle r={m.radius * headshot} className={styles.reticleCore} />
+                      {[0, 90, 180, 270].map((a) => (
+                        <line
+                          key={a}
+                          x1={Math.cos((a * Math.PI) / 180) * (m.radius - 4)}
+                          y1={Math.sin((a * Math.PI) / 180) * (m.radius - 4)}
+                          x2={Math.cos((a * Math.PI) / 180) * (m.radius + 4)}
+                          y2={Math.sin((a * Math.PI) / 180) * (m.radius + 4)}
+                          className={styles.reticleTick}
                         />
-                      </svg>
+                      ))}
                     </g>
-                    {!dying && m.max_hp > 1 && (
-                      <g className={styles.lives} aria-label={t('arcade.lives', { count: m.hp })}>
+                  </g>
+                </g>
+              ),
+            )}
+          </svg>
+
+          <MonsterPuppets monsters={puppets} shot={puppetShot} view={VIEW} />
+
+          <svg
+            ref={svg}
+            className={`${styles.layer} ${onTap && !disabled ? styles.tappable : ''}`}
+            viewBox={`${-VIEW} ${-VIEW} ${2 * VIEW} ${2 * VIEW}`}
+            onClick={tap}
+            role="img"
+            aria-label={t('arcade.board')}
+          >
+            {shown.map((m) =>
+              m.status === 'dead' ? null : (
+                <g key={`${introKey}-${m.id}`} className={styles.monster} style={{ transform: `translate(${m.x}px, ${-m.y}px)` }}>
+                  <g className={styles.spawn}>
+                    {m.max_hp > 1 && (
+                      <g aria-label={t('arcade.lives', { count: m.hp })}>
                         {Array.from({ length: m.max_hp }, (_, k) => (
                           <rect
                             key={k}
@@ -338,17 +335,22 @@ export default function ArcadeStage({
                         ))}
                       </g>
                     )}
-                    {!dying && (
-                      <g transform={`translate(0 ${m.radius * 1.55 + 6})`}>
-                        <rect x={-13} y={-6.5} width={26} height={13} rx={6.5} className={styles.valueTag} />
-                        <text className={styles.value}>{m.value}</text>
-                      </g>
-                    )}
+                    <g transform={`translate(0 ${m.radius * 1.55 + 6})`}>
+                      <rect x={-13} y={-6.5} width={26} height={13} rx={6.5} className={styles.valueTag} />
+                      <text className={styles.value}>{m.value}</text>
+                    </g>
                   </g>
                 </g>
-              )
-            })}
+              ),
+            )}
 
+            <defs>
+              <radialGradient id="arcadeFlashTop">
+                <stop offset="0%" stopColor="#fff" />
+                <stop offset="40%" stopColor="#fde68a" stopOpacity="0.9" />
+                <stop offset="100%" stopColor="#f97316" stopOpacity="0" />
+              </radialGradient>
+            </defs>
             {/* bullet holes of this turn: on top of everything, they stay until the darts are pulled */}
             {darts.map((d, i) => {
               if (!d.position) return null
@@ -366,7 +368,7 @@ export default function ArcadeStage({
                     <circle r={2.8} className={styles.holeCore} />
                     <circle r={1.1} cx={-0.7} cy={-0.7} className={styles.holeDeep} />
                   </g>
-                  <circle r={20} fill="url(#arcadeFlash)" className={styles.flash} />
+                  <circle r={20} fill="url(#arcadeFlashTop)" className={styles.flash} />
                   <g className={styles.sparks}>
                     {Array.from({ length: 8 }, (_, k) => {
                       const a = ((k + noise(seed + k + 9)) / 8) * Math.PI * 2
@@ -399,6 +401,7 @@ export default function ArcadeStage({
               </text>
             ))}
           </svg>
+          </div>
         </div>
 
         <aside className={styles.ammo}>

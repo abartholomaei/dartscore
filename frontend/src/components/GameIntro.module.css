@@ -239,9 +239,105 @@
   box-shadow: 0 0 12px var(--player);
 }
 
+/* --- the winner -------------------------------------------------------------------- */
+
+.winnerOverlay {
+  z-index: 51;
+  display: grid;
+  place-items: center;
+  background: radial-gradient(ellipse at center, color-mix(in srgb, var(--player) 45%, #07070c) 0%, #07070c 75%);
+  animation: overlay 4.2s ease-out forwards;
+}
+
+/* golden rays turning slowly behind the winner */
+.rays {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 250vmax;
+  height: 250vmax;
+  margin: -125vmax 0 0 -125vmax;
+  background: repeating-conic-gradient(from 0deg, rgb(255 216 74 / 0.16) 0deg 10deg, transparent 10deg 20deg);
+  mask-image: radial-gradient(circle, #000 0%, transparent 45%);
+  animation: rays 12s linear infinite, fadeIn 0.8s ease-out both;
+}
+
+.winnerContent {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  max-width: 94vw;
+  padding: 0 16px;
+  text-align: center;
+  animation: crown 1s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.winnerContent .avatar {
+  box-shadow:
+    0 0 0 6px #ffd84a,
+    0 0 0 12px var(--player),
+    0 0 80px 20px rgb(255 200 60 / 0.55);
+}
+
+.winnerContent .name {
+  font-size: clamp(3.5rem, 12vw, 9rem);
+}
+
+.trophy {
+  font-size: clamp(3rem, 8vw, 5.5rem);
+  line-height: 1;
+  filter: drop-shadow(0 0 24px rgb(255 200 60 / 0.8));
+  animation: slam 0.9s 0.35s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.winnerLabel {
+  font-family: var(--font-display);
+  font-size: clamp(1.5rem, 4vw, 2.75rem);
+  font-weight: 900;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: #ffd84a;
+}
+
+.result {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 6vw, 4rem);
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+  animation: fadeIn 0.6s 0.9s ease-out both;
+}
+
+.winnerOverlay .flash {
+  animation-delay: 0.1s;
+}
+
+@keyframes rays {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes crown {
+  0% {
+    transform: scale(0.3);
+    opacity: 0;
+  }
+  45% {
+    transform: scale(1.08);
+    opacity: 1;
+  }
+  60%,
+  100% {
+    transform: scale(1);
+  }
+}
+
 @keyframes overlay {
   0%,
-  88% {
+  90% {
     opacity: 1;
   }
   100% {

@@ -255,7 +255,7 @@ export type GameMode =
   | 'segment_training'
   | 'checkout_121'
   | 'monster_hunt'
-  | 'melon_samurai'
+  | 'fruit_samurai'
 export const TRAINING_MODES: GameMode[] = [
   'around_the_clock',
   'shanghai',
@@ -268,7 +268,7 @@ export const TRAINING_MODES: GameMode[] = [
 ]
 export const BOT_MODES: GameMode[] = ['x01', 'cricket']
 export const PARTY_MODES: GameMode[] = ['killer', 'halve_it', 'gotcha']
-export const ARCADE_MODES: GameMode[] = ['monster_hunt', 'melon_samurai']
+export const ARCADE_MODES: GameMode[] = ['monster_hunt', 'fruit_samurai']
 export type InOutRule = 'single' | 'double' | 'master'
 export type CricketVariant = 'standard' | 'cut_throat' | 'no_score'
 
@@ -338,7 +338,7 @@ export type GameState = {
   hidden?: boolean[]
   streak?: number[]
   best_streak?: number[]
-  // arcade (monster hunt, melon samurai)
+  // arcade (monster hunt, fruit samurai)
   monsters?: {
     id: number
     kind: string
@@ -363,6 +363,8 @@ export type GameState = {
     position: [number, number] | null
   } | null
   fruit?: string
+  fruits?: string[]
+  board_marks?: { cuts: [number, number, number, number][]; holes: [number, number][] }
   fruit_left?: [number, number][]
   double_round?: boolean
   kills?: number[]

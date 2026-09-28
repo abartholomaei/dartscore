@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { Link, useNavigate } from 'react-router'
 import { getJson, sendJson, type CricketVariant, type GamePlayer, type GameState, type InOutRule } from '../api'
 import ArcadeStage from '../components/ArcadeStage'
-import MelonStage from '../components/MelonStage'
+import FruitStage from '../components/FruitStage'
 import VoltageStage from '../components/VoltageStage'
 import Avatar from '../components/Avatar'
 import Particles from '../components/Particles'
@@ -268,11 +268,12 @@ function Running({ game }: { game: GameState }) {
     </InputPanel>
   )
 
-  // the monster hunt fills the whole screen too; typing and correcting darts in the popup
-  if (game.mode === 'monster_hunt') {
+  // the arcade games fill the whole screen too; typing and correcting darts in the popup
+  if (game.mode === 'monster_hunt' || game.mode === 'fruit_samurai') {
+    const Stage = game.mode === 'monster_hunt' ? ArcadeStage : FruitStage
     return (
       <>
-        <ArcadeStage
+        <Stage
           game={game}
           onTap={(label, x, y) => void enter(label, [x, y])}
           disabled={busy}
@@ -287,7 +288,7 @@ function Running({ game }: { game: GameState }) {
           <button className={`${styles.voltButton} ${styles.voltPrimary}`} onClick={() => void next()} disabled={busy}>
             {game.awaiting_next ? t('play.nextPlayer') : t('play.endTurn')}
           </button>
-        </ArcadeStage>
+        </Stage>
         {error && !panel && <p className={`error ${styles.voltError}`}>{error}</p>}
         {popupPanel}
       </>
@@ -318,23 +319,7 @@ function Running({ game }: { game: GameState }) {
     )
   }
 
-  // the melon samurai stage takes taps itself: scores, turn and keypad side by side
-  if (game.mode === 'melon_samurai') {
-    return (
-      <div className={styles.layout}>
-        <section className={styles.scores}>
-          <MatchInfo game={game} />
-          <MelonStage game={game} onTap={(label, x, y) => void enter(label, [x, y])} disabled={busy} />
-        </section>
-        {turnCardFor(true)}
-        {inputCard}
-        <History game={game} />
-        <GameMenu />
-      </div>
-    )
-  }
-
-  // Everything else: the board in the middle shows the darts and what to aim at, the players
+  // The board in the middle shows the darts and what to aim at, the players
   // are listed at the side; typing and correcting darts happens in a popup.
   const aim = boardTargets(game)
   return (

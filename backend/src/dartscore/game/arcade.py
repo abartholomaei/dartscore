@@ -9,7 +9,7 @@ makes room for the next one of the line-up. A dart that hits nothing makes the m
 easier to hit, but worth less. Walkers step along the board after every dart and are worth
 more. The last round counts double. Most points win.
 
-Melon samurai: every turn a fresh fruit covers the board. A dart is a sword cut straight
+Fruit samurai: every turn a fresh fruit covers the board. A dart is a sword cut straight
 through where it landed, across the line to the bull; the piece on the dart's side flies off
 and scores by its size (a whole fruit is worth 1000). The closer to the bull, the bigger the
 piece. A dart where no fruit is left (thrown past the bull) cuts only air. The bullseye cuts
@@ -276,7 +276,7 @@ class MonsterHuntGame(Game):
         return {"rounds": s.rounds, "difficulty": s.difficulty, "seed": s.seed}
 
 
-# --- Melon samurai ---------------------------------------------------------------------------
+# --- Fruit samurai ---------------------------------------------------------------------------
 
 Point = tuple[float, float]
 FRUITS = ("orange", "kiwi", "dragonfruit", "lime")
@@ -366,7 +366,7 @@ def _rounded(polygon: list[Point]) -> list[list[float]]:
 
 
 @dataclass(frozen=True)
-class MelonSamuraiSettings:
+class FruitSamuraiSettings:
     rounds: int = 5
 
     def __post_init__(self) -> None:
@@ -374,10 +374,10 @@ class MelonSamuraiSettings:
             raise GameError("invalid_settings", "rounds must be 5, 8 or 10")
 
 
-class MelonSamuraiGame(Game):
-    mode = "melon_samurai"
+class FruitSamuraiGame(Game):
+    mode = "fruit_samurai"
 
-    def __init__(self, player_count: int, settings: MelonSamuraiSettings) -> None:
+    def __init__(self, player_count: int, settings: FruitSamuraiSettings) -> None:
         self.settings = settings
         super().__init__(player_count, MatchSettings())
 
@@ -403,6 +403,26 @@ class MelonSamuraiGame(Game):
         for dart, position in zip(darts, positions, strict=False):
             fruit = slice_fruit(fruit, dart_position(dart, position)).rest
         return fruit
+
+    def board_marks(self, round_number: int) -> dict[str, list[list[float]]]:
+        """What the round has left on the cutting board so far, over all players: a groove
+        for every cut and a hole for every dart."""
+        cuts: list[list[float]] = []
+        holes: list[list[float]] = []
+        for turn in self.legs[-1].turns:
+            if self._round_of(turn) != round_number:
+                continue
+            fruit = _fruit_outline()
+            for dart, position in zip(turn.darts, turn.positions, strict=False):
+                at = dart_position(dart, position)
+                result = slice_fruit(fruit, at)
+                fruit = result.rest
+                if result.cut:
+                    (a, b) = result.cut
+                    cuts.append([round(a[0], 1), round(a[1], 1), round(b[0], 1), round(b[1], 1)])
+                if at is not None and math.hypot(*at) <= R_DOUBLE_OUTER:
+                    holes.append([round(at[0], 1), round(at[1], 1)])
+        return {"cuts": cuts, "holes": holes}
 
     def _score_dart(self, turn: Turn, dart: Dart) -> None:
         p = turn.player
@@ -456,6 +476,8 @@ class MelonSamuraiGame(Game):
             "rounds": self.settings.rounds,
             "double_round": round_number == self.settings.rounds,
             "fruit": self.fruit_of(round_number),
+            "fruits": [self.fruit_of(r) for r in range(1, self.settings.rounds + 1)],
+            "board_marks": self.board_marks(round_number),
             "fruit_left": _rounded(fruit),
             "fruit_share": round(polygon_area(fruit) / WHOLE_FRUIT, 3),
             "arcade_darts": darts,

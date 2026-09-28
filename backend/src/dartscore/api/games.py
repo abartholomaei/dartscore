@@ -53,7 +53,7 @@ class GameCreate(BaseModel):
         "segment_training",
         "checkout_121",
         "monster_hunt",
-        "melon_samurai",
+        "fruit_samurai",
     ]
     settings: dict[str, Any] = {}
     players: list[Participant] = Field(min_length=1, max_length=8)

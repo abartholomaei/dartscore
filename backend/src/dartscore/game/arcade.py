@@ -10,7 +10,7 @@ Melon samurai: every turn a fresh fruit covers the board. A dart is a sword cut 
 through where it landed, across the line to the bull; the piece on the dart's side flies off
 and scores by its size (a whole fruit is worth 1000). The closer to the bull, the bigger the
 piece. A dart where no fruit is left (thrown past the bull) cuts only air. The bullseye cuts
-away everything that is left. The last round counts double. Most points win.
+away everything that is left. The last round is a big watermelon and counts double. Most points win.
 
 Darts typed in by hand have no position; the middle of their field is used instead.
 """
@@ -238,7 +238,8 @@ class MonsterHuntGame(Game):
 # --- Melon samurai ---------------------------------------------------------------------------
 
 Point = tuple[float, float]
-FRUITS = ("watermelon", "orange", "kiwi", "dragonfruit", "lime")
+FRUITS = ("orange", "kiwi", "dragonfruit", "lime")
+FINALE = "watermelon"  # the last round, worth double
 FRUIT_POINTS = 1000  # a whole fruit
 FRUIT_EDGES = 96  # the round fruit as a polygon
 
@@ -350,7 +351,7 @@ class MelonSamuraiGame(Game):
 
     def fruit_of(self, round_number: int) -> str:
         if round_number == self.settings.rounds:
-            return "golden"
+            return FINALE
         return FRUITS[(round_number - 1) % len(FRUITS)]
 
     def _multiplier(self, round_number: int) -> int:

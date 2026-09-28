@@ -131,7 +131,7 @@ def test_the_bullseye_cuts_away_everything_left_and_ends_the_turn() -> None:
     assert state["awaiting_next"] is True
 
 
-def test_every_turn_starts_with_a_fresh_fruit_and_the_last_one_is_golden() -> None:
+def test_every_turn_starts_with_a_fresh_fruit_and_the_last_one_is_a_watermelon() -> None:
     game = samurai(2)
     fruits = []
     for _ in range(5):
@@ -140,7 +140,7 @@ def test_every_turn_starts_with_a_fresh_fruit_and_the_last_one_is_golden() -> No
             assert game.state()["fruit_share"] == 1.0
             game.throw(Dart(20, 1), (0.0, 85.0))
             game.next_turn()
-    assert fruits == ["watermelon", "orange", "kiwi", "dragonfruit", "golden"]
+    assert fruits == ["orange", "kiwi", "dragonfruit", "lime", "watermelon"]
     assert game.finished
     cap = samurai()
     cap.throw(Dart(20, 1), (0.0, 85.0))
@@ -162,7 +162,7 @@ def test_the_cut_fruit_stays_until_the_darts_are_pulled() -> None:
     game.throw(Dart(25, 2))  # everything gone, the turn is over
     state = game.state()
     assert state["awaiting_next"] is True
-    assert state["fruit"] == "watermelon"
+    assert state["fruit"] == "orange"
     assert state["fruit_left"] == []
     assert len(state["arcade_darts"]) == 2
     game.next_turn()

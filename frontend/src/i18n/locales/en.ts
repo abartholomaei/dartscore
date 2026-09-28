@@ -198,7 +198,7 @@ const en = {
       melon_samurai: {
         goal: 'Slice off as much fruit as possible: the bigger the piece, the more points.',
         play: 'Every turn a fresh fruit covers the board. Each dart is a sword cut straight through where it lands, across the line to the bull; the piece on the dart\'s side flies off. A dart counts where it lands, not by field.',
-        scoring: 'Points are the size of the piece - a whole fruit is worth 1000. The closer to the bull, the bigger the piece. A dart past the bull, where the fruit is already gone, cuts only air. The bullseye cuts away everything that is left. The last round (golden melon) counts double.',
+        scoring: 'Points are the size of the piece - a whole fruit is worth 1000. The closer to the bull, the bigger the piece. A dart past the bull, where the fruit is already gone, cuts only air. The bullseye cuts away everything that is left. The last round is a big watermelon and counts double.',
         win: 'Most points after the last round win.',
         example: 'A dart halfway between bull and double cuts off about a fifth: 195 points. Three darts close to the bull from different sides leave only a sliver.',
       },
@@ -402,12 +402,11 @@ const en = {
       kiwi: 'Kiwi',
       dragonfruit: 'Dragon fruit',
       lime: 'Lime',
-      golden: 'Golden melon',
     },
     melon: {
       board: 'Fruit board',
       instruction: 'Slice the {{fruit}} - close to the bull!',
-      golden: 'Golden melon - double points!',
+      finale: 'Watermelon finale - double points!',
       master: 'Master samurai!',
       clean: 'Clean cut!',
       nice: 'Nice slice',

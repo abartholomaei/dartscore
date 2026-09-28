@@ -199,7 +199,7 @@ const de: Translations = {
       melon_samurai: {
         goal: 'Möglichst viel Obst abschneiden: je größer das Stück, desto mehr Punkte.',
         play: 'In jeder Aufnahme liegt eine frische Frucht auf der Scheibe. Jeder Dart ist ein gerader Schwerthieb durch die Stelle, an der er steckt, quer zur Linie zum Bull; das Stück auf der Seite des Darts fliegt weg. Ein Dart zählt dort, wo er steckt, nicht nach Feld.',
-        scoring: 'Die Punkte entsprechen der Größe des Stücks - eine ganze Frucht ist 1000 wert. Je näher am Bull, desto größer das Stück. Ein Dart hinter dem Bull, wo keine Frucht mehr ist, schneidet nur Luft. Das Bullseye schneidet alles ab, was übrig ist. Die letzte Runde (goldene Melone) zählt doppelt.',
+        scoring: 'Die Punkte entsprechen der Größe des Stücks - eine ganze Frucht ist 1000 wert. Je näher am Bull, desto größer das Stück. Ein Dart hinter dem Bull, wo keine Frucht mehr ist, schneidet nur Luft. Das Bullseye schneidet alles ab, was übrig ist. Die letzte Runde ist eine große Wassermelone und zählt doppelt.',
         win: 'Die meisten Punkte nach der letzten Runde gewinnen.',
         example: 'Ein Dart auf halber Strecke zwischen Bull und Doppel schneidet etwa ein Fünftel ab: 195 Punkte. Drei Darts dicht am Bull von verschiedenen Seiten lassen nur einen schmalen Rest übrig.',
       },
@@ -403,12 +403,11 @@ const de: Translations = {
       kiwi: 'Kiwi',
       dragonfruit: 'Drachenfrucht',
       lime: 'Limette',
-      golden: 'Goldene Melone',
     },
     melon: {
       board: 'Obst-Scheibe',
       instruction: 'Zerschneide die Frucht ({{fruit}}) - dicht am Bull!',
-      golden: 'Goldene Melone - doppelte Punkte!',
+      finale: 'Wassermelonen-Finale - doppelte Punkte!',
       master: 'Samurai-Meister!',
       clean: 'Sauberer Schnitt!',
       nice: 'Schönes Stück',

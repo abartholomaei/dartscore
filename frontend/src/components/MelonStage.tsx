@@ -16,7 +16,7 @@ type Effect = {
   cut: [Point, Point] | null
   position: Point | null
 }
-type Fruit = 'watermelon' | 'orange' | 'kiwi' | 'dragonfruit' | 'lime' | 'golden'
+type Fruit = 'watermelon' | 'orange' | 'kiwi' | 'dragonfruit' | 'lime'
 type Burst = { key: number; fruit: Fruit; effect: Effect }
 
 // juice colour of each fruit (drops and the slash glow)
@@ -26,7 +26,6 @@ const JUICE: Record<Fruit, string> = {
   kiwi: '#8bd346',
   dragonfruit: '#ff3fa4',
   lime: '#b5e61d',
-  golden: '#ffd23f',
 }
 const DROPS = Array.from({ length: 12 }, (_, i) => ({
   angle: (i * 360) / 12 + (i % 3) * 9,
@@ -49,7 +48,7 @@ export default function MelonStage({
 }) {
   const { t } = useTranslation()
   const board = useBoardTap(onTap, disabled)
-  const fruit = (game.fruit ?? 'watermelon') as Fruit
+  const fruit = (game.fruit ?? 'orange') as Fruit
   const left = (game.fruit_left ?? []) as Point[]
   const darts = game.arcade_darts ?? []
   const effect = game.last_effect as Effect | null | undefined
@@ -88,7 +87,7 @@ export default function MelonStage({
                 ? t('arcade.melon.nice')
                 : t('arcade.melon.peel')
       : game.double_round
-        ? t('arcade.melon.golden')
+        ? t('arcade.melon.finale')
         : t('arcade.melon.instruction', { fruit: fruitName })
 
   const image = (name: string) => (
@@ -138,7 +137,7 @@ export default function MelonStage({
         <circle r={VIEW} fill="url(#melonVignette)" />
 
         {/* what is left of the fruit; a new turn drops in a fresh one */}
-        <g key={`${game.id}-${game.round}-${game.current_player}`} className={styles.fruit}>
+        <g key={`${game.id}-${game.round}-${game.current_player}`} className={game.double_round ? `${styles.fruit} ${styles.finale}` : styles.fruit}>
           {left.length > 2 && (
             <>
               <g clipPath="url(#fruitLeft)">{image(fruit)}</g>

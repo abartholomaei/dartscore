@@ -196,6 +196,13 @@ const de: Translations = {
     example: 'Beispiel',
     open: 'Regeln',
     modes: {
+      melon_samurai: {
+        goal: 'Möglichst viel Obst abschneiden: je größer das Stück, desto mehr Punkte.',
+        play: 'In jeder Aufnahme liegt eine frische Frucht auf der Scheibe. Jeder Dart ist ein gerader Schwerthieb durch die Stelle, an der er steckt, quer zur Linie zum Bull; das Stück auf der Seite des Darts fliegt weg. Ein Dart zählt dort, wo er steckt, nicht nach Feld.',
+        scoring: 'Die Punkte entsprechen der Größe des Stücks - eine ganze Frucht ist 1000 wert. Je näher am Bull, desto größer das Stück. Ein Dart hinter dem Bull, wo keine Frucht mehr ist, schneidet nur Luft. Das Bullseye schneidet alles ab, was übrig ist. Die letzte Runde (goldene Melone) zählt doppelt.',
+        win: 'Die meisten Punkte nach der letzten Runde gewinnen.',
+        example: 'Ein Dart auf halber Strecke zwischen Bull und Doppel schneidet etwa ein Fünftel ab: 195 Punkte. Drei Darts dicht am Bull von verschiedenen Seiten lassen nur einen schmalen Rest übrig.',
+      },
       monster_hunt: {
         goal: 'Möglichst viele Monster fangen: Punkte für jedes getroffene Monster.',
         play: 'Jede Runde sitzen einige Monster auf der Scheibe - für alle Spieler dieselben. Drei Darts pro Aufnahme; ein Dart zählt dort, wo er steckt, nicht nach Feld.',
@@ -390,6 +397,27 @@ const de: Translations = {
     attempts_other: '{{count}} Versuche',
   },
   arcade: {
+    fruits: {
+      watermelon: 'Wassermelone',
+      orange: 'Orange',
+      kiwi: 'Kiwi',
+      dragonfruit: 'Drachenfrucht',
+      lime: 'Limette',
+      golden: 'Goldene Melone',
+    },
+    melon: {
+      board: 'Obst-Scheibe',
+      instruction: 'Zerschneide die Frucht ({{fruit}}) - dicht am Bull!',
+      golden: 'Goldene Melone - doppelte Punkte!',
+      master: 'Samurai-Meister!',
+      clean: 'Sauberer Schnitt!',
+      nice: 'Schönes Stück',
+      peel: 'Nur ein Stück Schale',
+      air: 'Nur Luft - da ist nichts mehr',
+      perfect: 'Perfekter Schnitt - alles weg!',
+      perfectShort: 'PERFEKT',
+      airShort: 'Luft!',
+    },
     board: 'Monster-Scheibe',
     grow: 'sie wachsen!',
     multiKill: '{{count}} auf einmal!',
@@ -480,6 +508,7 @@ const de: Translations = {
     arcade: 'Arcade',
     difficulty: 'Schwierigkeit',
     difficulties: { easy: 'Leicht', medium: 'Mittel', hard: 'Schwer' },
+    melonSamuraiHint: 'Eine Frucht liegt auf der Scheibe; jeder Dart schneidet das Stück auf seiner Seite ab - je näher am Bull, desto größer. Hinter dem Bull ist nichts mehr zum Schneiden. Das Bullseye nimmt alles, die letzte Runde zählt doppelt. Am besten mit den Kameras (oder aufs Board tippen).',
     monsterHuntHint: 'Monster sitzen auf der Scheibe - triff sie dort, wo sie sind. Ein Fehlwurf macht sie größer, aber weniger wert. Die letzte Runde zählt doppelt. Am besten mit den Kameras (oder aufs Board tippen).',
     teams: 'In Teams spielen',
     teamCount: 'Teams',
@@ -727,6 +756,7 @@ const de: Translations = {
   },
   modes: {
     monster_hunt: 'Monster-Jagd',
+    melon_samurai: 'Melonen-Samurai',
     segment_training: 'Segment-Training',
     checkout_121: '121-Checkout',
     bull_off: 'Ausbullen',

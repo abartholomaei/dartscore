@@ -40,6 +40,7 @@ type TrainingOptions = {
   killerLives: number
   huntRounds: number
   huntDifficulty: 'easy' | 'medium' | 'hard'
+  melonRounds: number
   atcOrder: 'numbers' | 'board'
   halveItTargets: 'halve_it' | 'bermuda'
   cricketNumbers: 'standard' | 'random' | 'hidden'
@@ -65,6 +66,7 @@ const DEFAULT_TRAINING: TrainingOptions = {
   killerLives: 3,
   huntRounds: 8,
   huntDifficulty: 'medium',
+  melonRounds: 5,
   atcOrder: 'numbers',
   halveItTargets: 'halve_it',
   cricketNumbers: 'standard',
@@ -99,6 +101,8 @@ function trainingSettings(mode: GameMode, o: TrainingOptions): Record<string, un
       return { targets: o.halveItTargets }
     case 'monster_hunt':
       return { rounds: o.huntRounds, difficulty: o.huntDifficulty }
+    case 'melon_samurai':
+      return { rounds: o.melonRounds }
     case 'segment_training': {
       const ring = o.segNumber === 25 && o.segRing === 'triple' ? 'any' : o.segRing
       const limits = o.segEnd === 'darts' ? [33, 66, 99] : [5, 10, 20, 50]
@@ -331,7 +335,7 @@ export default function NewGame() {
           </div>
           <h3 className={styles.label}>{t('newGame.arcade')}</h3>
           <div className={styles.chips}>
-            {ARCADE_MODES.map((m) => choice<GameMode>(m, mode, setMode, `👾 ${t(`modes.${m}`)}`))}
+            {ARCADE_MODES.map((m) => choice<GameMode>(m, mode, setMode, `${m === 'melon_samurai' ? '🍉' : '👾'} ${t(`modes.${m}`)}`))}
           </div>
 
           {mode === 'x01' && (
@@ -498,6 +502,15 @@ export default function NewGame() {
                 )}
               </div>
               <p className="muted">{t('newGame.monsterHuntHint')}</p>
+            </>
+          )}
+          {mode === 'melon_samurai' && (
+            <>
+              <h3 className={styles.label}>{t('newGame.rounds')}</h3>
+              <div className={styles.chips}>
+                {[5, 8, 10].map((r) => choice(r, training.melonRounds, setOption('melonRounds'), String(r)))}
+              </div>
+              <p className="muted">{t('newGame.melonSamuraiHint')}</p>
             </>
           )}
           {mode === 'score_training' && (

@@ -33,7 +33,7 @@
 | 🎮 **20+ games and variants** | X01 (in/out rules, legs & sets, handicap, teams), Cricket (standard, cut-throat, no-score, random, hidden), training modes from Around the Clock to 121 checkout, Killer, Halve-It, Gotcha, local tournaments, bots. |
 | 📊 **Statistics** | Averages, checkout rate, ton counts, MPR, heatmap, grouping, aim deviation, trends for every mode, achievements; CSV/JSON export and daily backups. |
 | 🧑‍🤝‍🧑 **Local profiles** | Photos or a gallery avatar, favourite double, optional PIN, training plans, a personal bot that throws like you. |
-| 👾 **Arcade** | Monster hunt on the real dart positions and the X01 Voltage theme, with animations and particle effects. |
+| 👾 **Arcade** | Monster hunt and melon samurai on the real dart positions and the X01 Voltage theme, with animations and particle effects. |
 | 📺 **Any screen** | Responsive, installable web app; readable from the oche on a TV, QR code to open it on a phone. |
 | 🔒 **Local first** | FastAPI + SQLite on a small PC (reference: 2012 Mac mini, CPU inference); works without internet. |
 

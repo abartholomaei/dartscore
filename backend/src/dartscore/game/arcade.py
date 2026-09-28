@@ -6,6 +6,12 @@ that round, drawn from the seed). A dart takes out every monster it lands on; a 
 nothing makes the remaining ones grow - easier to hit, but worth less. Wanderers move a bit
 after each dart. The last round counts double. Most points win.
 
+Melon samurai: every turn a fresh fruit covers the board. A dart is a sword cut straight
+through where it landed, across the line to the bull; the piece on the dart's side flies off
+and scores by its size (a whole fruit is worth 1000). The closer to the bull, the bigger the
+piece. A dart where no fruit is left (thrown past the bull) cuts only air. The bullseye cuts
+away everything that is left. The last round counts double. Most points win.
+
 Darts typed in by hand have no position; the middle of their field is used instead.
 """
 
@@ -16,7 +22,7 @@ from typing import Any, Literal
 
 from dartscore.game.base import Game, GameError, MatchSettings, Turn
 from dartscore.game.dart import Dart
-from dartscore.game.geometry import R_DOUBLE_OUTER, field_center
+from dartscore.game.geometry import R_BULL, R_DOUBLE_OUTER, field_center
 
 Difficulty = Literal["easy", "medium", "hard"]
 
@@ -75,6 +81,20 @@ class MonsterHuntSettings:
 def dart_position(dart: Dart, position: tuple[float, float] | None) -> tuple[float, float] | None:
     """Where the dart counts: the detected position, else the middle of its field."""
     return position if position is not None else field_center(dart)
+
+
+def shown_turn(game: Game) -> Turn | None:
+    """The turn whose board is on screen: the running one, or the one just completed until
+    the darts are pulled (and the last one when the game is over)."""
+    leg = game.legs[-1]
+    if not leg.turns:
+        return None
+    turn = leg.turns[-1]
+    if turn.player != game.current_player:
+        return None
+    if turn.closed and not (game.turn_complete or game.finished):
+        return None
+    return turn
 
 
 class MonsterHuntGame(Game):
@@ -187,8 +207,8 @@ class MonsterHuntGame(Game):
 
     def _leg_state(self) -> dict[str, Any]:
         p = self.current_player
-        turn = self.current_turn
-        if turn is not None and turn.player == p:
+        turn = shown_turn(self)
+        if turn is not None:
             round_number = self._round_of(turn)
             monsters = self.field_after(turn)
             darts = [
@@ -213,3 +233,192 @@ class MonsterHuntGame(Game):
     def settings_dict(self) -> dict[str, Any]:
         s = self.settings
         return {"rounds": s.rounds, "difficulty": s.difficulty, "seed": s.seed}
+
+
+# --- Melon samurai ---------------------------------------------------------------------------
+
+Point = tuple[float, float]
+FRUITS = ("watermelon", "orange", "kiwi", "dragonfruit", "lime")
+FRUIT_POINTS = 1000  # a whole fruit
+FRUIT_EDGES = 96  # the round fruit as a polygon
+
+
+def _fruit_outline() -> list[Point]:
+    """The whole fruit: a circle over the board, counter-clockwise."""
+    step = 2 * math.pi / FRUIT_EDGES
+    return [
+        (R_DOUBLE_OUTER * math.cos(i * step), R_DOUBLE_OUTER * math.sin(i * step))
+        for i in range(FRUIT_EDGES)
+    ]
+
+
+def polygon_area(polygon: list[Point]) -> float:
+    """Shoelace formula."""
+    edges = zip(polygon, polygon[1:] + polygon[:1], strict=True)
+    return abs(sum(x1 * y2 - x2 * y1 for (x1, y1), (x2, y2) in edges)) / 2
+
+
+def split_polygon(
+    polygon: list[Point], normal: Point, offset: float
+) -> tuple[list[Point], list[Point]]:
+    """Cuts a convex polygon along the line ``p · normal = offset``; returns the part with
+    ``p · normal <= offset`` and the part beyond it."""
+    keep: list[Point] = []
+    cut: list[Point] = []
+    for a, b in zip(polygon, polygon[1:] + polygon[:1], strict=True):
+        da = a[0] * normal[0] + a[1] * normal[1] - offset
+        db = b[0] * normal[0] + b[1] * normal[1] - offset
+        (keep if da <= 0 else cut).append(a)
+        if (da < 0 < db) or (db < 0 < da):
+            t = da / (da - db)
+            crossing = (a[0] + t * (b[0] - a[0]), a[1] + t * (b[1] - a[1]))
+            keep.append(crossing)
+            cut.append(crossing)
+    return keep, cut
+
+
+def inside_polygon(polygon: list[Point], point: Point) -> bool:
+    """Whether ``point`` lies in a convex, counter-clockwise polygon."""
+    if len(polygon) < 3:
+        return False
+    return all(
+        (b[0] - a[0]) * (point[1] - a[1]) - (b[1] - a[1]) * (point[0] - a[0]) >= -1e-9
+        for a, b in zip(polygon, polygon[1:] + polygon[:1], strict=True)
+    )
+
+
+WHOLE_FRUIT = polygon_area(_fruit_outline())
+
+
+@dataclass(frozen=True)
+class Slice:
+    """What one dart did to the fruit."""
+
+    result: Literal["slice", "perfect", "air"]
+    fraction: float  # share of the whole fruit cut off
+    piece: list[Point]  # the part that flies off
+    rest: list[Point]  # what is left of the fruit
+    cut: tuple[Point, Point] | None  # the sword line across the fruit
+
+
+def slice_fruit(fruit: list[Point], at: Point | None) -> Slice:
+    """Cuts the fruit with a dart at ``at`` (mm, see the module docs)."""
+    if at is None or not inside_polygon(fruit, at):
+        return Slice("air", 0.0, [], fruit, None)
+    distance = math.hypot(*at)
+    if distance <= R_BULL:
+        return Slice("perfect", polygon_area(fruit) / WHOLE_FRUIT, fruit, [], None)
+    normal = (at[0] / distance, at[1] / distance)
+    rest, piece = split_polygon(fruit, normal, distance)
+    half = math.sqrt(max(R_DOUBLE_OUTER**2 - distance**2, 0.0))
+    along = (-normal[1], normal[0])
+    cut = (
+        (at[0] - along[0] * half, at[1] - along[1] * half),
+        (at[0] + along[0] * half, at[1] + along[1] * half),
+    )
+    return Slice("slice", polygon_area(piece) / WHOLE_FRUIT, piece, rest, cut)
+
+
+def _rounded(polygon: list[Point]) -> list[list[float]]:
+    return [[round(x, 1), round(y, 1)] for x, y in polygon]
+
+
+@dataclass(frozen=True)
+class MelonSamuraiSettings:
+    rounds: int = 5
+
+    def __post_init__(self) -> None:
+        if self.rounds not in (5, 8, 10):
+            raise GameError("invalid_settings", "rounds must be 5, 8 or 10")
+
+
+class MelonSamuraiGame(Game):
+    mode = "melon_samurai"
+
+    def __init__(self, player_count: int, settings: MelonSamuraiSettings) -> None:
+        self.settings = settings
+        super().__init__(player_count, MatchSettings())
+
+    def _start_leg(self) -> None:
+        self.scores = [0] * self.player_count
+        self.slices = [0] * self.player_count
+        # what the last dart did, for the animation
+        self.last_effect: dict[str, Any] | None = None
+
+    def _round_of(self, turn: Turn) -> int:
+        return self.turns_of(turn.player).index(turn) + 1
+
+    def fruit_of(self, round_number: int) -> str:
+        if round_number == self.settings.rounds:
+            return "golden"
+        return FRUITS[(round_number - 1) % len(FRUITS)]
+
+    def _multiplier(self, round_number: int) -> int:
+        return 2 if round_number == self.settings.rounds else 1
+
+    def fruit_after(self, darts: list[Dart], positions: list[Point | None]) -> list[Point]:
+        fruit = _fruit_outline()
+        for dart, position in zip(darts, positions, strict=False):
+            fruit = slice_fruit(fruit, dart_position(dart, position)).rest
+        return fruit
+
+    def _score_dart(self, turn: Turn, dart: Dart) -> None:
+        p = turn.player
+        round_number = self._round_of(turn)
+        fruit = self.fruit_after(turn.darts[:-1], turn.positions[:-1])
+        at = dart_position(dart, turn.positions[-1])
+        result = slice_fruit(fruit, at)
+        points = round(result.fraction * FRUIT_POINTS) * self._multiplier(round_number)
+        turn.values.append(points)
+        self.scores[p] += points
+        if result.result != "air":
+            self.slices[p] += 1
+        self.last_effect = {
+            "player": p,
+            "result": result.result,
+            "points": points,
+            "piece": _rounded(result.piece),
+            "cut": [list(c) for c in result.cut] if result.cut else None,
+            "position": at,
+        }
+        if not result.rest:
+            turn.stop = True  # nothing left to cut
+
+    def _after_turn(self, turn: Turn) -> int | None:
+        rounds = self.settings.rounds
+        if all(len(self.turns_of(p)) >= rounds for p in range(self.player_count)):
+            return self.scores.index(max(self.scores))
+        return None
+
+    def player_result(self, player: int) -> dict[str, int]:
+        return {"score": self.scores[player], "hits": self.slices[player]}
+
+    def _leg_state(self) -> dict[str, Any]:
+        p = self.current_player
+        turn = shown_turn(self)
+        if turn is not None:
+            round_number = self._round_of(turn)
+            fruit = self.fruit_after(turn.darts, turn.positions)
+            darts = [
+                {"label": d.label, "position": dart_position(d, pos)}
+                for d, pos in zip(turn.darts, turn.positions, strict=False)
+            ]
+        else:
+            round_number = min(len(self.turns_of(p)) + 1, self.settings.rounds)
+            fruit = _fruit_outline()
+            darts = []
+        return {
+            "scores": list(self.scores),
+            "hits": list(self.slices),
+            "round": round_number,
+            "rounds": self.settings.rounds,
+            "double_round": round_number == self.settings.rounds,
+            "fruit": self.fruit_of(round_number),
+            "fruit_left": _rounded(fruit),
+            "fruit_share": round(polygon_area(fruit) / WHOLE_FRUIT, 3),
+            "arcade_darts": darts,
+            "last_effect": self.last_effect,
+        }
+
+    def settings_dict(self) -> dict[str, Any]:
+        return {"rounds": self.settings.rounds}

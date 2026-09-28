@@ -695,7 +695,17 @@ Wie beim Stadionsprecher werden die Grafiken **einmalig erzeugt** und als Dateie
 - [x] Spiel 1: Monster-Jagd (Objekte auf Board-Positionen, Treffer nach Abstand in mm, Wachsen bei Fehlwurf) – vorerst mit Platzhalter-Grafiken
 - [ ] Spiel 2: Themen-Skin für X01
 - [ ] Spiel 3: Meteoriten-Abwehr (kooperativ, Drehung, Annäherung)
-- [ ] Weitere: Eisschollen/Holzfäller-Variante, Darts-Rennen, Schiffe versenken
+- [x] Spiel 4: Melonen-Samurai (Holzfäller-Variante mit eigenem Thema, siehe unten)
+- [ ] Weitere: Darts-Rennen, Schiffe versenken
 - [ ] Performance-Test auf dem Mac mini (1080p, Firefox)
+
+#### Melonen-Samurai (umgesetzt 2026-09-28)
+
+Vorbild ist **Lumberjack** aus Scolia Social (Video von VISIONARYDARTS, 2:18–2:52): Ein Baumstumpf bedeckt die Scheibe, jeder Dart ist ein gerader Axthieb, das Stück auf der Seite des Darts fliegt weg, die Punkte richten sich nach seiner Größe. Wer über das Bull hinaus wirft, trifft kein Holz mehr. Letzte Runde doppelt. Bei uns ist das Thema ein Schwertschnitt durch Obst, weil gerade Schnitte zu einem Schwert besser passen als zu einer Axt von oben.
+
+- **Regeln:** In jeder Aufnahme liegt eine frische Frucht über der ganzen Scheibe (Radius = Doppelring). Ein Dart an Position `p` schneidet entlang der Linie durch `p` quer zur Richtung zum Bull; das Stück auf der Seite des Darts fliegt weg. Punkte = abgeschnittene Fläche ÷ ganze Frucht × 1000. Das Bull bleibt immer im Rest. Ein Dart, wo keine Frucht mehr ist, schneidet Luft (0). Das Bullseye (≤ 6,35 mm) schneidet den ganzen Rest ab und beendet die Aufnahme. 5, 8 oder 10 Runden; Früchte der Reihe nach Wassermelone, Orange, Kiwi, Drachenfrucht, Limette; die letzte Runde ist die goldene Melone ×2.
+- **Technik:** Die Frucht ist ein konvexes 96-Eck; Schnitte als Sutherland-Hodgman an einer Linie, Fläche per Gaußscher Trapezformel (`game/arcade.py`). Im Browser wird das Fruchtbild per SVG-`clipPath` auf das Restpolygon zugeschnitten; das abgeschnittene Stück fliegt per CSS weg, dazu Schwertstreich und Saftspritzer. Darts ohne Position zählen in der Feldmitte (Bullseye = Mitte).
+- **Grafiken:** 6 Frucht-Querschnitte und das Schneidebrett, per Codex/ChatGPT erzeugt (Prompts in `tools/arcade/README.md`).
+- Nebenbei behoben: Nach einer fertigen Aufnahme zeigten die Arcade-Spiele schon das Spielfeld der nächsten Runde, bevor die Darts gezogen waren.
 
 **Quellen (Auswahl):** targetdarts.com/omni, dartcounter.net (Spiele, Ultimate, Release Notes v8.4/v9.0/v9.7), scoliadarts.com (Home 2, Vergleich, Software, FAQ, Social), autodarts.com (Preise, Updates), autodarts.diy (Spieleinstellungen, Desktop, AI Referee, Statistik), github.com/creazy231/tools-for-autodarts.

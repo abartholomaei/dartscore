@@ -647,7 +647,7 @@ Scolia Social hat 6 Spiele: Killer (Western), Shanghai, Voltage X01 (Neon/Strom)
 
 | Spiel | Spieler | Ablauf | Eingabe-Art | Aufwand |
 | --- | --- | --- | --- | --- |
-| **Monster-Jagd** | 2–8, gegeneinander | Kleine Monster sitzen auf Stellen der Scheibe, mit Punktwert. Ein Treffer in der Nähe erledigt sie; ein verfehltes Monster wächst (leichter zu treffen), bringt aber weniger Punkte. Manche wandern pro Aufnahme weiter. Die letzte Runde zählt doppelt. | Objekt-Ziele | mittel |
+| **Monster-Jagd** | 2–8, gegeneinander | Nach Scolias „Zombie Shooter“: immer ein Monster auf einer Stelle der Scheibe, mit Punktwert und Leben. Ein Treffer nah an der Mitte (Kopftreffer) erledigt es sofort, ein Streifschuss kostet ein Leben; danach kommt das nächste. Ein Fehlwurf lässt es wachsen (leichter zu treffen), aber weniger wert. Manche wandern nach jedem Dart weiter. Die letzte Runde zählt doppelt. | Objekt-Ziele | mittel |
 | **Meteoriten-Abwehr** | 1–4, kooperativ (optional gegeneinander) | Ein Meteorit bedeckt die Scheibe, aufgeteilt in Stücke. Jeder Dart zerstört das Stück darunter. Der Meteorit dreht sich pro Aufnahme und nähert sich der Erde; ist er nicht rechtzeitig zerlegt, verliert das Team. 3 Schwierigkeitsstufen. | Objekt-Ziele, Drehung | mittel |
 | **Eisschollen / Holzfäller-Variante** | 2–8 | Eine runde Fläche um das Bull; jeder Dart schlägt ein Stück heraus, je näher am Bull, desto größer und punkteträchtiger. Wo schon nichts mehr ist, gibt es keine Punkte. | stufenlose Präzision | gering–mittel |
 | **Darts-Rennen** | 2–8, Party | Fahrzeuge auf einer Rennstrecke; Punkte bewegen nach vorn (Triple = Turbo, Bull = Abkürzung). Kinderfreundlich. | Feld-Regeln | gering |
@@ -690,9 +690,10 @@ Wie beim Stadionsprecher werden die Grafiken **einmalig erzeugt** und als Dateie
 #### To-Dos (MVP)
 
 - [x] Arcade-Grundgerüst: Dart-Positionen in der Spiellogik (Kamera, Tippen aufs Board, sonst Feldmitte), Arcade-Bühne (SVG/CSS statt PixiJS – reicht für wenige Sprites und läuft auf dem Mac mini)
-- [x] Grafiken: Monster, Hintergrund und Effekt in ChatGPT erzeugt (ein Chat, fester Stil), Animationen (idle/gefangen, je 4 Bilder) mit sprite-gen über Codex; Prompts in tools/arcade/README.md
+- [x] Grafiken: Monster, Hintergrund und Effekt in ChatGPT erzeugt (ein Chat, fester Stil), Animationen (idle/besiegt, je 8 Bilder) mit sprite-gen über Codex, Nacht-Friedhof als Hintergrund; Prompts in tools/arcade/README.md
 - [x] Gemeinsames Layout: Spielerkarten mit Foto, Banner, Einblendungen, Punkte-Popups, „So geht’s“-Karten (über die Regel-Hilfe)
-- [x] Spiel 1: Monster-Jagd (Objekte auf Board-Positionen, Treffer nach Abstand in mm, Wachsen bei Fehlwurf) – vorerst mit Platzhalter-Grafiken
+- [x] Spiel 1: Monster-Jagd (Objekte auf Board-Positionen, Treffer nach Abstand in mm, Wachsen bei Fehlwurf)
+- [x] Monster-Jagd im Scolia-Stil (2026-09-28): Vollbild, ein Monster nach dem anderen mit Leben und Kopftreffer, Darts als Patronen mit Hülsenauswurf, Einschusslöcher mit Funken und Rauch, Bildschirmwackeln, Glühwürmchen, Nebel und Blätter
 - [ ] Spiel 2: Themen-Skin für X01
 - [ ] Spiel 3: Meteoriten-Abwehr (kooperativ, Drehung, Annäherung)
 - [ ] Weitere: Eisschollen/Holzfäller-Variante, Darts-Rennen, Schiffe versenken

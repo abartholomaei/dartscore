@@ -1,10 +1,13 @@
 """Arcade modes: the board is the game world. Objects sit on real board positions and a dart
 hits whatever it lands on (by distance in mm), not by field.
 
-Monster hunt: every round a few monsters sit on the board (the same set for every player of
-that round, drawn from the seed). A dart takes out every monster it lands on; a dart that hits
-nothing makes the remaining ones grow - easier to hit, but worth less. Wanderers move a bit
-after each dart. The last round counts double. Most points win.
+Monster hunt (after Scolia's Zombie Shooter): one monster at a time stands on the board. Every
+round has its own line-up of monsters (the same for every player of that round, drawn from the
+seed). A dart close to the monster's middle takes it out at once (a "headshot"); a dart that
+only grazes it costs it one life, so a sloppy thrower needs two or three hits. A caught monster
+makes room for the next one of the line-up. A dart that hits nothing makes the monster grow -
+easier to hit, but worth less. Walkers step along the board after every dart and are worth
+more. The last round counts double. Most points win.
 
 Darts typed in by hand have no position; the middle of their field is used instead.
 """
@@ -20,21 +23,24 @@ from dartscore.game.geometry import R_DOUBLE_OUTER, field_center
 
 Difficulty = Literal["easy", "medium", "hard"]
 
-# monster kinds: base radius (mm), points, whether it moves along the board
+# monster kinds: base radius (mm), points, lives, whether it walks along the board
 KINDS: dict[str, dict[str, Any]] = {
-    "blob": {"radius": 20.0, "value": 50, "wanders": False},
-    "imp": {"radius": 15.0, "value": 100, "wanders": False},
-    "bat": {"radius": 13.0, "value": 150, "wanders": True},
-    "king": {"radius": 11.0, "value": 250, "wanders": False},
+    "blob": {"radius": 26.0, "value": 50, "hp": 2, "walks": False},
+    "imp": {"radius": 22.0, "value": 75, "hp": 2, "walks": False},
+    "bat": {"radius": 19.0, "value": 120, "hp": 1, "walks": True},
+    "king": {"radius": 21.0, "value": 150, "hp": 3, "walks": False},
 }
+# size: radius factor, headshot: share of the radius that counts as a headshot
 LEVELS: dict[str, dict[str, Any]] = {
-    "easy": {"count": 4, "size": 1.25, "kinds": ["blob", "blob", "imp", "imp", "bat"]},
-    "medium": {"count": 5, "size": 1.0, "kinds": ["blob", "imp", "imp", "bat", "king"]},
-    "hard": {"count": 6, "size": 0.8, "kinds": ["imp", "bat", "bat", "king", "king"]},
+    "easy": {"size": 1.3, "headshot": 0.45, "kinds": ["blob", "blob", "imp", "bat"]},
+    "medium": {"size": 1.0, "headshot": 0.35, "kinds": ["blob", "imp", "imp", "bat", "king"]},
+    "hard": {"size": 0.8, "headshot": 0.3, "kinds": ["imp", "bat", "bat", "king"]},
 }
-GROWTH = 1.25  # radius factor after a dart that hit nothing
+LINE_UP = 3  # monsters per round: one turn has three darts, so three is always enough
+GROWTH = 1.2  # radius factor after a dart that hit nothing
 VALUE_LOSS = 0.8  # value factor after such a dart
-WANDER_DEG = 24.0  # a wanderer moves this far around the bull after each dart
+HEADSHOT_BONUS = 1.5  # points factor for a monster taken out by a headshot
+WALK_DEG = 28.0  # a walker moves this far around the bull after each dart
 
 
 @dataclass
@@ -45,7 +51,14 @@ class Monster:
     y: float
     radius: float
     value: int
-    alive: bool = True
+    hp: int
+    max_hp: int
+    # waiting (not on the board yet), active (the one to shoot) or dead
+    status: str = "waiting"
+
+    @property
+    def alive(self) -> bool:
+        return self.status != "dead"
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -55,6 +68,9 @@ class Monster:
             "y": round(self.y, 1),
             "radius": round(self.radius, 1),
             "value": self.value,
+            "hp": self.hp,
+            "max_hp": self.max_hp,
+            "status": self.status,
             "alive": self.alive,
         }
 
@@ -87,29 +103,33 @@ class MonsterHuntGame(Game):
     def _start_leg(self) -> None:
         self.scores = [0] * self.player_count
         self.kills = [0] * self.player_count
-        # what the last dart did, for the animation: killed monster ids, points, grew
+        # what the last dart did, for the animation
         self.last_effect: dict[str, Any] | None = None
 
     # --- the field ------------------------------------------------------------------
 
     def field_for(self, round_number: int) -> list[Monster]:
-        """The monsters of a round, identical for every player (seeded)."""
+        """The line-up of a round, identical for every player (seeded); the first one is up."""
         level = LEVELS[self.settings.difficulty]
         rng = random.Random(self.settings.seed * 1000 + round_number)
         monsters: list[Monster] = []
         attempts = 0
-        while len(monsters) < level["count"] and attempts < 500:
+        while len(monsters) < LINE_UP:
             attempts += 1
             kind = rng.choice(level["kinds"])
             spec = KINDS[kind]
             radius = spec["radius"] * level["size"]
-            r = rng.uniform(25.0, R_DOUBLE_OUTER - radius)
+            r = rng.uniform(30.0, R_DOUBLE_OUTER - radius - 4)
             angle = rng.uniform(0, 2 * math.pi)
             x, y = r * math.cos(angle), r * math.sin(angle)
-            # keep the monsters apart so each one is its own target
-            if any(math.hypot(x - m.x, y - m.y) < radius + m.radius + 6 for m in monsters):
+            # the next monster shows up somewhere else than the one before
+            last = monsters[-1] if monsters else None
+            if last and math.hypot(x - last.x, y - last.y) < 70 and attempts < 200:
                 continue
-            monsters.append(Monster(len(monsters), kind, x, y, radius, spec["value"]))
+            monsters.append(
+                Monster(len(monsters), kind, x, y, radius, spec["value"], spec["hp"], spec["hp"])
+            )
+        monsters[0].status = "active"
         return monsters
 
     def _round_of(self, turn: Turn) -> int:
@@ -119,37 +139,50 @@ class MonsterHuntGame(Game):
         return 2 if round_number == self.settings.rounds else 1
 
     def field_after(self, turn: Turn) -> list[Monster]:
-        """The round's monsters after the darts thrown so far in ``turn``."""
+        """The round's line-up after the darts thrown so far in ``turn``."""
         monsters = self.field_for(self._round_of(turn))
         for dart, position in zip(turn.darts, turn.positions, strict=False):
             self._apply_dart(monsters, dart, position)
         return monsters
 
-    @staticmethod
     def _apply_dart(
-        monsters: list[Monster], dart: Dart, position: tuple[float, float] | None
-    ) -> tuple[list[Monster], bool]:
-        """Kills what the dart hits (returns them) or lets the survivors grow; wanderers move."""
+        self, monsters: list[Monster], dart: Dart, position: tuple[float, float] | None
+    ) -> dict[str, Any]:
+        """Shoots the active monster; returns what happened (hit, killed, headshot, grew)."""
         at = dart_position(dart, position)
-        killed = [
-            m
-            for m in monsters
-            if m.alive and at is not None and math.hypot(at[0] - m.x, at[1] - m.y) <= m.radius
-        ]
-        for m in killed:
-            m.alive = False
-        grew = not killed
-        for m in monsters:
-            if not m.alive:
-                continue
-            if grew:
-                m.radius *= GROWTH
-                m.value = max(10, int(round(m.value * VALUE_LOSS / 5) * 5))
-            if KINDS[m.kind]["wanders"]:
-                r = math.hypot(m.x, m.y)
-                angle = math.atan2(m.y, m.x) - math.radians(WANDER_DEG)
-                m.x, m.y = r * math.cos(angle), r * math.sin(angle)
-        return killed, grew
+        target = next((m for m in monsters if m.status == "active"), None)
+        result: dict[str, Any] = {
+            "target": None, "hit": False, "killed": False, "headshot": False, "grew": False,
+            "value": 0,
+        }  # fmt: skip
+        if target is None:
+            return result
+        result["target"] = target.id
+        result["value"] = target.value
+        distance = math.hypot(at[0] - target.x, at[1] - target.y) if at is not None else math.inf
+        if distance <= target.radius:
+            result["hit"] = True
+            if distance <= target.radius * LEVELS[self.settings.difficulty]["headshot"]:
+                result["headshot"] = True
+                target.hp = 0
+            else:
+                target.hp -= 1
+            if target.hp <= 0:
+                result["killed"] = True
+                target.status = "dead"
+                following = next((m for m in monsters if m.status == "waiting"), None)
+                if following is not None:
+                    following.status = "active"
+                return result
+        else:
+            result["grew"] = True
+            target.radius *= GROWTH
+            target.value = max(10, int(round(target.value * VALUE_LOSS / 5) * 5))
+        if KINDS[target.kind]["walks"]:
+            r = math.hypot(target.x, target.y)
+            angle = math.atan2(target.y, target.x) - math.radians(WALK_DEG)
+            target.x, target.y = r * math.cos(angle), r * math.sin(angle)
+        return result
 
     # --- game rules -----------------------------------------------------------------
 
@@ -159,21 +192,26 @@ class MonsterHuntGame(Game):
         monsters = self.field_for(round_number)
         for d, pos in zip(turn.darts[:-1], turn.positions[:-1], strict=False):
             self._apply_dart(monsters, d, pos)
-        before = {m.id: m.value for m in monsters if m.alive}
-        killed, grew = self._apply_dart(monsters, dart, turn.positions[-1])
-        points = sum(before[m.id] for m in killed) * self._multiplier(round_number)
+        result = self._apply_dart(monsters, dart, turn.positions[-1])
+        points = 0
+        if result["killed"]:
+            bonus = HEADSHOT_BONUS if result["headshot"] else 1
+            points = int(round(result["value"] * bonus / 5) * 5) * self._multiplier(round_number)
+            self.kills[p] += 1
         turn.values.append(points)
         self.scores[p] += points
-        self.kills[p] += len(killed)
         self.last_effect = {
             "player": p,
-            "killed": [m.id for m in killed],
+            "target": result["target"],
+            "hit": result["hit"],
+            "killed": result["killed"],
+            "headshot": result["headshot"],
+            "grew": result["grew"],
             "points": points,
-            "grew": grew,
             "position": dart_position(dart, turn.positions[-1]),
         }
         if not any(m.alive for m in monsters):
-            turn.stop = True  # all monsters gone: the turn is over
+            turn.stop = True  # the whole line-up is gone: the turn is over
 
     def _after_turn(self, turn: Turn) -> int | None:
         rounds = self.settings.rounds
@@ -188,6 +226,9 @@ class MonsterHuntGame(Game):
     def _leg_state(self) -> dict[str, Any]:
         p = self.current_player
         turn = self.current_turn
+        turns = self.legs[-1].turns
+        if turn is None and self._awaiting_next and turns:
+            turn = turns[-1]  # the finished turn stays on screen until the darts are pulled
         if turn is not None and turn.player == p:
             round_number = self._round_of(turn)
             monsters = self.field_after(turn)

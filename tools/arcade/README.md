@@ -21,11 +21,16 @@ Processing: the PNGs were trimmed to their content, padded to a square and saved
    cheerful…"
 4. **king** – "…a round, chubby light-blue monster king wearing a shiny golden crown with a red
    jewel, rosy cheeks, proud but funny smile. It is the rare, most valuable monster…"
-5. **monster-meadow** (background) – "…a perfectly round magical forest clearing seen exactly
-   from above (top-down), filling the whole square image edge to edge, centered. Soft grass with
-   small flowers, mushrooms and pebbles, a few tiny glowing fireflies, slightly darker towards the
-   rim, calm and not too busy so that monster sprites on top stay clearly visible. Muted greens
-   with a hint of teal, evening mood… No monsters, no characters, no text, no dartboard lines."
+5. **monster-night** (background, made later with sprite-gen `gen --provider codex` and the
+   first meadow background as style reference) – "…in exactly the same style as the attached
+   reference image… A spooky but kid-friendly haunted graveyard clearing at night, seen exactly
+   from above (top-down), a perfectly round clearing filling the whole square image edge to edge,
+   centered. Dark mossy ground and old cobblestones in the middle (calm and fairly plain, so a
+   dartboard and monster sprites on top stay clearly visible), around the rim: small cartoon
+   tombstones, crooked dead tree roots, a few pumpkins, mushrooms, little candles and glowing
+   blue-green wisps, cold moonlight from the top left, darker towards the rim. Colors: deep night
+   blue, teal and dark green with small warm orange accents. No monsters, no characters, no text,
+   no dartboard lines, square format." (saved as 1024 px WebP)
 6. **poof** (catch effect) – "…a cheerful magic 'poof' burst when a monster is caught - a round
    puffy white-and-light-green smoke cloud with little golden stars and sparkles flying outward…
    Transparent background (PNG), square."
@@ -48,8 +53,14 @@ sprite-gen extract --run-dir runs/<kind>
 sprite-gen compose-atlas --run-dir runs/<kind>
 ```
 
-The four 256 px frames of each state (`frames/<state>/frame-N.png`) were joined into one
-horizontal strip `frontend/public/arcade/monsters/<kind>-<state>.webp` (1024×256); the arcade
+Each state has 8 frames (idle 10 fps loop, hurt 14 fps once, ending in the defeated pose); with
+4 frames the motion looked choppy. For the bat idle row the default extraction failed, it was
+extracted with `sprite-gen extract --segmentation projection`; the king's hurt row was
+regenerated once (`gen-set --states hurt --force`) because three frames came out empty.
+
+The eight 256 px frames of each state (`frames/<state>/frame-N.png`) were joined into one
+horizontal strip `frontend/public/arcade/monsters/<kind>-<state>.webp` (2048×256); the arcade
 stage clips one cell and steps through the strip with CSS (`idle` loops, `hurt` plays once when
-the monster is caught). The request files with the per-state action prompts are in
+the monster is taken out). Bullet holes, cartridges, sparks, smoke, fireflies, fog and leaves are
+drawn in code (SVG/CSS), not images. The request files with the per-state action prompts are in
 `sprite-gen/`.

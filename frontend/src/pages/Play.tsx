@@ -279,6 +279,35 @@ function Running({ game }: { game: GameState }) {
     </InputPanel>
   )
 
+  // the monster hunt fills the whole screen too; typing and correcting darts in the popup
+  if (game.mode === 'monster_hunt') {
+    return (
+      <>
+        <ArcadeStage
+          game={game}
+          onTap={(label, x, y) => void enter(label, [x, y])}
+          disabled={busy}
+          onCorrect={(i) => {
+            setCorrecting(i)
+            setPanel(true)
+          }}
+        >
+          <button className={styles.voltButton} onClick={() => void undo()} disabled={busy}>
+            ↶ {t('play.undo')}
+          </button>
+          <button className={styles.voltButton} onClick={() => setPanel(true)}>
+            ✎ {t('play.correct')}
+          </button>
+          <button className={`${styles.voltButton} ${styles.voltPrimary}`} onClick={() => void next()} disabled={busy}>
+            {game.awaiting_next ? t('play.nextPlayer') : t('play.endTurn')}
+          </button>
+        </ArcadeStage>
+        {error && !panel && <p className={`error ${styles.voltError}`}>{error}</p>}
+        {popupPanel}
+      </>
+    )
+  }
+
   // Voltage fills the whole screen; entering and correcting darts happens in a popup
   if (game.mode === 'x01' && game.settings.theme === 'voltage') {
     return (
@@ -311,9 +340,7 @@ function Running({ game }: { game: GameState }) {
       <section className={styles.scores}>
         <MatchInfo game={game} />
         <TargetBanner game={game} />
-        {game.mode === 'monster_hunt' ? (
-          <ArcadeStage game={game} onTap={(label, x, y) => void enter(label, [x, y])} disabled={busy} />
-        ) : game.mode === 'x01' ? (
+        {game.mode === 'x01' ? (
           <X01Scores game={game} />
         ) : game.mode === 'cricket' ? (
           <CricketScores game={game} />

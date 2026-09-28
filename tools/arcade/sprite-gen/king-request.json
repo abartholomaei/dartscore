@@ -1,4 +1,16 @@
-{"states": {
-  "idle": {"frames": 4, "fps": 5, "loop": true, "action": "proud idle: gentle breathing bounce, crown wiggles slightly, one blink; stays in place, same size"},
-  "hurt": {"frames": 4, "fps": 10, "loop": false, "action": "caught: startled jump with big surprised eyes, then squashes flat and dizzy; no detached effects, same character"}
-}}
+{
+  "states": {
+    "idle": {
+      "frames": 8,
+      "fps": 10,
+      "loop": true,
+      "action": "proud idle: smooth slow breathing - belly swells and shrinks, crown tilts slightly, cape sways, one blink; stays in place, same size, evenly spaced in-between poses for a smooth loop"
+    },
+    "hurt": {
+      "frames": 8,
+      "fps": 14,
+      "loop": false,
+      "action": "hit by a dart: recoils backwards with big shocked eyes, spins dizzy with swirly eyes, then slumps and collapses flat, defeated (x-eyes) in the last frame; no detached effects, same character, evenly spaced in-between poses"
+    }
+  }
+}

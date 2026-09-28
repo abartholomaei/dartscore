@@ -708,7 +708,6 @@
   font-weight: 700;
   cursor: pointer;
   box-shadow: 0 0 12px rgb(56 189 248 / 0.3);
-  backdrop-filter: blur(4px);
   transition:
     box-shadow 0.2s,
     border-color 0.2s;
@@ -758,8 +757,7 @@
 }
 
 .panel::backdrop {
-  background: rgb(2 6 23 / 0.55);
-  backdrop-filter: blur(3px);
+  background: rgb(2 6 23 / 0.7);
 }
 
 .panelHeader {

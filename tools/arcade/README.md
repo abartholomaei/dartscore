@@ -69,6 +69,13 @@ single prompt that asks for the images in the same style. Shared part:
    from above on a bamboo tatami mat, filling the square edge to edge; warm wood grain, a few cut
    marks, faint juice drops, darker towards the rim, calm. No fruit, knives, text or board lines.
 
+7. **dojo-scene** (full-screen backdrop, 16:9, made later with the orange as style reference) –
+   "…the inside of a traditional Japanese dojo at dusk, seen from the front. Wooden floor, shoji
+   paper walls with warm light, a few glowing red paper lanterns at the top corners, bamboo and a
+   blossoming cherry tree at the far left and right edges, a few pink petals, a katana rack on
+   one side. The CENTER must be calm, dark and empty because a large round game board is placed
+   there… No characters, no fruit, no text, no dartboard." Saved as 1600 px WebP.
+
 Processing: the fruits were trimmed to their circle, scaled to 768 px, given a clean round alpha
 edge (the game clips to the same circle) and saved as WebP in `frontend/public/arcade/melon/`;
 the background is 1024 px. The golden glow of the last round, slash, juice drops and the flying pieces are drawn in code.

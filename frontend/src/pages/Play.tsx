@@ -282,11 +282,12 @@ function Running({ game }: { game: GameState }) {
     </InputPanel>
   )
 
-  // the monster hunt fills the whole screen too; typing and correcting darts in the popup
-  if (game.mode === 'monster_hunt') {
+  // the arcade games fill the whole screen too; typing and correcting darts in the popup
+  if (game.mode === 'monster_hunt' || game.mode === 'melon_samurai') {
+    const Stage = game.mode === 'monster_hunt' ? ArcadeStage : MelonStage
     return (
       <>
-        <ArcadeStage
+        <Stage
           game={game}
           onTap={(label, x, y) => void enter(label, [x, y])}
           disabled={busy}
@@ -304,7 +305,7 @@ function Running({ game }: { game: GameState }) {
           <button className={`${styles.voltButton} ${styles.voltPrimary}`} onClick={() => void next()} disabled={busy}>
             {game.awaiting_next ? t('play.nextPlayer') : t('play.endTurn')}
           </button>
-        </ArcadeStage>
+        </Stage>
         {error && !panel && <p className={`error ${styles.voltError}`}>{error}</p>}
         {popupPanel}
       </>
@@ -343,9 +344,7 @@ function Running({ game }: { game: GameState }) {
       <section className={styles.scores}>
         <MatchInfo game={game} />
         <TargetBanner game={game} />
-        {game.mode === 'melon_samurai' ? (
-          <MelonStage game={game} onTap={(label, x, y) => void enter(label, [x, y])} disabled={busy} />
-        ) : game.mode === 'x01' ? (
+        {game.mode === 'x01' ? (
           <X01Scores game={game} />
         ) : game.mode === 'cricket' ? (
           <CricketScores game={game} />

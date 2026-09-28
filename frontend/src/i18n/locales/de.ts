@@ -405,8 +405,9 @@ const de: Translations = {
       lime: 'Limette',
     },
     melon: {
+      blades: 'Hiebe',
       board: 'Obst-Scheibe',
-      instruction: 'Zerschneide die Frucht ({{fruit}}) - dicht am Bull!',
+      instruction: '{{fruit}}: dicht am Bull schneiden!',
       finale: 'Wassermelonen-Finale - doppelte Punkte!',
       master: 'Samurai-Meister!',
       clean: 'Sauberer Schnitt!',

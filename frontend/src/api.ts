@@ -363,6 +363,7 @@ export type GameState = {
     position: [number, number] | null
   } | null
   fruit?: string
+  fruits?: string[]
   fruit_left?: [number, number][]
   double_round?: boolean
   kills?: number[]

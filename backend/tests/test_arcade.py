@@ -188,6 +188,7 @@ def test_every_turn_starts_with_a_fresh_fruit_and_the_last_one_is_a_watermelon()
             game.throw(Dart(20, 1), (0.0, 85.0))
             game.next_turn()
     assert fruits == ["orange", "kiwi", "dragonfruit", "lime", "watermelon"]
+    assert game.state()["fruits"] == fruits
     assert game.finished
     cap = samurai()
     cap.throw(Dart(20, 1), (0.0, 85.0))

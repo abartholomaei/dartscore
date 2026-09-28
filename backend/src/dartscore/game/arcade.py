@@ -456,6 +456,7 @@ class MelonSamuraiGame(Game):
             "rounds": self.settings.rounds,
             "double_round": round_number == self.settings.rounds,
             "fruit": self.fruit_of(round_number),
+            "fruits": [self.fruit_of(r) for r in range(1, self.settings.rounds + 1)],
             "fruit_left": _rounded(fruit),
             "fruit_share": round(polygon_area(fruit) / WHOLE_FRUIT, 3),
             "arcade_darts": darts,

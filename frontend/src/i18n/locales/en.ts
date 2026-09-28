@@ -404,8 +404,9 @@ const en = {
       lime: 'Lime',
     },
     melon: {
+      blades: 'Cuts',
       board: 'Fruit board',
-      instruction: 'Slice the {{fruit}} - close to the bull!',
+      instruction: '{{fruit}}: cut close to the bull!',
       finale: 'Watermelon finale - double points!',
       master: 'Master samurai!',
       clean: 'Clean cut!',

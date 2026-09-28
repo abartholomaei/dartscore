@@ -173,3 +173,33 @@ def test_recovers_after_light_change(rig: Rig) -> None:
     # dart is light and hard to see on cream fields in dimmed light)
     events = rig.throw(0, 60)
     assert [e.label for e in events if isinstance(e, DartDetection)] == ["S20"]
+
+
+def _spoil_empty_reference(rig: Rig) -> None:
+    """The stored empty board differs a little from the real one (e.g. taken at a restart
+    while someone stood at the board): comparing with it alone never finds the board empty."""
+    for cam in rig.detector._cameras.values():
+        assert cam.empty_small is not None
+        assert cam.mask_small is not None
+        ys, xs = np.nonzero(cam.mask_small)
+        y, x = int(ys.mean()), int(xs.min()) + 10  # a small spot inside the board area
+        cam.empty_small = cam.empty_small.copy()
+        cam.empty_small[y : y + 6, x : x + 6] = 255 - cam.empty_small[y : y + 6, x : x + 6]
+
+
+@pytest.mark.parametrize("with_hand", [True, False])
+def test_takeout_with_a_stale_empty_reference(rig: Rig, with_hand: bool) -> None:
+    for turn in range(2):
+        _spoil_empty_reference(rig)
+        for pos in [(0, 60), polar(60, 18), polar(60, 342)]:
+            rig.throw(*pos)
+        assert rig.detector.darts_in_turn == 3
+        rig.board.hand = with_hand
+        if with_hand:
+            rig.step(1.0)
+        rig.board.darts.clear()
+        events = rig.step(0.5)
+        rig.board.hand = False
+        events += rig.step(1.0)
+        assert sum(isinstance(e, Takeout) for e in events) == 1, f"turn {turn}"
+        assert rig.detector.darts_in_turn == 0

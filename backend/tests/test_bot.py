@@ -42,6 +42,14 @@ def test_x01_targets() -> None:
     assert choose_target(game).label == "T20"
 
 
+def test_straight_out_bot_finishes_on_the_big_single() -> None:
+    game = create_game("x01", 2, {"start_score": 501, "out_rule": "single"})
+    assert isinstance(game, X01Game)
+    for remaining, label in ((20, "S20"), (16, "S16"), (3, "S3"), (25, "25"), (57, "T19")):
+        game.remaining[0] = remaining
+        assert choose_target(game).label == label
+
+
 def test_cricket_closes_highest_open_number() -> None:
     game = create_game("cricket", 2, {})
     assert isinstance(game, CricketGame)

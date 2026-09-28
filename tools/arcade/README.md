@@ -38,6 +38,41 @@ Processing: the PNGs were trimmed to their content, padded to a square and saved
 All sprite prompts end with: "Front view, centered, full body, no text, no shadow, transparent
 background (PNG), square."
 
+## Prompts (Melon samurai)
+
+Generated in one Codex session (`codex exec`, image generation with the ChatGPT login) from a
+single prompt that asks for the images in the same style. Shared part:
+
+> Sprites for a darts arcade game called 'Melon Samurai' where fruit is sliced with a sword. All
+> in exactly the same style: colorful cartoon, thick dark outlines, soft cel shading, juicy
+> saturated colors, glossy highlights, friendly and fun (kid-friendly). Each FRUIT image shows a
+> perfectly circular cross-section of the fruit seen exactly from above (top-down, flat, no
+> perspective, no tilt), the circle is centered and fills the whole square image edge to edge,
+> everything outside the circle is fully transparent (PNG with alpha). The rind forms a thin ring
+> at the edge. No knife, no hands, no text, no shadow, no plate, square 1024x1024.
+
+1. **watermelon** – regenerated separately (with the orange attached as style reference) because
+   the first one looked artificial: "…must look NATURAL, like a real sliced watermelon, not
+   artificial or symmetric: the black seeds are scattered IRREGULARLY in a loose, uneven band
+   roughly two thirds of the way out, NOT in a perfect ring and NOT evenly spaced: different
+   sizes, different angles, some clustered, some gaps, a few small pale white immature seeds in
+   between; the red flesh has an organic juicy, slightly grainy/crystalline texture, redder in
+   the middle and lighter pink towards the rind - no radial star pattern, no symmetry; a thin
+   pale greenish-white layer, then the green rind with slightly irregular dark green stripes."
+   Three variants were made, the most irregular one was kept.
+2. **orange** – bright orange segments radiating from a pale center, white pith lines, peel ring.
+3. **kiwi** – bright green flesh, creamy white core, a ring of small black seeds with fine rays,
+   thin brown fuzzy skin.
+4. **dragonfruit** – white flesh speckled with tiny black seeds, magenta pink skin ring.
+5. **lime** – light green juicy segments radiating from the center, pale pith, green peel ring.
+6. **dojo** (background, not transparent) – a perfectly round wooden cutting board seen exactly
+   from above on a bamboo tatami mat, filling the square edge to edge; warm wood grain, a few cut
+   marks, faint juice drops, darker towards the rim, calm. No fruit, knives, text or board lines.
+
+Processing: the fruits were trimmed to their circle, scaled to 768 px, given a clean round alpha
+edge (the game clips to the same circle) and saved as WebP in `frontend/public/arcade/melon/`;
+the background is 1024 px. The golden glow of the last round, slash, juice drops and the flying pieces are drawn in code.
+
 ## Animations (puppets, in code)
 
 The monsters are animated like puppets: each kind is **one still** (`monsters/<kind>.webp`, the

@@ -41,10 +41,12 @@ def one_dart_finish(remaining: int, rule: InOutRule) -> bool:
     return any(d.points == remaining and is_valid_finisher(d, rule) for d in SCORING_DARTS)
 
 
-def _finish_rank(dart: Dart) -> int:
+def _finish_rank(dart: Dart, rule: InOutRule) -> int:
     base = _FINISH_ORDER.index(dart.segment) if dart.segment in _FINISH_ORDER else 30
-    # with double out every finisher is a double; for other rules prefer doubles, then singles
-    return base + {2: 0, 1: 40, 3: 80}[dart.multiplier]
+    # straight out: the big single is the easiest finish (20 left is S20, not D10);
+    # otherwise prefer doubles, then trebles
+    order = {1: 0, 2: 40, 3: 80} if rule == "single" else {2: 0, 3: 40, 1: 80}
+    return base + order[dart.multiplier]
 
 
 def _setup_rank(dart: Dart) -> int:
@@ -74,7 +76,7 @@ def suggest_checkout(
                     continue
                 # throw the biggest setup dart first
                 ordered = tuple(sorted(setup, key=lambda d: (-d.points, _setup_rank(d))))
-                rank = _finish_rank(finisher) * 3 + sum(_setup_rank(d) for d in setup)
+                rank = _finish_rank(finisher, rule) * 3 + sum(_setup_rank(d) for d in setup)
                 route = (rank, (*ordered, finisher))
                 if best is None or rank < best[0]:
                     best = route

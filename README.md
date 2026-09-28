@@ -34,7 +34,7 @@
 | 📊 **Statistics** | Averages, checkout rate, ton counts, MPR, heatmap, grouping, aim deviation, trends for every mode, achievements; CSV/JSON export and daily backups. |
 | 🧑‍🤝‍🧑 **Local profiles** | A photo or one of 16 cartoon portraits (bots wear robot versions), favourite double, optional PIN, training plans, a personal bot that throws like you. |
 | 🏆 **Showtime** | Versus screen before the first dart, line-up and "up next" intros for bigger rounds, a full-screen winner reveal at the end. |
-| 👾 **Arcade** | Full-screen monster hunt on the real dart positions and the X01 Voltage theme, with animations and particle effects. |
+| 👾 **Arcade** | Full-screen monster hunt and melon samurai on the real dart positions and the X01 Voltage theme, with animations and particle effects. |
 | 📺 **Any screen** | Responsive, installable web app; readable from the oche on a TV, QR code to open it on a phone. |
 | 🔒 **Local first** | FastAPI + SQLite on a small PC (reference: 2012 Mac mini, CPU inference); works without internet. |
 

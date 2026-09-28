@@ -143,6 +143,11 @@ class Game(ABC):
         return self.winner is not None
 
     @property
+    def turn_complete(self) -> bool:
+        """The turn is complete and the darts still have to be pulled."""
+        return self._awaiting_next
+
+    @property
     def current_turn(self) -> Turn | None:
         leg = self.legs[-1]
         return leg.turns[-1] if leg.turns and not leg.turns[-1].closed else None

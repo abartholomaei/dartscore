@@ -195,6 +195,13 @@ const en = {
     example: 'Example',
     open: 'Rules',
     modes: {
+      melon_samurai: {
+        goal: 'Slice off as much fruit as possible: the bigger the piece, the more points.',
+        play: 'Every turn a fresh fruit covers the board. Each dart is a sword cut straight through where it lands, across the line to the bull; the piece on the dart\'s side flies off. A dart counts where it lands, not by field.',
+        scoring: 'Points are the size of the piece - a whole fruit is worth 1000. The closer to the bull, the bigger the piece. A dart past the bull, where the fruit is already gone, cuts only air. The bullseye cuts away everything that is left. The last round is a big watermelon and counts double.',
+        win: 'Most points after the last round win.',
+        example: 'A dart halfway between bull and double cuts off about a fifth: 195 points. Three darts close to the bull from different sides leave only a sliver.',
+      },
       monster_hunt: {
         goal: 'Shoot as many monsters as possible: points for every monster you take out.',
         play: 'One monster at a time stands on the board; once it is down, the next one shows up. Every round brings the same monsters for every player. Three darts per turn; a dart counts where it lands, not by field.',
@@ -389,6 +396,26 @@ const en = {
     attempts_other: '{{count}} attempts',
   },
   arcade: {
+    fruits: {
+      watermelon: 'Watermelon',
+      orange: 'Orange',
+      kiwi: 'Kiwi',
+      dragonfruit: 'Dragon fruit',
+      lime: 'Lime',
+    },
+    melon: {
+      board: 'Fruit board',
+      instruction: 'Slice the {{fruit}} - close to the bull!',
+      finale: 'Watermelon finale - double points!',
+      master: 'Master samurai!',
+      clean: 'Clean cut!',
+      nice: 'Nice slice',
+      peel: 'Barely a peel',
+      air: 'Only air - nothing left there',
+      perfect: 'Perfect cut - all gone!',
+      perfectShort: 'PERFECT',
+      airShort: 'air!',
+    },
     board: 'Monster board',
     grow: 'it grows!',
     headshot: 'Headshot!',
@@ -484,6 +511,7 @@ const en = {
     arcade: 'Arcade',
     difficulty: 'Difficulty',
     difficulties: { easy: 'Easy', medium: 'Medium', hard: 'Hard' },
+    melonSamuraiHint: 'A fruit covers the board; every dart cuts off the piece on its side - the closer to the bull, the bigger. Past the bull there is nothing left to cut. The bullseye takes everything, the last round counts double. Works best with the cameras (or tap the board).',
     monsterHuntHint: 'One monster at a time stands on the board - shoot it where it is. A dart in its middle is a headshot, a graze costs it one life. A miss makes it bigger but worth less. The last round counts double. Works best with the cameras (or tap the board).',
     teams: 'Play in teams',
     teamCount: 'Teams',
@@ -736,6 +764,7 @@ const en = {
   },
   modes: {
     monster_hunt: 'Monster hunt',
+    melon_samurai: 'Melon samurai',
     segment_training: 'Segment training',
     checkout_121: '121 checkout',
     bull_off: 'Bull-off',

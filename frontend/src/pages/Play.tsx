@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { Link, useNavigate } from 'react-router'
 import { getJson, sendJson, type CricketVariant, type GamePlayer, type GameState, type InOutRule } from '../api'
 import ArcadeStage from '../components/ArcadeStage'
+import MelonStage from '../components/MelonStage'
 import VoltageStage from '../components/VoltageStage'
 import Avatar from '../components/Avatar'
 import Particles from '../components/Particles'
@@ -342,7 +343,9 @@ function Running({ game }: { game: GameState }) {
       <section className={styles.scores}>
         <MatchInfo game={game} />
         <TargetBanner game={game} />
-        {game.mode === 'x01' ? (
+        {game.mode === 'melon_samurai' ? (
+          <MelonStage game={game} onTap={(label, x, y) => void enter(label, [x, y])} disabled={busy} />
+        ) : game.mode === 'x01' ? (
           <X01Scores game={game} />
         ) : game.mode === 'cricket' ? (
           <CricketScores game={game} />

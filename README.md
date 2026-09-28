@@ -1,6 +1,53 @@
-# dartscore
+<p align="center">
+  <img src="frontend/public/icon-192.png" width="96" alt="dartscore logo">
+</p>
 
-Local auto-scoring system for steel-tip darts with three cameras - similar to Autodarts, but fully offline, with local profiles and statistics. Requirements and roadmap: [docs/PRD.md](docs/PRD.md).
+<h1 align="center">dartscore</h1>
+
+<p align="center">
+  <b>Offline auto-scoring for steel-tip darts.</b><br>
+  Three cameras, a trained dart-tip model and a browser UI for TV, tablet and phone –<br>
+  no cloud, no account, all stats stay in your home network.
+</p>
+
+<p align="center">
+  <a href="https://abartholomaei.github.io/dartscore/"><img alt="Project page" src="https://img.shields.io/badge/project%20page-open-22c55e?style=flat-square"></a>
+  <img alt="Python 3.12" src="https://img.shields.io/badge/python-3.12-3776ab?style=flat-square&logo=python&logoColor=white">
+  <img alt="React + TypeScript" src="https://img.shields.io/badge/react-typescript-3178c6?style=flat-square&logo=react&logoColor=white">
+  <img alt="FastAPI" src="https://img.shields.io/badge/fastapi-sqlite-009688?style=flat-square&logo=fastapi&logoColor=white">
+  <img alt="ONNX Runtime" src="https://img.shields.io/badge/inference-onnx%20runtime%20(cpu)-555?style=flat-square">
+  <img alt="UI languages" src="https://img.shields.io/badge/ui-EN%20%7C%20DE-555?style=flat-square">
+</p>
+
+<p align="center">
+  <img src="docs/site/img/play.webp" alt="Live X01 match with checkout suggestion and correction keypad" width="900">
+</p>
+
+## Highlights
+
+| | |
+| --- | --- |
+| 🎯 **Automatic scoring** | Motion trigger, YOLO pose tip model and classic CV fallback, fused across 3 cameras; unsure darts get a second look by the referee. 97 % correct segments on real recorded throws. |
+| 🔄 **Hands-free turns** | Pulling the darts ends the turn; corrections take two taps on the keypad or the board, bounce-outs included. |
+| 🎮 **20+ games and variants** | X01 (in/out rules, legs & sets, handicap, teams), Cricket (standard, cut-throat, no-score, random, hidden), training modes from Around the Clock to 121 checkout, Killer, Halve-It, Gotcha, local tournaments, bots. |
+| 📊 **Statistics** | Averages, checkout rate, ton counts, MPR, heatmap, grouping, aim deviation, trends for every mode, achievements; CSV/JSON export and daily backups. |
+| 🧑‍🤝‍🧑 **Local profiles** | Photos or a gallery avatar, favourite double, optional PIN, training plans, a personal bot that throws like you. |
+| 👾 **Arcade** | Monster hunt on the real dart positions and the X01 Voltage theme, with animations and particle effects. |
+| 📺 **Any screen** | Responsive, installable web app; readable from the oche on a TV, QR code to open it on a phone. |
+| 🔒 **Local first** | FastAPI + SQLite on a small PC (reference: 2012 Mac mini, CPU inference); works without internet. |
+
+<table>
+  <tr>
+    <td width="50%"><img src="docs/site/img/heatmap.webp" alt="Hit heatmap and grouping"></td>
+    <td width="50%"><img src="docs/site/img/monsters.webp" alt="Monster hunt arcade game"></td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="docs/site/img/stats.webp" alt="Player statistics and training plans"></td>
+    <td width="50%"><img src="docs/site/img/voltage.webp" alt="X01 Voltage theme"></td>
+  </tr>
+</table>
+
+<sub>Screenshots show demo data. The full feature tour is on the <a href="https://abartholomaei.github.io/dartscore/">project page</a>; requirements and roadmap are in <a href="docs/PRD.md">docs/PRD.md</a> (German), camera setup in <a href="docs/hardware-setup.md">docs/hardware-setup.md</a>.</sub>
 
 ## Structure
 
@@ -8,7 +55,7 @@ Local auto-scoring system for steel-tip darts with three cameras - similar to Au
 | --- | --- |
 | `backend/` | Python package `dartscore`: FastAPI server, game logic (`game`), detection (`vision`), persistence (`storage`) |
 | `frontend/` | Web UI (React + TypeScript + Vite), responsive for phone, tablet, desktop and TV |
-| `docs/` | PRD and further documentation |
+| `docs/` | PRD, hardware notes and the project page (`docs/site`, published to GitHub Pages) |
 | `config.example.toml` | Example configuration (server, cameras, logging) |
 
 ## Requirements

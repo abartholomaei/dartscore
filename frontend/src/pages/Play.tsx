@@ -6,6 +6,7 @@ import ArcadeStage from '../components/ArcadeStage'
 import VoltageStage from '../components/VoltageStage'
 import Avatar from '../components/Avatar'
 import Particles from '../components/Particles'
+import GameIntro, { useGameIntro } from '../components/GameIntro'
 import PlayerIntro from '../components/PlayerIntro'
 import RulesDialog, { RulesButton } from '../components/RulesDialog'
 import DartBoard from '../components/DartBoard'
@@ -29,6 +30,7 @@ export default function Play() {
   const { game, connected } = useLiveGame()
   const celebration = useCaller(game)
   const audio = useAudioPrefs()
+  const opening = useGameIntro(game, audio.intro)
   const reducedMotion = typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
   const effect = celebration && audio.effects && !reducedMotion && <Particles key={`p${celebration.key}`} effect={celebration.kind} />
   const banner = celebration && (
@@ -53,7 +55,7 @@ export default function Play() {
     <>
       {effect}
       {banner}
-      {audio.intro && !game.finished && <PlayerIntro game={game} />}
+      {opening.show ? <GameIntro game={game} onDone={opening.finish} /> : audio.intro && !game.finished && <PlayerIntro game={game} />}
       {game.finished ? <Finished game={game} /> : <Running game={game} />}
     </>
   )

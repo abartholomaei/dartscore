@@ -560,6 +560,8 @@ const de: Translations = {
   },
   play: {
     upNext: 'Am Zug',
+    versus: 'VS',
+    introOrder: 'Spieler {{position}} von {{count}}',
     introRemaining: 'noch {{score}}',
     streak: 'Serie {{streak}} (beste {{best}})',
     displayModeOn: 'Anzeige-Modus',
@@ -674,7 +676,7 @@ const de: Translations = {
   },
   settings: {
     effects: 'Effekte: Konfetti, Feuerwerk und Staub bei 180, Checkout und Bust',
-    intro: 'Spieler-Intro: bei mehr als zwei Spielern kurz im Vollbild zeigen, wer als Nächstes wirft',
+    intro: 'Spieler-Intro: zum Spielstart die Spieler vorstellen (bei zweien als Duell) und bei mehr als zwei Spielern kurz im Vollbild zeigen, wer als Nächstes wirft',
     voice: 'Stimme',
     voiceStadium: 'Stadionsprecher (Englisch, Stimme von ElevenLabs)',
     voiceBrowser: 'Browser-Stimme',

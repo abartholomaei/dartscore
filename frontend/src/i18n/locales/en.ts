@@ -559,6 +559,8 @@ const en = {
   },
   play: {
     upNext: 'Up next',
+    versus: 'VS',
+    introOrder: 'Player {{position}} of {{count}}',
     introRemaining: '{{score}} left',
     streak: 'streak {{streak}} (best {{best}})',
     displayModeOn: 'Display mode',
@@ -673,7 +675,7 @@ const en = {
   },
   settings: {
     effects: 'Effects: confetti, fireworks and dust for 180, checkout and bust',
-    intro: 'Player intro: with more than two players, briefly show who throws next in full screen',
+    intro: 'Player intro: present the players when a game starts (head to head with two) and, with more than two players, briefly show who throws next in full screen',
     voice: 'Voice',
     voiceStadium: 'Stadium announcer (English, voice by ElevenLabs)',
     voiceBrowser: 'Browser voice',

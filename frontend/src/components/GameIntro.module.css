@@ -1,0 +1,341 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 46;
+  overflow: hidden;
+  color: #fff;
+  background: radial-gradient(ellipse at center, #1b1b28 0%, #07070c 75%);
+  cursor: pointer;
+  user-select: none;
+}
+
+.versus {
+  animation: overlay 3.4s ease-out forwards;
+}
+
+.lineUp {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  place-items: center;
+  padding: 24px 16px;
+  animation: fadeIn 0.25s ease-out;
+}
+
+.heading {
+  position: relative;
+  z-index: 2;
+  padding-top: 24px;
+  text-align: center;
+  font-family: var(--font-display);
+  font-size: clamp(1.25rem, 3vw, 2.25rem);
+  font-weight: 700;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  opacity: 0.8;
+}
+
+.versus .heading {
+  position: absolute;
+  inset: 0 0 auto;
+  animation: fadeIn 0.6s 0.3s ease-out both;
+}
+
+/* --- two players: left vs right ---------------------------------------------------- */
+
+.arena {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  padding: 0 16px;
+}
+
+.half {
+  position: absolute;
+  inset: 0;
+}
+
+.halfLeft {
+  background: linear-gradient(100deg, color-mix(in srgb, var(--player) 85%, #000) 0%, color-mix(in srgb, var(--player) 35%, transparent) 70%, transparent 100%);
+  clip-path: polygon(0 0, 56% 0, 44% 100%, 0 100%);
+  animation: fromLeft 0.55s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.halfRight {
+  background: linear-gradient(280deg, color-mix(in srgb, var(--player) 85%, #000) 0%, color-mix(in srgb, var(--player) 35%, transparent) 70%, transparent 100%);
+  clip-path: polygon(56% 0, 100% 0, 100% 100%, 44% 100%);
+  animation: fromRight 0.55s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.fighter {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  text-align: center;
+}
+
+.left {
+  animation: fromLeft 0.7s 0.15s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.right {
+  animation: fromRight 0.7s 0.15s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.team {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+}
+
+.avatar {
+  display: inline-flex;
+  border-radius: 50%;
+  box-shadow:
+    0 0 0 6px var(--player),
+    0 0 60px 12px color-mix(in srgb, var(--player) 60%, transparent);
+}
+
+.name {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--font-display);
+  font-size: clamp(2.5rem, 7vw, 6.5rem);
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: -0.01em;
+  text-transform: uppercase;
+  text-shadow: 0 6px 30px rgb(0 0 0 / 0.6);
+}
+
+.detail {
+  font-family: var(--font-display);
+  font-size: clamp(1.1rem, 2.4vw, 1.75rem);
+  font-weight: 700;
+  opacity: 0.85;
+}
+
+.vs {
+  position: relative;
+  z-index: 2;
+  padding: 0 clamp(8px, 3vw, 48px);
+  font-family: var(--font-display);
+  font-size: clamp(4rem, 14vw, 11rem);
+  font-weight: 900;
+  font-style: italic;
+  line-height: 1;
+  color: #ffd84a;
+  text-shadow:
+    0 0 0 #000,
+    4px 4px 0 #b3261e,
+    0 0 40px rgb(255 190 40 / 0.8);
+  animation: slam 0.9s 0.55s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.flash {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  background: #fff;
+  opacity: 0;
+  animation: flash 0.5s 0.62s ease-out;
+}
+
+/* portrait screens: one on top, one below */
+@media (max-aspect-ratio: 4/5) {
+  .arena {
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr auto 1fr;
+    justify-items: center;
+    padding: 64px 16px 24px;
+  }
+
+  .halfLeft {
+    clip-path: polygon(0 0, 100% 0, 100% 44%, 0 56%);
+  }
+
+  .halfRight {
+    clip-path: polygon(0 56%, 100% 44%, 100% 100%, 0 100%);
+  }
+
+  .fighter .avatar :global(img),
+  .fighter .avatar > span {
+    width: 128px !important;
+    height: 128px !important;
+    font-size: 58px !important;
+  }
+}
+
+/* --- more players: one after another ------------------------------------------------- */
+
+.slot {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  animation: step var(--step) cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.slot .fighter {
+  max-width: 94vw;
+}
+
+.slot .name {
+  font-size: clamp(3rem, 11vw, 8rem);
+}
+
+.band {
+  position: absolute;
+  left: -20%;
+  right: -20%;
+  top: 50%;
+  height: 70%;
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--player) 70%, transparent) 30%, color-mix(in srgb, var(--player) 70%, transparent) 70%, transparent);
+  transform: translateY(-50%) skewY(-6deg);
+  animation: band 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.order {
+  position: relative;
+  font-family: var(--font-display);
+  font-size: clamp(1.25rem, 3vw, 2rem);
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.dots {
+  display: flex;
+  gap: 10px;
+  padding-bottom: 16px;
+}
+
+.dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--player) 35%, transparent);
+  transition: transform 0.2s;
+}
+
+.dotDone {
+  background: var(--player);
+}
+
+.dotActive {
+  background: var(--player);
+  transform: scale(1.5);
+  box-shadow: 0 0 12px var(--player);
+}
+
+@keyframes overlay {
+  0%,
+  88% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes fromLeft {
+  from {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+}
+
+@keyframes fromRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+}
+
+@keyframes slam {
+  0% {
+    transform: scale(4) rotate(-12deg);
+    opacity: 0;
+  }
+  35% {
+    transform: scale(0.9) rotate(0);
+    opacity: 1;
+  }
+  45% {
+    transform: translate(-6px, 4px) scale(1.05);
+  }
+  55% {
+    transform: translate(5px, -3px) scale(1);
+  }
+  65% {
+    transform: translate(-3px, 2px);
+  }
+  100% {
+    transform: none;
+  }
+}
+
+@keyframes flash {
+  0% {
+    opacity: 0.7;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes step {
+  0% {
+    transform: scale(0.5);
+    opacity: 0;
+  }
+  15% {
+    transform: scale(1.06);
+    opacity: 1;
+  }
+  25% {
+    transform: scale(1);
+  }
+  85% {
+    transform: scale(1.02);
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(-12vw) scale(1.02);
+    opacity: 0;
+  }
+}
+
+@keyframes band {
+  from {
+    transform: translate(-100%, -50%) skewY(-6deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .overlay *,
+  .overlay {
+    animation: none !important;
+  }
+
+  .flash {
+    display: none;
+  }
+}

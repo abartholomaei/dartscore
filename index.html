@@ -1,0 +1,488 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>dartscore – offline auto-scoring for steel-tip darts</title>
+<meta name="description" content="dartscore detects every steel-tip dart with three cameras, keeps score for 20+ games and variants and stores all stats locally. No cloud, no account.">
+<meta property="og:title" content="dartscore – offline auto-scoring for steel-tip darts">
+<meta property="og:description" content="Three cameras, a trained dart-tip model and a browser UI for TV, tablet and phone. Everything stays in your home network.">
+<meta property="og:image" content="img/play.webp">
+<meta name="theme-color" content="#0b0b0c">
+<link rel="icon" href="favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0b0b0c;
+    --surface: #151517;
+    --surface-2: #1d1d20;
+    --line: #2a2a2e;
+    --text: #f4f4f5;
+    --muted: #a1a1aa;
+    --accent: #22c55e;
+    --accent-2: #16a34a;
+    --accent-glow: rgba(34, 197, 94, .18);
+    --red: #ef4444;
+    --radius: 18px;
+    --display: 'Barlow Condensed', 'Arial Narrow', sans-serif;
+    --body: 'Barlow', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font: 400 17px/1.6 var(--body); -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+  img { max-width: 100%; height: auto; display: block; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .wrap { width: min(1180px, 100% - 32px); margin-inline: auto; }
+  h1, h2, h3 { font-family: var(--display); line-height: 1.02; margin: 0; letter-spacing: .01em; }
+  h2 { font-size: clamp(2.2rem, 5vw, 3.4rem); text-transform: uppercase; }
+  h3 { font-size: 1.45rem; text-transform: uppercase; }
+  .eyebrow {
+    font: 700 .85rem/1 var(--display); letter-spacing: .18em; text-transform: uppercase;
+    color: var(--accent); margin-bottom: 14px;
+  }
+  .lead { color: var(--muted); font-size: 1.15rem; max-width: 62ch; }
+  section { padding: 96px 0; }
+
+  /* nav */
+  nav {
+    position: sticky; top: 0; z-index: 10;
+    background: color-mix(in srgb, var(--bg) 82%, transparent);
+    backdrop-filter: blur(12px); border-bottom: 1px solid var(--line);
+  }
+  nav .wrap { display: flex; align-items: center; gap: 28px; height: 64px; }
+  .logo { display: flex; align-items: center; gap: 10px; font: 800 1.6rem/1 var(--display); color: var(--text); letter-spacing: .02em; }
+  .logo:hover { text-decoration: none; }
+  .logo img { width: 30px; height: 30px; }
+  .logo b { color: var(--accent); font-weight: 800; }
+  nav ul { display: flex; gap: 22px; list-style: none; margin: 0 0 0 auto; padding: 0; }
+  nav ul a { color: var(--muted); font-weight: 500; }
+  nav ul a:hover { color: var(--text); text-decoration: none; }
+  @media (max-width: 760px) { nav ul { display: none; } }
+
+  /* hero */
+  .hero { position: relative; padding: 88px 0 40px; overflow: hidden; }
+  .hero::before {
+    content: ''; position: absolute; inset: -30% -10% auto; height: 900px; z-index: -1;
+    background: radial-gradient(closest-side, var(--accent-glow), transparent 70%);
+  }
+  .rings {
+    position: absolute; right: -220px; top: -120px; width: 760px; height: 760px; z-index: -1; opacity: .5;
+    background: repeating-radial-gradient(circle, transparent 0 46px, rgba(255,255,255,.035) 46px 48px);
+    border-radius: 50%;
+    mask-image: radial-gradient(circle, #000 30%, transparent 70%);
+  }
+  .hero h1 { font-size: clamp(3rem, 9vw, 6.4rem); text-transform: uppercase; max-width: 12ch; }
+  .hero h1 em { font-style: normal; color: var(--accent); }
+  .hero .lead { margin: 22px 0 32px; font-size: 1.25rem; }
+  .cta { display: flex; flex-wrap: wrap; gap: 12px; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px; padding: 13px 22px; border-radius: 999px;
+    font: 700 1.05rem/1 var(--display); letter-spacing: .06em; text-transform: uppercase;
+    border: 1px solid var(--line); color: var(--text); background: var(--surface);
+    transition: transform .15s, background .15s;
+  }
+  .btn:hover { text-decoration: none; transform: translateY(-1px); background: var(--surface-2); }
+  .btn.primary { background: var(--accent); border-color: var(--accent); color: #04130a; }
+  .btn.primary:hover { background: #2fd66b; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 28px; }
+  .chip {
+    padding: 6px 12px; border-radius: 999px; font-size: .9rem; color: var(--muted);
+    border: 1px solid var(--line); background: rgba(255,255,255,.02);
+  }
+  .shot {
+    margin-top: 64px; border-radius: var(--radius); overflow: hidden;
+    border: 1px solid var(--line); background: var(--surface);
+    box-shadow: 0 40px 120px -40px rgba(34,197,94,.35), 0 20px 60px rgba(0,0,0,.6);
+  }
+  .hero-shots { position: relative; }
+  .hero-shots .phone {
+    position: absolute; right: -8px; bottom: -40px; width: min(24%, 240px);
+    border-radius: 28px; overflow: hidden; border: 6px solid #222226;
+    box-shadow: 0 30px 80px rgba(0,0,0,.7);
+  }
+  @media (max-width: 640px) { .hero-shots .phone { display: none; } }
+
+  /* stats band */
+  .band { border-block: 1px solid var(--line); background: var(--surface); padding: 40px 0; }
+  .band .wrap { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; }
+  .band .num { font: 800 clamp(2.4rem, 5vw, 3.4rem)/1 var(--display); color: var(--text); }
+  .band .num span { color: var(--accent); }
+  .band p { margin: 6px 0 0; color: var(--muted); font-size: .95rem; }
+  @media (max-width: 760px) { .band .wrap { grid-template-columns: repeat(2, 1fr); } }
+
+  /* pipeline */
+  .pipeline { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; margin-top: 48px; counter-reset: step; }
+  .step {
+    position: relative; padding: 22px 20px; border-radius: var(--radius);
+    background: var(--surface); border: 1px solid var(--line);
+  }
+  .step::before {
+    counter-increment: step; content: counter(step, decimal-leading-zero);
+    font: 800 1rem/1 var(--display); color: var(--accent); letter-spacing: .1em;
+  }
+  .step h3 { font-size: 1.2rem; margin: 10px 0 6px; }
+  .step p { margin: 0; color: var(--muted); font-size: .95rem; line-height: 1.5; }
+  @media (max-width: 980px) { .pipeline { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 520px) { .pipeline { grid-template-columns: 1fr; } }
+
+  /* split feature rows */
+  .split { display: grid; grid-template-columns: 1fr 1.25fr; gap: 56px; align-items: center; }
+  .split.flip > :first-child { order: 2; }
+  .split + .split { margin-top: 110px; }
+  @media (max-width: 900px) { .split { grid-template-columns: 1fr; gap: 32px; } .split.flip > :first-child { order: 0; } }
+  .split h2 { margin-bottom: 18px; }
+  .ticks { list-style: none; padding: 0; margin: 24px 0 0; display: grid; gap: 12px; }
+  .ticks li { position: relative; padding-left: 30px; color: #d4d4d8; }
+  .ticks li::before {
+    content: ''; position: absolute; left: 0; top: .45em; width: 16px; height: 16px; border-radius: 50%;
+    background: radial-gradient(circle, var(--accent) 0 3px, transparent 3.5px), transparent;
+    border: 2px solid var(--accent);
+  }
+  .ticks b { color: var(--text); font-weight: 600; }
+  .frame { border-radius: var(--radius); overflow: hidden; border: 1px solid var(--line); box-shadow: 0 30px 80px rgba(0,0,0,.55); }
+
+  /* modes */
+  .modes { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-top: 48px; }
+  .mode { padding: 26px 24px; border-radius: var(--radius); background: var(--surface); border: 1px solid var(--line); }
+  .mode .tag { font: 700 .8rem/1 var(--display); letter-spacing: .16em; text-transform: uppercase; color: var(--accent); }
+  .mode h3 { margin: 10px 0 12px; font-size: 1.7rem; }
+  .mode ul { margin: 0; padding: 0; list-style: none; color: var(--muted); display: grid; gap: 6px; font-size: .97rem; }
+  .mode ul li::before { content: '›'; color: var(--accent); margin-right: 8px; font-weight: 700; }
+  @media (max-width: 980px) { .modes { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 560px) { .modes { grid-template-columns: 1fr; } }
+
+  /* arcade */
+  .arcade { background: linear-gradient(180deg, transparent, #0f1a12 30%, #0f1a12 70%, transparent); }
+  .arcade-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 48px; }
+  .arcade-card { border-radius: var(--radius); overflow: hidden; background: var(--surface); border: 1px solid var(--line); }
+  .arcade-card img { aspect-ratio: 8 / 7; object-fit: cover; object-position: top; width: 100%; }
+  .arcade-card div { padding: 22px 24px 26px; }
+  .arcade-card p { margin: 8px 0 0; color: var(--muted); }
+  @media (max-width: 820px) { .arcade-grid { grid-template-columns: 1fr; } }
+  .monsters { display: flex; gap: 10px; margin-top: 26px; }
+  .sprite {
+    width: 72px; height: 72px; background-size: 400% 100%; background-repeat: no-repeat;
+    animation: idle .8s steps(3) infinite alternate;
+  }
+  @keyframes idle { from { background-position: 0 0; } to { background-position: 100% 0; } }
+  @media (prefers-reduced-motion: reduce) { .sprite { animation: none; } html { scroll-behavior: auto; } }
+
+  /* feature grid */
+  .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 48px; }
+  .card { padding: 26px; border-radius: var(--radius); background: var(--surface); border: 1px solid var(--line); }
+  .card .ico {
+    width: 44px; height: 44px; border-radius: 12px; display: grid; place-items: center;
+    background: var(--accent-glow); color: var(--accent); margin-bottom: 16px;
+  }
+  .card .ico svg { width: 24px; height: 24px; }
+  .card h3 { font-size: 1.35rem; margin-bottom: 8px; }
+  .card p { margin: 0; color: var(--muted); font-size: .98rem; line-height: 1.55; }
+  @media (max-width: 980px) { .grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 600px) { .grid { grid-template-columns: 1fr; } }
+
+  /* compare */
+  table { width: 100%; border-collapse: collapse; margin-top: 40px; font-size: 1rem; }
+  th, td { padding: 14px 16px; text-align: left; border-bottom: 1px solid var(--line); }
+  th { font: 700 .85rem/1 var(--display); letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+  td:first-child { color: #d4d4d8; }
+  td.yes { color: var(--accent); font-weight: 600; }
+  .table-wrap { overflow-x: auto; }
+
+  /* setup */
+  .hw { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-top: 40px; }
+  .hw .card p + p { margin-top: 8px; }
+  @media (max-width: 760px) { .hw { grid-template-columns: 1fr; } }
+  pre {
+    margin: 0; padding: 22px 24px; border-radius: var(--radius); background: #070708; border: 1px solid var(--line);
+    font: 500 .95rem/1.7 ui-monospace, 'SF Mono', Menlo, monospace; color: #d4d4d8; overflow-x: auto;
+  }
+  pre .c { color: #71717a; }
+  pre .p { color: var(--accent); user-select: none; }
+
+  footer { border-top: 1px solid var(--line); padding: 40px 0 56px; color: var(--muted); font-size: .95rem; }
+  footer .wrap { display: flex; flex-wrap: wrap; gap: 16px; justify-content: space-between; align-items: center; }
+
+  .reveal { opacity: 0; transform: translateY(24px); transition: opacity .7s ease, transform .7s ease; }
+  .reveal.in { opacity: 1; transform: none; }
+  @media (prefers-reduced-motion: reduce) { .reveal { opacity: 1; transform: none; transition: none; } }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="wrap">
+    <a class="logo" href="#"><img src="img/icon.png" alt=""><span>DART<b>SCORE</b></span></a>
+    <ul>
+      <li><a href="#how">How it works</a></li>
+      <li><a href="#features">Features</a></li>
+      <li><a href="#modes">Game modes</a></li>
+      <li><a href="#arcade">Arcade</a></li>
+      <li><a href="#setup">Setup</a></li>
+    </ul>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="rings" aria-hidden="true"></div>
+  <div class="wrap">
+    <div class="eyebrow">Steel-tip auto-scoring · 100% local</div>
+    <h1>Throw. <em>We count.</em></h1>
+    <p class="lead">dartscore watches your board with three cameras, scores every dart automatically and keeps the full history for every player. It runs on a small computer in your home network – no cloud, no account, no subscription.</p>
+    <div class="cta">
+      <a class="btn primary" href="#setup">Get started</a>
+      <a class="btn" href="#features">See all features</a>
+    </div>
+    <div class="chips">
+      <span class="chip">3 cameras</span>
+      <span class="chip">YOLO pose model on the CPU</span>
+      <span class="chip">20+ games &amp; variants</span>
+      <span class="chip">TV · tablet · phone</span>
+      <span class="chip">English &amp; German</span>
+    </div>
+    <div class="hero-shots">
+      <img class="shot" src="img/play.webp" alt="Live X01 match: large remaining scores, checkout suggestion and keypad for corrections" width="1600" height="1000">
+      <img class="phone" src="img/play-phone.webp" alt="The same match on a phone" width="780" height="1580" loading="lazy">
+    </div>
+  </div>
+</header>
+
+<div class="band">
+  <div class="wrap">
+    <div><div class="num">3<span>×</span></div><p>cameras around the board, fused into one position</p></div>
+    <div><div class="num">97<span>%</span></div><p>segments right on real recorded throws (replay test)</p></div>
+    <div><div class="num">41<span>ms</span></div><p>model inference per camera frame on a 2012 Mac mini</p></div>
+    <div><div class="num">0</div><p>cloud services – your data stays at home</p></div>
+  </div>
+</div>
+
+<section id="how">
+  <div class="wrap">
+    <div class="eyebrow">How it works</div>
+    <h2>From impact to score</h2>
+    <p class="lead">A hybrid pipeline: cheap image processing runs all the time, the neural network only wakes up when something moved.</p>
+    <div class="pipeline">
+      <div class="step reveal"><h3>Motion trigger</h3><p>A frame difference on each camera notices that a dart landed – or that a hand is pulling darts.</p></div>
+      <div class="step reveal"><h3>Tip detection</h3><p>A YOLO pose model (ONNX Runtime, CPU) finds the dart tip in every view; classic CV is the fallback.</p></div>
+      <div class="step reveal"><h3>Board mapping</h3><p>Lens correction and a per-camera homography turn pixels into millimetres on the board plane.</p></div>
+      <div class="step reveal"><h3>Fusion</h3><p>The three views vote: agreeing cameras first, then weighted by local resolution. Outliers are dropped.</p></div>
+      <div class="step reveal"><h3>Score &amp; referee</h3><p>Position → segment and ring. Unsure darts get a second, slower look before they count.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="features" style="padding-top: 40px">
+  <div class="wrap">
+    <div class="split reveal">
+      <div>
+        <div class="eyebrow">Playing</div>
+        <h2>Built to be read from the oche</h2>
+        <p class="lead">Big condensed numbers, clear turn state and a display mode for small screens – readable from three metres on a TV.</p>
+        <ul class="ticks">
+          <li><b>Automatic turn change</b> when you pull your darts</li>
+          <li><b>Checkout route</b> shown in green right in the empty dart fields, tuned to your favourite double</li>
+          <li><b>Two-tap correction</b> via keypad or by tapping the board, bounce-outs included</li>
+          <li><b>Visit photos</b>: camera images of every turn with the detected tip positions</li>
+          <li><b>Stadium caller</b> with offline voice clips, sounds and celebration effects for 180s and checkouts</li>
+        </ul>
+      </div>
+      <img class="frame" src="img/play-board.webp" alt="Live game with the board input for corrections" width="1600" height="1000" loading="lazy">
+    </div>
+
+    <div class="split flip reveal">
+      <div>
+        <div class="eyebrow">Statistics</div>
+        <h2>Every dart, with coordinates</h2>
+        <p class="lead">Each dart is stored with its board position, so every number can be recomputed at any time – and a lot more than averages is possible.</p>
+        <ul class="ticks">
+          <li><b>X01</b>: 3-dart and first-9 average, checkout rate, best leg, 60+/100+/140+/180</li>
+          <li><b>Cricket</b>: marks per round; win/loss and head-to-head between profiles</li>
+          <li><b>Heatmap and grouping</b> from detected positions, hit rate per double</li>
+          <li><b>Aim deviation</b>: which way and how far you miss the field you aimed at</li>
+          <li><b>Trends</b> for every training mode, form curve, best and weakest games, achievements</li>
+          <li><b>Export</b> to CSV/JSON, daily database backups with restore</li>
+        </ul>
+      </div>
+      <img class="frame" src="img/heatmap.webp" alt="Hit heatmap of a player with grouping values" width="1600" height="711" loading="lazy">
+    </div>
+
+    <div class="split reveal">
+      <div>
+        <div class="eyebrow">Profiles &amp; training</div>
+        <h2>For the whole household</h2>
+        <p class="lead">Any number of local profiles plus guests. Photos from the phone camera or a gallery of 16 characters, an optional PIN against accidental edits.</p>
+        <ul class="ticks">
+          <li><b>Training plans</b>: four built-in plans of five sessions, goals per drill, results recorded automatically</li>
+          <li><b>Bots</b> with an adjustable average – or a <b>personal bot</b> that throws like you</li>
+          <li><b>Handicap</b>: own start score per player so kids can keep up</li>
+          <li><b>Teams</b> sharing a score, and <b>local tournaments</b> (knockout with byes or round robin)</li>
+        </ul>
+      </div>
+      <img class="frame" src="img/stats.webp" alt="Player page with training plans and X01 statistics" width="1600" height="1000" loading="lazy">
+    </div>
+  </div>
+</section>
+
+<section id="modes">
+  <div class="wrap">
+    <div class="eyebrow">Game modes</div>
+    <h2>Match, practice, party</h2>
+    <p class="lead">Every mode has a rules help (setup and in-game) in English and German.</p>
+    <div class="modes">
+      <div class="mode reveal">
+        <div class="tag">Match</div><h3>X01 &amp; Cricket</h3>
+        <ul>
+          <li>301 / 501 / 701 / 901</li><li>Single, double, master in &amp; out</li><li>Legs &amp; sets, play on after the end</li>
+          <li>Cricket: standard, cut-throat, no-score</li><li>Random and hidden cricket</li><li>Bull-off for the throwing order</li>
+        </ul>
+      </div>
+      <div class="mode reveal">
+        <div class="tag">Training</div><h3>Practice</h3>
+        <ul>
+          <li>Around the Clock &amp; Round the World</li><li>Shanghai</li><li>Bob's 27</li><li>Checkout training &amp; checkout streak</li>
+          <li>121 checkout</li><li>Doubles &amp; segment training</li><li>Score training</li>
+        </ul>
+      </div>
+      <div class="mode reveal">
+        <div class="tag">Party</div><h3>Game night</h3>
+        <ul>
+          <li>Killer</li><li>Halve-It &amp; Bermuda</li><li>Gotcha</li><li>Teams (2–4 teams)</li><li>Local tournaments</li><li>Bot opponents</li>
+        </ul>
+      </div>
+      <div class="mode reveal">
+        <div class="tag">Arcade</div><h3>Animated</h3>
+        <ul>
+          <li>Monster hunt on the real board positions</li><li>X01 Voltage theme</li><li>Round intros &amp; popups</li><li>Particle effects (switchable, respects reduced motion)</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="arcade" class="arcade">
+  <div class="wrap">
+    <div class="eyebrow">Arcade</div>
+    <h2>The board is the game world</h2>
+    <p class="lead">The cameras know exactly where each dart landed, so games can use the real position – not only the segment.</p>
+    <div class="monsters" aria-hidden="true">
+      <div class="sprite" style="background-image:url(img/blob-idle.webp)"></div>
+      <div class="sprite" style="background-image:url(img/bat-idle.webp); animation-delay:-.2s"></div>
+      <div class="sprite" style="background-image:url(img/imp-idle.webp); animation-delay:-.4s"></div>
+      <div class="sprite" style="background-image:url(img/king-idle.webp); animation-delay:-.6s"></div>
+    </div>
+    <div class="arcade-grid">
+      <div class="arcade-card reveal">
+        <img src="img/monsters.webp" alt="Monster hunt: monsters sitting on a painted meadow board" width="1600" height="1404" loading="lazy">
+        <div><h3>Monster hunt</h3><p>Monsters sit on spots of the board. Hit close enough and they are caught; missed ones grow – easier to hit, but worth fewer points. Some wander every visit, the last round counts double.</p></div>
+      </div>
+      <div class="arcade-card reveal">
+        <img src="img/voltage.webp" alt="X01 in the Voltage theme with battery gauges and a neon board" width="1600" height="1383" loading="lazy">
+        <div><h3>X01 Voltage</h3><p>Regular X01 rules, arcade looks: remaining scores drain like batteries, darts appear on a neon board at their real position, big scores strike lightning.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="eyebrow">Under the hood</div>
+    <h2>Made for a real living room</h2>
+    <div class="grid">
+      <div class="card reveal">
+        <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/></svg></div>
+        <h3>Guided calibration</h3><p>Click reference points per camera, get a board overlay to check it, lens calibration with a printable chessboard. Bumped cameras are re-aligned automatically.</p>
+      </div>
+      <div class="card reveal">
+        <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12l2 2 4-4"/><path d="M12 3l8 4v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7z"/></svg></div>
+        <h3>Referee</h3><p>Low-confidence darts are re-checked before scoring; any recorded dart can be re-evaluated later. Confirmed darts become training data.</p>
+      </div>
+      <div class="card reveal">
+        <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2"/><path d="M12 18h.01"/></svg></div>
+        <h3>Any screen</h3><p>Responsive web UI for TV, desktop, tablet and phone, installable as an app. A QR code on the big screen opens dartscore on your phone.</p>
+      </div>
+      <div class="card reveal">
+        <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l3-8 4 16 3-8h4"/></svg></div>
+        <h3>Diagnostics</h3><p>CPU and memory, frame rate per camera, detection timing and the latest darts – so you see at once why something was missed.</p>
+      </div>
+      <div class="card reveal">
+        <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></div>
+        <h3>Private by design</h3><p>SQLite on your own machine, photos resized and stripped of metadata. Works without internet after installation.</p>
+      </div>
+      <div class="card reveal">
+        <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 17l6-6-6-6"/><path d="M12 19h8"/></svg></div>
+        <h3>Old hardware welcome</h3><p>Runs on a 2012 Mac mini without AVX2. The model only runs after the motion trigger and on the board region; Linux first, designed for macOS, Windows and Raspberry Pi 5 as well.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section style="padding-top: 20px">
+  <div class="wrap">
+    <div class="eyebrow">Compared</div>
+    <h2>Local first</h2>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th></th><th>dartscore</th><th>Typical cloud systems</th></tr></thead>
+        <tbody>
+          <tr><td>Automatic scoring with 3 cameras</td><td class="yes">Yes</td><td>Yes</td></tr>
+          <tr><td>Works without internet</td><td class="yes">Yes</td><td>Mostly no</td></tr>
+          <tr><td>Account / subscription</td><td class="yes">None</td><td>Required for extras</td></tr>
+          <tr><td>Raw data with board coordinates</td><td class="yes">Export to CSV/JSON</td><td>Rarely</td></tr>
+          <tr><td>Open, trainable detection pipeline</td><td class="yes">Yes</td><td>Proprietary</td></tr>
+          <tr><td>Online matchmaking, lobbies</td><td>Not a goal</td><td>Yes</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section id="setup">
+  <div class="wrap">
+    <div class="eyebrow">Setup</div>
+    <h2>What you need</h2>
+    <div class="hw">
+      <div class="card">
+        <h3>Hardware</h3>
+        <p>A steel-tip board, three USB cameras mounted about 120° apart close to the board plane (an Autodarts-compatible OV9732 set works), and an LED ring for even light.</p>
+        <p>Any small PC in your network – the reference machine is a Mac mini from 2012 with Debian 12. Displays are simply browsers.</p>
+      </div>
+      <div class="card">
+        <h3>Software</h3>
+        <p>Python 3.12 via <a href="https://docs.astral.sh/uv/">uv</a>, Node.js ≥ 20 for building the UI. FastAPI + SQLite in the backend, React + TypeScript in the browser.</p>
+        <p>A systemd unit is included for running dartscore as a service.</p>
+      </div>
+    </div>
+    <pre style="margin-top: 16px"><span class="c"># install dependencies and create a config</span>
+<span class="p">$ </span>make install
+<span class="p">$ </span>cp config.example.toml config.toml
+
+<span class="c"># build the UI once, then start the server</span>
+<span class="p">$ </span>cd frontend &amp;&amp; npm run build &amp;&amp; cd ..
+<span class="p">$ </span>make dev-backend
+
+<span class="c"># open http://&lt;host&gt;:8000 on the TV, tablet or phone</span></pre>
+    <p class="lead" style="margin-top: 22px">Details are in the <a href="https://github.com/abartholomaei/dartscore#readme">README</a> and the <a href="https://github.com/abartholomaei/dartscore/blob/main/docs/hardware-setup.md">hardware notes</a>. No cameras yet? Set <code>source = "synthetic"</code> and play with manual input.</p>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <a class="logo" href="#"><img src="img/icon.png" alt=""><span>DART<b>SCORE</b></span></a>
+    <span>Screenshots show demo data. · <a href="https://github.com/abartholomaei/dartscore">GitHub</a></span>
+  </div>
+</footer>
+
+<script>
+  const io = new IntersectionObserver((entries) => {
+    for (const e of entries) if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); }
+  }, { rootMargin: '0px 0px -8% 0px' });
+  document.querySelectorAll('.reveal').forEach((el) => io.observe(el));
+</script>
+</body>
+</html>

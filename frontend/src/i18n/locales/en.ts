@@ -195,7 +195,7 @@ const en = {
     example: 'Example',
     open: 'Rules',
     modes: {
-      melon_samurai: {
+      fruit_samurai: {
         goal: 'Slice off as much fruit as possible: the bigger the piece, the more points.',
         play: 'Every turn a fresh fruit covers the board. Each dart is a sword cut straight through where it lands, across the line to the bull; the piece on the dart\'s side flies off. A dart counts where it lands, not by field.',
         scoring: 'Points are the size of the piece - a whole fruit is worth 1000. The closer to the bull, the bigger the piece. A dart past the bull, where the fruit is already gone, cuts only air. The bullseye cuts away everything that is left. The last round is a big watermelon and counts double.',
@@ -403,7 +403,7 @@ const en = {
       dragonfruit: 'Dragon fruit',
       lime: 'Lime',
     },
-    melon: {
+    fruit: {
       blades: 'Cuts',
       board: 'Fruit board',
       instruction: '{{fruit}}: cut close to the bull!',
@@ -512,7 +512,7 @@ const en = {
     arcade: 'Arcade',
     difficulty: 'Difficulty',
     difficulties: { easy: 'Easy', medium: 'Medium', hard: 'Hard' },
-    melonSamuraiHint: 'A fruit covers the board; every dart cuts off the piece on its side - the closer to the bull, the bigger. Past the bull there is nothing left to cut. The bullseye takes everything, the last round counts double. Works best with the cameras (or tap the board).',
+    fruitSamuraiHint: 'A fruit covers the board; every dart cuts off the piece on its side - the closer to the bull, the bigger. Past the bull there is nothing left to cut. The bullseye takes everything, the last round counts double. Works best with the cameras (or tap the board).',
     monsterHuntHint: 'One monster at a time stands on the board - shoot it where it is. A dart in its middle is a headshot, a graze costs it one life. A miss makes it bigger but worth less. The last round counts double. Works best with the cameras (or tap the board).',
     teams: 'Play in teams',
     teamCount: 'Teams',
@@ -765,7 +765,7 @@ const en = {
   },
   modes: {
     monster_hunt: 'Monster hunt',
-    melon_samurai: 'Melon samurai',
+    fruit_samurai: 'Fruit Samurai',
     segment_training: 'Segment training',
     checkout_121: '121 checkout',
     bull_off: 'Bull-off',

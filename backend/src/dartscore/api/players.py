@@ -33,7 +33,7 @@ Mode = Literal[
     "segment_training",
     "checkout_121",
     "monster_hunt",
-    "melon_samurai",
+    "fruit_samurai",
 ]
 # the current PIN of a protected profile, sent with changes
 PinHeader = Annotated[str | None, Header()]

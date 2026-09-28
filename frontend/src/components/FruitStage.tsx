@@ -4,7 +4,7 @@ import { Link } from 'react-router'
 import type { GameState } from '../api'
 import { R, SEGMENT_DEG, SEGMENTS, scoreAt } from '../dart'
 import Avatar from './Avatar'
-import styles from './MelonStage.module.css'
+import styles from './FruitStage.module.css'
 
 type Point = [number, number]
 type Effect = {
@@ -49,11 +49,11 @@ const PETALS = Array.from({ length: 14 }, (_, i) => ({
 
 const points = (polygon: Point[]) => polygon.map(([x, y]) => `${x},${-y}`).join(' ')
 
-/** Melon samurai, full screen: a dojo with the fruit on the board in the middle. Every dart is
+/** Fruit samurai, full screen: a dojo with the fruit on the board in the middle. Every dart is
  *  a sword cut through where it landed, across the line to the bull; the piece on the dart's
  *  side flies off. Tapping the board throws a dart there, tapping a used blade corrects that
  *  dart. `children` go into the bottom toolbar. */
-export default function MelonStage({
+export default function FruitStage({
   game,
   onTap,
   onCorrect,
@@ -131,22 +131,22 @@ export default function MelonStage({
     ? t('play.pullDarts')
     : inTurn && effect
       ? effect.result === 'perfect'
-        ? t('arcade.melon.perfect')
+        ? t('arcade.fruit.perfect')
         : effect.result === 'air'
-          ? t('arcade.melon.air')
+          ? t('arcade.fruit.air')
           : share >= 0.4
-            ? t('arcade.melon.master')
+            ? t('arcade.fruit.master')
             : share >= 0.25
-              ? t('arcade.melon.clean')
+              ? t('arcade.fruit.clean')
               : share >= 0.1
-                ? t('arcade.melon.nice')
-                : t('arcade.melon.peel')
+                ? t('arcade.fruit.nice')
+                : t('arcade.fruit.peel')
       : game.double_round
-        ? t('arcade.melon.finale')
-        : t('arcade.melon.instruction', { fruit: t(`arcade.fruits.${fruit}`) })
+        ? t('arcade.fruit.finale')
+        : t('arcade.fruit.instruction', { fruit: t(`arcade.fruits.${fruit}`) })
 
   const image = (name: string) => (
-    <image href={`/arcade/melon/${name}.webp`} x={-R.doubleOuter} y={-R.doubleOuter} width={2 * R.doubleOuter} height={2 * R.doubleOuter} />
+    <image href={`/arcade/fruit/${name}.webp`} x={-R.doubleOuter} y={-R.doubleOuter} width={2 * R.doubleOuter} height={2 * R.doubleOuter} />
   )
   const cut = burst?.effect
   const key = burst?.key ?? 0
@@ -163,6 +163,7 @@ export default function MelonStage({
   const shake = cut?.result === 'perfect' ? styles[key % 2 ? 'shakeA' : 'shakeB'] : ''
   const turnPoints = game.turn && game.turn.player === game.current_player ? game.turn.values.reduce((a, b) => a + b, 0) : 0
   const fruits = (game.fruits ?? []) as Fruit[]
+  const marks = game.board_marks ?? { cuts: [], holes: [] }
 
   return (
     <div className={styles.stage}>
@@ -188,7 +189,7 @@ export default function MelonStage({
           {fruits.map((f, i) => (
             <img
               key={i}
-              src={`/arcade/melon/${f}.webp`}
+              src={`/arcade/fruit/${f}.webp`}
               alt=""
               className={i + 1 < (game.round ?? 1) ? styles.fruitDone : i + 1 === game.round ? styles.fruitNow : styles.fruitOpen}
             />
@@ -222,10 +223,10 @@ export default function MelonStage({
             viewBox={`${-VIEW} ${-VIEW} ${2 * VIEW} ${2 * VIEW}`}
             onClick={tap}
             role="img"
-            aria-label={t('arcade.melon.board')}
+            aria-label={t('arcade.fruit.board')}
           >
             <defs>
-              <clipPath id="melonClip">
+              <clipPath id="fruitClip">
                 <circle r={VIEW - 1} />
               </clipPath>
               <clipPath id="fruitLeft">
@@ -236,21 +237,40 @@ export default function MelonStage({
                   <polygon points={points(cut.piece)} />
                 </clipPath>
               )}
-              <radialGradient id="melonVignette">
+              <clipPath id="boardWood">
+                <circle r={R.doubleOuter + 6} />
+              </clipPath>
+              <radialGradient id="fruitVignette">
                 <stop offset="70%" stopColor="#000" stopOpacity="0" />
                 <stop offset="100%" stopColor="#000" stopOpacity="0.55" />
               </radialGradient>
             </defs>
             <image
-              href="/arcade/melon/dojo.webp"
+              href="/arcade/fruit/dojo.webp"
               x={-VIEW}
               y={-VIEW}
               width={2 * VIEW}
               height={2 * VIEW}
-              clipPath="url(#melonClip)"
+              clipPath="url(#fruitClip)"
               preserveAspectRatio="xMidYMid slice"
             />
-            <circle r={VIEW} fill="url(#melonVignette)" />
+            <circle r={VIEW} fill="url(#fruitVignette)" />
+
+            {/* what this round left in the wood: a groove for every cut, a hole for every dart */}
+            <g clipPath="url(#boardWood)">
+              {marks.cuts.map(([x1, y1, x2, y2], i) => (
+                <g key={`cut-${i}`} className={styles.groove}>
+                  <line x1={x1} y1={-y1} x2={x2} y2={-y2} className={styles.grooveLight} transform="translate(0.8 0.8)" />
+                  <line x1={x1} y1={-y1} x2={x2} y2={-y2} className={styles.grooveDark} />
+                </g>
+              ))}
+            </g>
+            {marks.holes.map(([x, y], i) => (
+              <g key={`hole-${i}`} style={{ transform: `translate(${x}px, ${-y}px)` }}>
+                <circle r={3.4} className={styles.holeRim} />
+                <circle r={2} className={styles.hole} />
+              </g>
+            ))}
 
             {/* what is left of the fruit; a new turn drops in a fresh one */}
             <g key={introKey} className={game.double_round ? `${styles.fruit} ${styles.finale}` : styles.fruit}>
@@ -330,7 +350,7 @@ export default function MelonStage({
                   })
                 )}
                 <text y={-12} className={cut.result === 'perfect' ? styles.great : cut.points > 0 ? styles.good : styles.bad}>
-                  {cut.result === 'perfect' ? `${t('arcade.melon.perfectShort')} +${cut.points}` : cut.points > 0 ? `+${cut.points}` : t('arcade.melon.airShort')}
+                  {cut.result === 'perfect' ? `${t('arcade.fruit.perfectShort')} +${cut.points}` : cut.points > 0 ? `+${cut.points}` : t('arcade.fruit.airShort')}
                 </text>
               </g>
             )}
@@ -338,7 +358,7 @@ export default function MelonStage({
         </div>
 
         <aside className={styles.blades}>
-          <span className={styles.bladesTitle}>{t('arcade.melon.blades')}</span>
+          <span className={styles.bladesTitle}>{t('arcade.fruit.blades')}</span>
           {[0, 1, 2].map((i) => {
             const used = i < darts.length
             return (
@@ -373,7 +393,7 @@ export default function MelonStage({
 
       {intro && (
         <div key={intro.key} className={styles.intro}>
-          <img src={`/arcade/melon/${intro.fruit}.webp`} alt="" className={styles.introFruit} />
+          <img src={`/arcade/fruit/${intro.fruit}.webp`} alt="" className={styles.introFruit} />
           <span>
             {t('play.roundOf', { round: intro.round, total: game.rounds ?? 0 })} · {t(`arcade.fruits.${intro.fruit}`)}
           </span>

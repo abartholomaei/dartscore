@@ -24,7 +24,7 @@
   z-index: 0;
   background:
     radial-gradient(ellipse at 50% 50%, rgb(18 10 6 / 0.35), rgb(18 10 6 / 0.85) 75%),
-    url('/arcade/melon/dojo-scene.webp') center / cover no-repeat;
+    url('/arcade/fruit/dojo-scene.webp') center / cover no-repeat;
 }
 
 .ambient {
@@ -466,6 +466,34 @@
   animation: shakeB 0.45s ease-out;
 }
 
+/* grooves and dart holes the round leaves in the cutting board */
+.grooveDark {
+  stroke: rgb(30 12 4 / 0.85);
+  stroke-width: 1.8;
+  stroke-linecap: round;
+}
+
+.grooveLight {
+  stroke: rgb(255 226 180 / 0.4);
+  stroke-width: 1.1;
+  stroke-linecap: round;
+}
+
+.groove {
+  animation: groove 0.5s ease-out 0.15s backwards;
+  pointer-events: none;
+}
+
+.holeRim {
+  fill: rgb(255 226 180 / 0.25);
+  pointer-events: none;
+}
+
+.hole {
+  fill: #1a0b04;
+  pointer-events: none;
+}
+
 /* --- fruit, cuts and juice ---------------------------------------------------------------- */
 
 .fruit {
@@ -619,6 +647,12 @@
   }
 }
 
+@keyframes groove {
+  from {
+    opacity: 0;
+  }
+}
+
 @keyframes land {
   from {
     transform: scale(2.2);
@@ -720,6 +754,7 @@
 @media (prefers-reduced-motion: reduce) {
   .fruit,
   .finale,
+  .groove,
   .dart,
   .dust,
   .good,

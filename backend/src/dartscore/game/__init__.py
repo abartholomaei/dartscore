@@ -3,8 +3,8 @@
 from typing import Any
 
 from dartscore.game.arcade import (
-    MelonSamuraiGame,
-    MelonSamuraiSettings,
+    FruitSamuraiGame,
+    FruitSamuraiSettings,
     MonsterHuntGame,
     MonsterHuntSettings,
 )
@@ -58,7 +58,7 @@ MODES = (
     "segment_training",
     "checkout_121",
     "monster_hunt",
-    "melon_samurai",
+    "fruit_samurai",
 )
 
 __all__ = [
@@ -98,8 +98,8 @@ def create_game(mode: str, player_count: int, settings: dict[str, Any]) -> Game:
             return CheckoutTrainingGame(player_count, CheckoutTrainingSettings(**options))
         if mode == "monster_hunt":
             return MonsterHuntGame(player_count, MonsterHuntSettings(**options))
-        if mode == "melon_samurai":
-            return MelonSamuraiGame(player_count, MelonSamuraiSettings(**options))
+        if mode == "fruit_samurai":
+            return FruitSamuraiGame(player_count, FruitSamuraiSettings(**options))
         if mode == "segment_training":
             return SegmentTrainingGame(player_count, SegmentTrainingSettings(**options))
         if mode == "checkout_121":

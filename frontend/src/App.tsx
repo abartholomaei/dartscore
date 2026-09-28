@@ -8,6 +8,7 @@ import Home from './pages/Home'
 import NewGame from './pages/NewGame'
 import Play from './pages/Play'
 import Players from './pages/Players'
+import PuppetLab from './pages/PuppetLab'
 import PlayerStats from './pages/PlayerStats'
 import Settings from './pages/Settings'
 import { TournamentDetail, TournamentList } from './pages/Tournaments'
@@ -29,6 +30,7 @@ export default function App() {
             <Route path="cameras" element={<Cameras />} />
             <Route path="calibration" element={<Calibration />} />
             <Route path="diagnostics" element={<Diagnostics />} />
+            {import.meta.env.DEV && <Route path="dev/puppets" element={<PuppetLab />} />}
           </Route>
         </Routes>
       </BrowserRouter>

@@ -6,7 +6,7 @@ style stays consistent: the first sprite sets the style, every further prompt as
 "exactly the same style".
 
 Processing: the PNGs were trimmed to their content, padded to a square and saved as WebP
-(sprites 384 px with alpha, background 1024 px).
+(sprites 512 px with alpha, background 1024 px).
 
 ## Prompts (Monster hunt)
 
@@ -38,29 +38,23 @@ Processing: the PNGs were trimmed to their content, padded to a square and saved
 All sprite prompts end with: "Front view, centered, full body, no text, no shadow, transparent
 background (PNG), square."
 
-## Animations (sprite-gen)
+## Animations (puppets, in code)
 
-The idle and "caught" animations were made from the still sprites with
-[sprite-gen](https://github.com/aldegad/sprite-gen) (Apache-2.0), using the Codex CLI logged in
-with ChatGPT as the image provider (`codex login`, Codex ≥ 0.157):
+The monsters are animated like puppets: each kind is **one still** (`monsters/<kind>.webp`, the
+ChatGPT sprite trimmed and padded to 512 px), deformed on the GPU every frame by
+`frontend/src/components/MonsterPuppets.tsx` (WebGL, a 36×36 grid mesh): breathing (squash &
+stretch around the feet), a jelly wave (blob), hops (imp), hovering (bat), swinging arms, ears,
+tail, crown and cape, flapping wings, blinking eyelids (the lid is the monster's own skin taken
+from just above the eye), and for hits a white flash with a squash, a knock-back tilt and
+squeezed eyes; a monster that goes down jumps, flattens like a pancake and fades into the poof.
+The rig per kind (eye ellipses, limb pivots and regions in texture space) is in `RIGS`. The
+development page `/dev/puppets` shows all of them large with hit/kill buttons.
 
-```bash
-sprite-gen prepare --out-dir runs/<kind> --character-id <kind> --base-image <kind>.png \
-  --description "…" --style "colorful cartoon, thick dark outlines, soft cel shading" \
-  --cell-size 256 --request sprite-gen/<kind>-request.json
-sprite-gen gen-set --run-dir runs/<kind> --provider codex --concurrency 2   # ~1 min per row
-sprite-gen extract --run-dir runs/<kind>
-sprite-gen compose-atlas --run-dir runs/<kind>
-```
+An earlier try generated 4 and then 8 frames per animation with
+[sprite-gen](https://github.com/aldegad/sprite-gen) (image rows via Codex). It was dropped: every
+frame is drawn anew by the image model, so size, position and details change from frame to frame
+and the motion jitters, however many frames there are. The still stays identical and runs at the
+display's frame rate.
 
-Each state has 8 frames (idle 10 fps loop, hurt 14 fps once, ending in the defeated pose); with
-4 frames the motion looked choppy. For the bat idle row the default extraction failed, it was
-extracted with `sprite-gen extract --segmentation projection`; the king's hurt row was
-regenerated once (`gen-set --states hurt --force`) because three frames came out empty.
-
-The eight 256 px frames of each state (`frames/<state>/frame-N.png`) were joined into one
-horizontal strip `frontend/public/arcade/monsters/<kind>-<state>.webp` (2048×256); the arcade
-stage clips one cell and steps through the strip with CSS (`idle` loops, `hurt` plays once when
-the monster is taken out). Bullet holes, cartridges, sparks, smoke, fireflies, fog and leaves are
-drawn in code (SVG/CSS), not images. The request files with the per-state action prompts are in
-`sprite-gen/`.
+Bullet holes, cartridges, sparks, smoke, fireflies, fog and leaves are drawn in code (SVG/CSS),
+not images.

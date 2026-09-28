@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useNavigate } from 'react-router'
 import { getJson, sendJson, type CricketVariant, type GamePlayer, type GameState, type InOutRule } from '../api'
@@ -90,6 +90,8 @@ function Running({ game }: { game: GameState }) {
   const [multiplier, setMultiplier] = useState<1 | 2 | 3>(1)
   // index of a dart of the shown turn that the next input replaces
   const [correcting, setCorrecting] = useState<number | null>(null)
+  // full-screen themes: keypad + correction popup open
+  const [panel, setPanel] = useState(false)
 
   // Inputs are queued, never dropped: fast taps are sent one after another, each seeing
   // the state returned by the previous request.
@@ -157,24 +159,7 @@ function Running({ game }: { game: GameState }) {
   const current = game.players[showTurn && turn ? turn.player : game.current_player]
   const legWinner = game.leg_winner !== null && game.awaiting_next ? game.players[game.leg_winner] : null
 
-  return (
-    <div className={displayMode ? `${styles.layout} ${styles.displayMode}` : styles.layout}>
-      <section className={styles.scores}>
-        <MatchInfo game={game} />
-        <TargetBanner game={game} />
-        {game.mode === 'monster_hunt' ? (
-          <ArcadeStage game={game} onTap={(label, x, y) => void enter(label, [x, y])} disabled={busy} />
-        ) : game.mode === 'x01' && game.settings.theme === 'voltage' ? (
-          <VoltageStage game={game} />
-        ) : game.mode === 'x01' ? (
-          <X01Scores game={game} />
-        ) : game.mode === 'cricket' ? (
-          <CricketScores game={game} />
-        ) : (
-          <TrainingScores game={game} />
-        )}
-      </section>
-
+  const turnCard = (
       <section className={`card ${styles.turn}`} aria-live="polite">
         <div className={styles.turnHeader}>
           <span className={styles.dot} style={{ background: current.color }} />
@@ -239,7 +224,9 @@ function Running({ game }: { game: GameState }) {
         {legWinner && <p className={styles.legWon}>{t('play.legWon', { name: legWinner.name })}</p>}
         {game.awaiting_next && !legWinner && <p className={styles.hint}>{t('play.pullDarts')}</p>}
       </section>
+  )
 
+  const inputCard = (
       <section className={`card ${styles.input}`}>
         <div className={styles.inputTabs} role="tablist">
           {(['pad', 'board'] as InputMode[]).map((m) => (
@@ -277,10 +264,94 @@ function Running({ game }: { game: GameState }) {
         </div>
         {error && <p className="error">{error}</p>}
       </section>
+  )
 
+  const popupPanel = panel && (
+    <InputPanel
+      onClose={() => {
+        setPanel(false)
+        setCorrecting(null)
+      }}
+    >
+      {turnCard}
+      {inputCard}
+      <GameMenu />
+    </InputPanel>
+  )
+
+  // Voltage fills the whole screen; entering and correcting darts happens in a popup
+  if (game.mode === 'x01' && game.settings.theme === 'voltage') {
+    return (
+      <>
+        <VoltageStage
+          game={game}
+          onCorrect={(i) => {
+            setCorrecting(i)
+            setPanel(true)
+          }}
+        >
+          <button className={styles.voltButton} onClick={() => void undo()} disabled={busy}>
+            ↶ {t('play.undo')}
+          </button>
+          <button className={styles.voltButton} onClick={() => setPanel(true)}>
+            ✎ {t('play.correct')}
+          </button>
+          <button className={`${styles.voltButton} ${styles.voltPrimary}`} onClick={() => void next()} disabled={busy}>
+            {game.awaiting_next ? t('play.nextPlayer') : t('play.endTurn')}
+          </button>
+        </VoltageStage>
+        {error && !panel && <p className={`error ${styles.voltError}`}>{error}</p>}
+        {popupPanel}
+      </>
+    )
+  }
+
+  return (
+    <div className={displayMode ? `${styles.layout} ${styles.displayMode}` : styles.layout}>
+      <section className={styles.scores}>
+        <MatchInfo game={game} />
+        <TargetBanner game={game} />
+        {game.mode === 'monster_hunt' ? (
+          <ArcadeStage game={game} onTap={(label, x, y) => void enter(label, [x, y])} disabled={busy} />
+        ) : game.mode === 'x01' ? (
+          <X01Scores game={game} />
+        ) : game.mode === 'cricket' ? (
+          <CricketScores game={game} />
+        ) : (
+          <TrainingScores game={game} />
+        )}
+      </section>
+
+      {turnCard}
+      {inputCard}
       <History game={game} />
       <GameMenu displayMode={displayMode} onDisplayMode={toggleDisplayMode} />
     </div>
+  )
+}
+
+/** Modal popup holding the turn and the keypad (full-screen themes). */
+function InputPanel({ onClose, children }: { onClose: () => void; children: ReactNode }) {
+  const { t } = useTranslation()
+  const dialog = useRef<HTMLDialogElement>(null)
+  useEffect(() => {
+    dialog.current?.showModal()
+  }, [])
+  return (
+    <dialog
+      ref={dialog}
+      className={styles.panel}
+      onClose={onClose}
+      onClick={(e) => e.target === dialog.current && dialog.current?.close()}
+    >
+      <div className={styles.panelHeader}>
+        <h2>{t('play.correct')}</h2>
+        <button className="button" onClick={() => dialog.current?.close()} aria-label={t('common.close')}>
+          ✕
+        </button>
+      </div>
+      <div className={styles.panelBody}>{children}</div>
+    </dialog>
   )
 }
 
@@ -632,7 +703,7 @@ function History({ game }: { game: GameState }) {
   )
 }
 
-function GameMenu({ displayMode, onDisplayMode }: { displayMode: boolean; onDisplayMode: () => void }) {
+function GameMenu({ displayMode, onDisplayMode }: { displayMode?: boolean; onDisplayMode?: () => void }) {
   const { t } = useTranslation()
   const { setGame } = useLiveGame()
   const navigate = useNavigate()
@@ -644,9 +715,11 @@ function GameMenu({ displayMode, onDisplayMode }: { displayMode: boolean; onDisp
   }
   return (
     <div className={styles.menu}>
-      <button className="button" onClick={onDisplayMode} aria-pressed={displayMode} title={t('play.displayModeHint')}>
-        {displayMode ? t('play.displayModeOff') : t('play.displayModeOn')}
-      </button>
+      {onDisplayMode && (
+        <button className="button" onClick={onDisplayMode} aria-pressed={displayMode} title={t('play.displayModeHint')}>
+          {displayMode ? t('play.displayModeOff') : t('play.displayModeOn')}
+        </button>
+      )}
       <button className="button danger" onClick={() => void abort()}>
         {t('play.abort')}
       </button>

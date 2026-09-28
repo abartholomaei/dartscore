@@ -400,6 +400,8 @@ const en = {
   },
   voltage: {
     board: 'Neon board',
+    home: 'Home',
+    fullscreen: 'Full screen',
   },
   photos: {
     review: 'Referee',
@@ -594,6 +596,7 @@ const en = {
     connecting: 'Connecting …',
     noGame: 'No game is running.',
     checkout: 'Checkout',
+    correct: 'Enter & correct',
     correctDart: 'Correct dart {{n}}',
     bust: 'BUST',
     correctHint: 'Enter the correct value for dart {{n}}.',

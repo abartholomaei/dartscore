@@ -401,6 +401,8 @@ const de: Translations = {
   },
   voltage: {
     board: 'Neon-Board',
+    home: 'Zur Startseite',
+    fullscreen: 'Vollbild',
   },
   photos: {
     review: 'Nachprüfen',
@@ -595,6 +597,7 @@ const de: Translations = {
     connecting: 'Verbinde …',
     noGame: 'Es läuft kein Spiel.',
     checkout: 'Checkout',
+    correct: 'Eingabe & Korrektur',
     correctDart: 'Dart {{n}} korrigieren',
     bust: 'BUST',
     correctHint: 'Richtigen Wert für Dart {{n}} eingeben.',

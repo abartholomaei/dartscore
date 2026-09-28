@@ -692,3 +692,105 @@
   color: var(--accent);
   opacity: 0.9;
 }
+
+/* --- full-screen themes (Voltage): toolbar buttons and the input popup ------------- */
+
+.voltButton {
+  min-height: 48px;
+  padding: 8px 20px;
+  border: 2px solid rgb(125 211 252 / 0.7);
+  border-radius: 999px;
+  background: rgb(2 6 23 / 0.7);
+  color: #e0f2fe;
+  font: inherit;
+  font-family: var(--font-display);
+  font-size: clamp(1rem, 1.6vw, 1.35rem);
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 0 12px rgb(56 189 248 / 0.3);
+  backdrop-filter: blur(4px);
+  transition:
+    box-shadow 0.2s,
+    border-color 0.2s;
+}
+
+.voltButton:hover:not(:disabled) {
+  border-color: #e0f2fe;
+  box-shadow: 0 0 22px rgb(56 189 248 / 0.8);
+}
+
+.voltButton:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.voltPrimary {
+  border-color: #fde047;
+  color: #fef9c3;
+  box-shadow: 0 0 14px rgb(253 224 71 / 0.4);
+}
+
+.voltPrimary:hover:not(:disabled) {
+  border-color: #fef9c3;
+  box-shadow: 0 0 24px rgb(253 224 71 / 0.85);
+}
+
+.voltError {
+  position: fixed;
+  left: 50%;
+  bottom: 90px;
+  z-index: 30;
+  transform: translateX(-50%);
+  padding: 8px 16px;
+  border-radius: 10px;
+  background: rgb(2 6 23 / 0.9);
+}
+
+.panel {
+  width: min(1100px, calc(100vw - 24px));
+  max-height: calc(100dvh - 24px);
+  padding: var(--gutter);
+  border: 1px solid rgb(56 189 248 / 0.5);
+  border-radius: var(--radius);
+  background: var(--bg);
+  color: var(--text);
+  box-shadow: 0 0 40px rgb(56 189 248 / 0.35);
+}
+
+.panel::backdrop {
+  background: rgb(2 6 23 / 0.55);
+  backdrop-filter: blur(3px);
+}
+
+.panelHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.panelHeader h2 {
+  font-size: clamp(1.3rem, 2.6vw, 1.8rem);
+}
+
+.panelBody {
+  display: grid;
+  gap: var(--gutter);
+  grid-template-columns: 1fr;
+}
+
+.panelBody > * {
+  grid-area: auto;
+}
+
+@media (min-width: 900px) {
+  .panelBody {
+    grid-template-columns: minmax(0, 1fr) minmax(360px, 1.2fr);
+    align-items: start;
+  }
+
+  .panelBody > :last-child {
+    grid-column: 1 / -1;
+  }
+}

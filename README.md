@@ -21,7 +21,7 @@
 </p>
 
 <p align="center">
-  <img src="docs/site/img/play.webp" alt="Live X01 match with checkout suggestion and correction keypad" width="900">
+  <img src="docs/site/img/play.webp" alt="Live X01 match with the board and checkout route in the middle" width="900">
 </p>
 
 ## Highlights

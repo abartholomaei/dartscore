@@ -140,3 +140,23 @@ def test_personal_bot_takes_level_and_bias_from_the_player(client: TestClient) -
     assert bot["name"] == "Alex (Bot)"
     assert bot["bot_of"] == pid
     assert bot["bot_level"] == 50  # no finished X01 game yet: default level
+
+
+def test_bots_wear_a_gallery_picture_nobody_else_has(client: TestClient) -> None:
+    ids = []
+    for name in ("fox", "owl", "robot", "cat", "dog"):
+        ids.append(client.post("/api/players", json={"name": name}).json()["id"])
+        client.put(f"/api/players/{ids[-1]}/avatar/gallery", json={"name": name})
+    for _ in range(10):
+        created = client.post(
+            "/api/games",
+            json={"mode": "x01", "settings": {"start_score": 501}, "players":
+                  [*({"player_id": i} for i in ids), {"bot_level": 40}, {"bot_level": 80}],
+                  "abort_active": True},
+        )  # fmt: skip
+        assert created.status_code == 201, created.text
+        players = created.json()["players"]
+        worn = [p["avatar"] for p in players if not p["bot_level"]]
+        bots = [p["avatar"] for p in players if p["bot_level"]]
+        assert all(a and a.startswith("/avatars/") and a not in worn for a in bots)
+        assert bots[0] != bots[1]

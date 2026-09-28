@@ -4,6 +4,7 @@ Only one game can be active at a time (there is one board). Every change is writ
 database before the new state is published, so a crash or power loss loses nothing.
 """
 
+import random
 import threading
 from collections.abc import Callable
 from dataclasses import dataclass, field
@@ -25,7 +26,7 @@ from dartscore.game import (
 )
 from dartscore.game.stats import game_stats
 from dartscore.game.teams import current_member, engine_players, teams_of, validate_teams
-from dartscore.services.avatars import avatar_url
+from dartscore.services.avatars import GALLERY, avatar_url
 from dartscore.services.hub import EventHub
 from dartscore.storage.models import GameEventRecord, GamePlayer, GameRecord, Player, utcnow
 
@@ -98,6 +99,7 @@ def _player_info(gp: GamePlayer) -> dict[str, Any]:
         "player_id": None,
         "name": gp.guest_name or f"Guest {gp.position + 1}",
         "color": "#9e9e9e",
+        "avatar": avatar_url(0, gp.avatar) if gp.bot_level else None,
         "guest": True,
         "bot_level": gp.bot_level,
         "bot_of": gp.bot_of,
@@ -200,6 +202,13 @@ class GameService:
             stored = game.settings_dict() | ({"teams": teams} if teams else {})
             with self._sessions() as session:
                 record = GameRecord(mode=mode, settings=stored)
+                # bots get a random gallery picture nobody else in the game wears
+                taken: set[str] = set()
+                for ref in players:
+                    profile = session.get(Player, ref.player_id) if ref.player_id else None
+                    kind, _, picture = ((profile and profile.avatar) or "").partition(":")
+                    if kind == "gallery":
+                        taken.add(picture)
                 for position, ref in enumerate(players):
                     if ref.player_id is not None:
                         player = session.get(Player, ref.player_id)
@@ -215,11 +224,14 @@ class GameService:
                                     "player_not_found", f"Player {ref.bot_of} not found"
                                 )
                             bot_name = f"{model.name} (Bot)"[:40]
+                        picture = random.choice([g for g in GALLERY if g not in taken] or GALLERY)
+                        taken.add(picture)
                         gp = GamePlayer(
                             position=position,
                             guest_name=bot_name,
                             bot_level=ref.bot_level,
                             bot_of=ref.bot_of,
+                            avatar=f"gallery:{picture}",
                         )
                     else:
                         name = " ".join((ref.guest_name or "").split())[:40] or None

@@ -70,6 +70,8 @@ class GamePlayer(Base):
     bot_level: Mapped[int | None] = mapped_column(default=None)
     # a personal bot: the player whose throwing it imitates
     bot_of: Mapped[int | None] = mapped_column(default=None)
+    # a bot's profile picture ("gallery:<name>"), picked when the game starts
+    avatar: Mapped[str | None] = mapped_column(String(40), default=None)
     # statistics of this player in this game (see game.stats), updated on every change
     stats: Mapped[dict[str, Any] | None] = mapped_column(default=None)
 

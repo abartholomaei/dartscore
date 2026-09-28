@@ -16,6 +16,7 @@
   <img alt="React + TypeScript" src="https://img.shields.io/badge/react-typescript-3178c6?style=flat-square&logo=react&logoColor=white">
   <img alt="FastAPI" src="https://img.shields.io/badge/fastapi-sqlite-009688?style=flat-square&logo=fastapi&logoColor=white">
   <img alt="ONNX Runtime" src="https://img.shields.io/badge/inference-onnx%20runtime%20(cpu)-555?style=flat-square">
+  <img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-555?style=flat-square">
   <img alt="UI languages" src="https://img.shields.io/badge/ui-EN%20%7C%20DE-555?style=flat-square">
 </p>
 
@@ -125,3 +126,7 @@ DARTSCORE_SERVER__PORT=9000 DARTSCORE_LOGGING__LEVEL=DEBUG make dev-backend
 ```
 
 With `logging.json_output = true` the server writes JSON logs, e.g. when running as a systemd service.
+
+## License
+
+[MIT](LICENSE)

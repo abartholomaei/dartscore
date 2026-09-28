@@ -3,6 +3,7 @@ name = "dartscore"
 version = "0.1.0"
 description = "Local auto-scoring system for steel-tip darts with three cameras"
 readme = "README.md"
+license = "MIT"
 authors = [
     { name = "Alexander Bartholomäi", email = "20922941+abartholomaei@users.noreply.github.com" }
 ]

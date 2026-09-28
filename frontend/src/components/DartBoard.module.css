@@ -75,3 +75,52 @@
   stroke: #000;
   stroke-width: 1;
 }
+
+/* fields to aim at: pulsing gold, the next one strongest */
+.targets {
+  pointer-events: none;
+}
+
+.target,
+.targetFirst {
+  fill: rgb(250 204 21 / 0.28);
+  stroke: #facc15;
+  stroke-width: 2.5;
+}
+
+.targetFirst {
+  fill: rgb(250 204 21 / 0.5);
+  stroke-width: 4;
+  animation: targetPulse 1.4s ease-in-out infinite;
+}
+
+/* circle rings (any double/triple, bull) are drawn as thick strokes */
+circle.target,
+circle.targetFirst {
+  stroke: rgb(250 204 21 / 0.55);
+}
+
+.dimmed {
+  pointer-events: none;
+}
+
+.dim {
+  fill: rgb(0 0 0 / 0.62);
+  stroke: none;
+}
+
+circle.dim {
+  stroke: rgb(0 0 0 / 0.62);
+}
+
+@keyframes targetPulse {
+  50% {
+    opacity: 0.55;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .targetFirst {
+    animation: none;
+  }
+}

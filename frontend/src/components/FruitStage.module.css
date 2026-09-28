@@ -208,11 +208,11 @@
   height: 100%;
 }
 
+/* no clipping: cut pieces fall out of the board and off the screen */
 .board {
   width: min(100%, calc(100vh - 190px));
   aspect-ratio: 1;
-  border-radius: 50%;
-  box-shadow: 0 10px 40px rgb(0 0 0 / 0.6);
+  overflow: visible;
 }
 
 .tappable {
@@ -540,20 +540,7 @@
   pointer-events: none;
 }
 
-.flyOff {
-  transform-box: fill-box;
-  transform-origin: center;
-  filter: drop-shadow(0 6px 4px rgb(0 0 0 / 0.5));
-  animation: flyOff 1.1s cubic-bezier(0.2, 0.6, 0.4, 1) forwards;
-  pointer-events: none;
-}
 
-.perfect {
-  transform-box: fill-box;
-  transform-origin: center;
-  animation: perfect 0.9s ease-out forwards;
-  pointer-events: none;
-}
 
 .slash {
   stroke: #fff;
@@ -565,10 +552,6 @@
   pointer-events: none;
 }
 
-.drop {
-  animation: drop 0.7s ease-out forwards;
-  pointer-events: none;
-}
 
 @keyframes dropIn {
   from {
@@ -577,35 +560,7 @@
   }
 }
 
-@keyframes flyOff {
-  0% {
-    transform: translate(0, 0) rotate(0);
-    opacity: 1;
-  }
-  60% {
-    opacity: 1;
-  }
-  100% {
-    transform: translate(var(--dx), var(--dy)) rotate(var(--spin)) scale(0.85);
-    opacity: 0;
-  }
-}
 
-@keyframes perfect {
-  0% {
-    transform: scale(1);
-    opacity: 1;
-    filter: brightness(1);
-  }
-  25% {
-    transform: scale(1.12) rotate(6deg);
-    filter: brightness(1.8);
-  }
-  100% {
-    transform: scale(0.2) rotate(200deg);
-    opacity: 0;
-  }
-}
 
 @keyframes slash {
   0% {
@@ -622,18 +577,175 @@
   }
 }
 
-@keyframes drop {
+
+/* thrown things (pieces, juice, bits): sideways (slowed a little by the air), a hop, then
+   falling faster and faster - together a throwing arc. Variables come from throwVars(). */
+.throwX {
+  /* a little air drag: fast at first, slower later */
+  animation: throwX var(--dur) cubic-bezier(0.25, 0.55, 0.55, 1) var(--delay) both;
+  pointer-events: none;
+}
+
+.throwY {
+  animation: throwY var(--dur) var(--delay) both;
+}
+
+.spin,
+.bit {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: spin var(--dur) linear var(--delay) both;
+}
+
+.drop {
+  animation: fadeLate var(--dur) linear var(--delay) both;
+}
+
+.dropBody {
+  stroke: #1d120c;
+  stroke-width: 0.7;
+}
+
+.dropShine {
+  fill: rgb(255 255 255 / 0.8);
+}
+
+.bit {
+  stroke: #1d120c;
+  stroke-width: 0.6;
+}
+
+/* a puff of juice mist where the blade went in */
+.mist,
+.mistBig {
+  transform-box: fill-box;
+  transform-origin: center;
+  opacity: 0;
+  animation: mist 0.55s ease-out;
+  pointer-events: none;
+}
+
+.mistBig {
+  animation-duration: 0.8s;
+}
+
+/* juice stains the round leaves on the board */
+.stain {
+  opacity: 0.32;
+  animation: stainIn 0.5s ease-out 0.35s backwards;
+  pointer-events: none;
+}
+
+/* idle: a sheen gliding over the fruit now and then, glints twinkling */
+.sheen {
+  animation: sheen 6.5s ease-in-out 1.5s infinite;
+  transform: translateX(-300px);
+}
+
+.glint {
+  fill: #fff;
+  stroke: rgb(255 244 200 / 0.9);
+  stroke-width: 0.6;
+  transform-box: fill-box;
+  transform-origin: center;
+  opacity: 0;
+  animation: glint 5.2s ease-in-out infinite;
+}
+
+.blade:not(.bladeUsed) .edge {
+  animation: shimmer 2.6s ease-in-out infinite;
+}
+
+/* --- keyframes ---------------------------------------------------------------------------- */
+
+@keyframes throwX {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(var(--dx));
+  }
+}
+
+@keyframes throwY {
   0% {
-    transform: translate(0, 0) scale(1.2);
+    transform: translateY(0);
+    animation-timing-function: cubic-bezier(0.25, 0.6, 0.5, 1);
+  }
+  30% {
+    transform: translateY(var(--hop));
+    animation-timing-function: cubic-bezier(0.55, 0, 0.9, 0.65);
+  }
+  100% {
+    transform: translateY(var(--fall));
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0);
+  }
+  to {
+    transform: rotate(var(--spin));
+  }
+}
+
+@keyframes fadeLate {
+  0%,
+  70% {
     opacity: 1;
   }
   100% {
-    transform: translate(var(--tx), var(--ty)) scale(0.4);
     opacity: 0;
   }
 }
 
-/* --- keyframes ---------------------------------------------------------------------------- */
+@keyframes mist {
+  0% {
+    opacity: 0.45;
+    transform: scale(0.3);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.8);
+  }
+}
+
+@keyframes stainIn {
+  from {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+}
+
+@keyframes sheen {
+  0% {
+    transform: translateX(-300px);
+  }
+  30%,
+  100% {
+    transform: translateX(300px);
+  }
+}
+
+@keyframes glint {
+  0%,
+  70%,
+  100% {
+    opacity: 0;
+    transform: scale(0.2) rotate(0);
+  }
+  80% {
+    opacity: 0.9;
+    transform: scale(1.2) rotate(45deg);
+  }
+}
+
+@keyframes shimmer {
+  50% {
+    opacity: 0.25;
+  }
+}
 
 @keyframes petal {
   0% {
@@ -755,6 +867,7 @@
   .fruit,
   .finale,
   .groove,
+  .stain,
   .dart,
   .dust,
   .good,
@@ -764,18 +877,16 @@
   .introFruit,
   .shakeA,
   .shakeB,
-  .drop,
-  .slash {
+  .slash,
+  .blade .edge {
     animation: none;
   }
 
-  .drop,
-  .slash {
-    opacity: 0;
-  }
-
-  .flyOff,
-  .perfect {
+  /* no flying things: cut pieces, juice and mist simply vanish */
+  .slash,
+  .throwX,
+  .mist,
+  .mistBig {
     animation: none;
     opacity: 0;
   }

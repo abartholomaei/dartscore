@@ -28,11 +28,15 @@ const JUICE: Record<Fruit, string> = {
   dragonfruit: '#ff3fa4',
   lime: '#b5e61d',
 }
-const DROPS = Array.from({ length: 12 }, (_, i) => ({
-  angle: (i * 360) / 12 + (i % 3) * 9,
-  reach: 16 + ((i * 7) % 5) * 5,
-  size: 2 + (i % 3),
-}))
+// lighter bits of flesh flying with the juice
+const PULP: Record<Fruit, string> = {
+  watermelon: '#ff8a95',
+  orange: '#ffd08a',
+  kiwi: '#c8f08a',
+  dragonfruit: '#fff1f7',
+  lime: '#e4ff9a',
+}
+const HAS_SEEDS: Record<Fruit, boolean> = { watermelon: true, orange: false, kiwi: true, dragonfruit: true, lime: false }
 
 /** Deterministic 0..1 noise for the ambient petals. */
 const noise = (n: number) => {
@@ -48,6 +52,81 @@ const PETALS = Array.from({ length: 14 }, (_, i) => ({
 }))
 
 const points = (polygon: Point[]) => polygon.map(([x, y]) => `${x},${-y}`).join(' ')
+
+type Particle = { x: number; y: number; kind: 'drop' | 'pulp' | 'seed'; size: number; style: CSSProperties }
+
+/** A thrown particle: sideways at constant speed, a small hop and then falling faster and faster
+ *  (CSS: --dx sideways, --hop up, --fall down, --spin, --dur, --delay; svg coordinates). */
+const throwVars = (dx: number, hop: number, fall: number, spin: number, dur: number, delay = 0) =>
+  ({
+    '--dx': `${dx}px`,
+    '--hop': `${hop}px`,
+    '--fall': `${fall}px`,
+    '--spin': `${spin}deg`,
+    '--dur': `${dur}s`,
+    '--delay': `${delay}s`,
+  }) as CSSProperties
+
+/** Juice, bits of flesh and seeds spraying from the cut (svg coordinates, y down). */
+function spray(effect: Effect, fruit: Fruit, seed: number): Particle[] {
+  const at = effect.position ?? [0, 0]
+  const len = Math.hypot(at[0], at[1]) || 1
+  // away from the bull, in svg coordinates
+  const n: Point = [at[0] / len, -at[1] / len]
+  const big = effect.result === 'perfect'
+  const source = (i: number): Point => {
+    if (!effect.cut) return [at[0], -at[1]]
+    const u = 0.15 + noise(seed + i * 3) * 0.7
+    const [[x1, y1], [x2, y2]] = effect.cut
+    return [x1 + (x2 - x1) * u, -(y1 + (y2 - y1) * u)]
+  }
+  const direction = (i: number): Point => {
+    if (big) {
+      const a = noise(seed + i * 5) * Math.PI * 2
+      return [Math.cos(a), Math.sin(a)]
+    }
+    // mostly to the side of the piece, some back over the rest of the fruit
+    const side = noise(seed + i * 7) < 0.72 ? 1 : -1
+    const a = (noise(seed + i * 11) - 0.5) * 1.3
+    const [dx, dy] = [n[0] * side, n[1] * side]
+    return [dx * Math.cos(a) - dy * Math.sin(a), dx * Math.sin(a) + dy * Math.cos(a)]
+  }
+  const make = (i: number, kind: Particle['kind'], size: number, speed: number, dur: number): Particle => {
+    const [x, y] = source(i)
+    const [dx, dy] = direction(i)
+    const v = speed * (0.5 + noise(seed + i * 13)) * (big ? 1.6 : 1)
+    const hop = Math.min(dy * v, 0) - 6 - noise(seed + i * 17) * 14
+    const fall = Math.max(dy * v, 0) + 90 + noise(seed + i * 19) * 120
+    const spin = (noise(seed + i * 23) - 0.5) * 720
+    return { x, y, kind, size, style: throwVars(dx * v, hop, fall, spin, dur + noise(seed + i * 29) * 0.3, noise(seed + i * 31) * 0.08) }
+  }
+  const list: Particle[] = []
+  for (let i = 0; i < (big ? 42 : 30); i++) list.push(make(i, 'drop', 2 + noise(seed + i) * 3, 90, 0.75))
+  for (let i = 0; i < 10; i++) list.push(make(100 + i, 'pulp', 2.6 + noise(seed + i + 50) * 2.6, 65, 0.95))
+  if (HAS_SEEDS[fruit]) for (let i = 0; i < 6; i++) list.push(make(200 + i, 'seed', 1.6, 70, 0.95))
+  return list
+}
+
+/** Juice stains around every cut of the round, fixed per cut (svg coordinates). */
+function stains(cuts: [number, number, number, number][]): { x: number; y: number; r: number }[] {
+  return cuts.flatMap(([x1, y1, x2, y2], c) => {
+    const len = Math.hypot(x2 - x1, y2 - y1) || 1
+    const [px, py] = [-(y2 - y1) / len, (x2 - x1) / len]
+    const seed = Math.round(x1 * 3 + y1 * 7 + x2 * 11) + c
+    return Array.from({ length: 6 }, (_, i) => {
+      const u = 0.1 + noise(seed + i) * 0.8
+      const off = (noise(seed + i + 40) - 0.5) * 26
+      return { x: x1 + (x2 - x1) * u + px * off, y: -(y1 + (y2 - y1) * u + py * off), r: 1.5 + noise(seed + i + 80) * 4 }
+    })
+  })
+}
+
+// idle glints twinkling on the fruit
+const GLINTS = Array.from({ length: 4 }, (_, i) => {
+  const a = noise(i + 60) * Math.PI * 2
+  const r = 40 + noise(i + 61) * 90
+  return { x: Math.cos(a) * r, y: Math.sin(a) * r, d: i * 1.3 }
+})
 
 /** Fruit samurai, full screen: a dojo with the fruit on the board in the middle. Every dart is
  *  a sword cut through where it landed, across the line to the bull; the piece on the dart's
@@ -94,7 +173,7 @@ export default function FruitStage({
     lastEvent.current = game.event_count
     if (!newer || !effect?.position || darts.length === 0) return
     setBurst({ key: game.event_count, fruit, effect })
-    const timer = window.setTimeout(() => setBurst(null), 1400)
+    const timer = window.setTimeout(() => setBurst(null), 1900)
     return () => window.clearTimeout(timer)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [game.event_count, effect])
@@ -152,18 +231,23 @@ export default function FruitStage({
   const key = burst?.key ?? 0
   const cutFruit = burst?.fruit ?? fruit
   const juice = JUICE[cutFruit]
-  // the piece flies off away from the bull
+  // the board hangs on the wall: the piece gets a little push away from the bull, then falls
+  // down out of the picture, turning
   const away = cut?.position ? Math.atan2(cut.position[1], cut.position[0]) : 0
-  const flight = {
-    '--dx': `${Math.cos(away) * 90}px`,
-    '--dy': `${-Math.sin(away) * 90}px`,
-    '--spin': `${Math.cos(away) >= 0 ? 35 : -35}deg`,
-  } as CSSProperties
+  const fallStyle = throwVars(
+    Math.cos(away) * 45,
+    Math.min(-Math.sin(away) * 30, 0) - 14,
+    720,
+    (Math.cos(away) >= 0 ? 1 : -1) * (70 + noise(key) * 90),
+    1.5,
+  )
+  const particles = cut && cut.result !== 'air' ? spray(cut, cutFruit, key) : []
   // a perfect cut shakes the screen (two copies of the keyframes so it restarts)
   const shake = cut?.result === 'perfect' ? styles[key % 2 ? 'shakeA' : 'shakeB'] : ''
   const turnPoints = game.turn && game.turn.player === game.current_player ? game.turn.values.reduce((a, b) => a + b, 0) : 0
   const fruits = (game.fruits ?? []) as Fruit[]
   const marks = game.board_marks ?? { cuts: [], holes: [] }
+  const juiceStains = stains(marks.cuts)
 
   return (
     <div className={styles.stage}>
@@ -240,11 +324,21 @@ export default function FruitStage({
               <clipPath id="boardWood">
                 <circle r={R.doubleOuter + 6} />
               </clipPath>
+              <radialGradient id="boardShadow">
+                <stop offset="88%" stopColor="#000" stopOpacity="0.55" />
+                <stop offset="100%" stopColor="#000" stopOpacity="0" />
+              </radialGradient>
+              <linearGradient id="fruitSheen">
+                <stop offset="0" stopColor="#fff" stopOpacity="0" />
+                <stop offset="0.5" stopColor="#fff" stopOpacity="0.55" />
+                <stop offset="1" stopColor="#fff" stopOpacity="0" />
+              </linearGradient>
               <radialGradient id="fruitVignette">
                 <stop offset="70%" stopColor="#000" stopOpacity="0" />
                 <stop offset="100%" stopColor="#000" stopOpacity="0.55" />
               </radialGradient>
             </defs>
+            <circle r={VIEW + 12} cy={8} fill="url(#boardShadow)" />
             <image
               href="/arcade/fruit/dojo.webp"
               x={-VIEW}
@@ -264,6 +358,9 @@ export default function FruitStage({
                   <line x1={x1} y1={-y1} x2={x2} y2={-y2} className={styles.grooveDark} />
                 </g>
               ))}
+              {juiceStains.map((st, i) => (
+                <circle key={`stain-${i}`} cx={st.x} cy={st.y} r={st.r} fill={JUICE[fruit]} className={styles.stain} />
+              ))}
             </g>
             {marks.holes.map(([x, y], i) => (
               <g key={`hole-${i}`} style={{ transform: `translate(${x}px, ${-y}px)` }}>
@@ -276,7 +373,25 @@ export default function FruitStage({
             <g key={introKey} className={game.double_round ? `${styles.fruit} ${styles.finale}` : styles.fruit}>
               {left.length > 2 && (
                 <>
-                  <g clipPath="url(#fruitLeft)">{image(fruit)}</g>
+                  <g clipPath="url(#fruitLeft)">
+                    {image(fruit)}
+                    {!reducedMotion && (
+                      <>
+                        <g transform="rotate(25)">
+                          <rect x={-35} y={-220} width={70} height={440} fill="url(#fruitSheen)" className={styles.sheen} />
+                        </g>
+                        {GLINTS.map((g, i) => (
+                          <g key={i} transform={`translate(${g.x} ${g.y})`}>
+                            <path
+                              d="M0 -9 L2 -2 L9 0 L2 2 L0 9 L-2 2 L-9 0 L-2 -2Z"
+                              className={styles.glint}
+                              style={{ animationDelay: `${g.d}s` }}
+                            />
+                          </g>
+                        ))}
+                      </>
+                    )}
+                  </g>
                   <polygon points={points(left)} className={styles.outline} />
                 </>
               )}
@@ -284,9 +399,13 @@ export default function FruitStage({
 
             {/* the piece that was just cut off */}
             {cut && cut.piece.length > 2 && (
-              <g key={`piece-${key}`} className={cut.result === 'perfect' ? styles.perfect : styles.flyOff} style={flight}>
-                <g clipPath={`url(#piece-${key})`}>{image(cutFruit)}</g>
-                <polygon points={points(cut.piece)} className={styles.outline} />
+              <g key={`piece-${key}`} className={styles.throwX} style={fallStyle}>
+                <g className={styles.throwY}>
+                  <g className={styles.spin}>
+                    <g clipPath={`url(#piece-${key})`}>{image(cutFruit)}</g>
+                    <polygon points={points(cut.piece)} className={styles.outline} />
+                  </g>
+                </g>
               </g>
             )}
 
@@ -326,6 +445,28 @@ export default function FruitStage({
               ) : null,
             )}
 
+            {particles.map((pt, i) => (
+              <g key={`p-${key}-${i}`} transform={`translate(${pt.x} ${pt.y})`}>
+                <g className={styles.throwX} style={pt.style}>
+                  <g className={styles.throwY}>
+                    {pt.kind === 'drop' ? (
+                      <g className={styles.drop}>
+                        <circle r={pt.size} fill={juice} className={styles.dropBody} />
+                        <circle r={pt.size * 0.35} cx={-pt.size * 0.35} cy={-pt.size * 0.35} className={styles.dropShine} />
+                      </g>
+                    ) : (
+                      <ellipse
+                        rx={pt.kind === 'seed' ? 1.6 : pt.size}
+                        ry={pt.kind === 'seed' ? 2.6 : pt.size * 0.55}
+                        fill={pt.kind === 'seed' ? (cutFruit === 'dragonfruit' || cutFruit === 'kiwi' ? '#111' : '#1a0d08') : PULP[cutFruit]}
+                        className={styles.bit}
+                      />
+                    )}
+                  </g>
+                </g>
+              </g>
+            ))}
+
             {cut?.position && (
               <g key={`fx-${key}`} style={{ transform: `translate(${cut.position[0]}px, ${-cut.position[1]}px)` }}>
                 {cut.result === 'air' ? (
@@ -335,19 +476,7 @@ export default function FruitStage({
                     ))}
                   </g>
                 ) : (
-                  DROPS.map((drop, i) => {
-                    const a = (drop.angle * Math.PI) / 180
-                    const reach = drop.reach * (cut.result === 'perfect' ? 2.2 : 1)
-                    return (
-                      <circle
-                        key={i}
-                        r={drop.size}
-                        fill={juice}
-                        className={styles.drop}
-                        style={{ '--tx': `${Math.cos(a) * reach}px`, '--ty': `${Math.sin(a) * reach}px` } as CSSProperties}
-                      />
-                    )
-                  })
+                  <circle r={cut.result === 'perfect' ? 30 : 16} fill={juice} className={cut.result === 'perfect' ? styles.mistBig : styles.mist} />
                 )}
                 <text y={-12} className={cut.result === 'perfect' ? styles.great : cut.points > 0 ? styles.good : styles.bad}>
                   {cut.result === 'perfect' ? `${t('arcade.fruit.perfectShort')} +${cut.points}` : cut.points > 0 ? `+${cut.points}` : t('arcade.fruit.airShort')}

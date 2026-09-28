@@ -65,6 +65,15 @@
   nav ul a { color: var(--muted); font-weight: 500; }
   nav ul a:hover { color: var(--text); text-decoration: none; }
   @media (max-width: 760px) { nav ul { display: none; } }
+  .lang { display: flex; gap: 2px; padding: 3px; border: 1px solid var(--line); border-radius: 999px; background: var(--surface); }
+  .lang button {
+    appearance: none; border: 0; background: none; color: var(--muted); cursor: pointer;
+    font: 700 .85rem/1 var(--display); letter-spacing: .1em; padding: 7px 11px; border-radius: 999px;
+  }
+  .lang button:hover { color: var(--text); }
+  .lang button[aria-pressed="true"] { background: var(--accent); color: #04130a; }
+  nav ul + .lang { margin-left: 8px; }
+  @media (max-width: 760px) { nav ul + .lang { margin-left: auto; } }
 
   /* hero */
   .hero { position: relative; padding: 88px 0 40px; overflow: hidden; }
@@ -226,6 +235,10 @@
       <li><a href="#arcade">Arcade</a></li>
       <li><a href="#setup">Setup</a></li>
     </ul>
+    <div class="lang" role="group" aria-label="Language">
+      <button type="button" data-lang="en" aria-pressed="true">EN</button>
+      <button type="button" data-lang="de" aria-pressed="false">DE</button>
+    </div>
   </div>
 </nav>
 
@@ -483,6 +496,141 @@
     for (const e of entries) if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); }
   }, { rootMargin: '0px 0px -8% 0px' });
   document.querySelectorAll('.reveal').forEach((el) => io.observe(el));
+</script>
+<script>
+  // German translations, keyed by the English markup of each element (whitespace-normalised).
+  const DE = {
+    'dartscore – offline auto-scoring for steel-tip darts': 'dartscore – Offline-Auto-Scoring für Steeldarts',
+    'dartscore detects every steel-tip dart with three cameras, keeps score for 20+ games and variants and stores all stats locally. No cloud, no account.': 'dartscore erkennt jeden Steeldart mit drei Kameras, zählt über 20 Spiele und Varianten und speichert alle Statistiken lokal. Keine Cloud, kein Konto.',
+    'How it works': 'So funktioniert’s', 'Features': 'Funktionen', 'Game modes': 'Spielmodi', 'Arcade': 'Arcade', 'Setup': 'Einrichtung',
+    'Steel-tip auto-scoring · 100% local': 'Steeldart-Auto-Scoring · 100 % lokal',
+    'Throw. <em>We count.</em>': 'Werfen. <em>Wir zählen.</em>',
+    'dartscore watches your board with three cameras, scores every dart automatically and keeps the full history for every player. It runs on a small computer in your home network – no cloud, no account, no subscription.':
+      'dartscore beobachtet deine Scheibe mit drei Kameras, wertet jeden Dart automatisch aus und speichert den kompletten Verlauf für jeden Spieler. Es läuft auf einem kleinen Rechner in deinem Heimnetz – ohne Cloud, ohne Konto, ohne Abo.',
+    'Get started': 'Loslegen', 'See all features': 'Alle Funktionen',
+    '3 cameras': '3 Kameras', 'YOLO pose model on the CPU': 'YOLO-Pose-Modell auf der CPU', '20+ games &amp; variants': '20+ Spiele &amp; Varianten',
+    'TV · tablet · phone': 'TV · Tablet · Handy', 'English &amp; German': 'Deutsch &amp; Englisch',
+    'cameras around the board, fused into one position': 'Kameras rund um die Scheibe, zu einer Position verschmolzen',
+    'segments right on real recorded throws (replay test)': 'richtige Segmente bei echten aufgezeichneten Würfen (Replay-Test)',
+    'model inference per camera frame on a 2012 Mac mini': 'Modell-Inferenz pro Kamerabild auf einem Mac mini von 2012',
+    'cloud services – your data stays at home': 'Cloud-Dienste – deine Daten bleiben zu Hause',
+    'From impact to score': 'Vom Einschlag zur Punktzahl',
+    'A hybrid pipeline: cheap image processing runs all the time, the neural network only wakes up when something moved.': 'Eine hybride Pipeline: Günstige Bildverarbeitung läuft ständig, das neuronale Netz wird nur geweckt, wenn sich etwas bewegt hat.',
+    'Motion trigger': 'Bewegungstrigger', 'A frame difference on each camera notices that a dart landed – or that a hand is pulling darts.': 'Ein Differenzbild je Kamera bemerkt, dass ein Dart eingeschlagen ist – oder dass eine Hand Darts herauszieht.',
+    'Tip detection': 'Spitzenerkennung', 'A YOLO pose model (ONNX Runtime, CPU) finds the dart tip in every view; classic CV is the fallback.': 'Ein YOLO-Pose-Modell (ONNX Runtime, CPU) findet die Dartspitze in jeder Ansicht; klassische Bildverarbeitung ist der Fallback.',
+    'Board mapping': 'Board-Abbildung', 'Lens correction and a per-camera homography turn pixels into millimetres on the board plane.': 'Linsenkorrektur und eine Homographie je Kamera machen aus Pixeln Millimeter auf der Scheibenebene.',
+    'Fusion': 'Fusion', 'The three views vote: agreeing cameras first, then weighted by local resolution. Outliers are dropped.': 'Die drei Ansichten stimmen ab: zuerst übereinstimmende Kameras, dann gewichtet nach lokaler Auflösung. Ausreißer fliegen raus.',
+    'Score &amp; referee': 'Wertung &amp; Schiedsrichter', 'Position → segment and ring. Unsure darts get a second, slower look before they count.': 'Position → Segment und Ring. Unsichere Darts werden vor der Wertung ein zweites Mal genauer geprüft.',
+    'Playing': 'Spielen', 'Built to be read from the oche': 'Vom Abwurf aus lesbar',
+    'Big condensed numbers, clear turn state and a display mode for small screens – readable from three metres on a TV.': 'Große, schmale Ziffern, klarer Spielstand und ein Anzeige-Modus für kleine Bildschirme – auf dem TV aus drei Metern lesbar.',
+    '<b>Automatic turn change</b> when you pull your darts': '<b>Automatischer Spielerwechsel</b>, sobald du deine Darts ziehst',
+    '<b>Checkout route</b> shown in green right in the empty dart fields, tuned to your favourite double': '<b>Checkout-Weg</b> in Grün direkt in den leeren Dartfeldern, abgestimmt auf dein Lieblingsdoppel',
+    '<b>Two-tap correction</b> via keypad or by tapping the board, bounce-outs included': '<b>Korrektur mit zwei Taps</b> über Zahlenfeld oder Scheibe, Abpraller inklusive',
+    '<b>Visit photos</b>: camera images of every turn with the detected tip positions': '<b>Wurf-Fotos</b>: Kamerabilder jeder Aufnahme mit den erkannten Spitzen',
+    '<b>Stadium caller</b> with offline voice clips, sounds and celebration effects for 180s and checkouts': '<b>Stadion-Caller</b> mit Offline-Sprachclips, Sounds und Effekten für 180er und Checkouts',
+    'Statistics': 'Statistik', 'Every dart, with coordinates': 'Jeder Dart mit Koordinaten',
+    'Each dart is stored with its board position, so every number can be recomputed at any time – and a lot more than averages is possible.': 'Jeder Dart wird mit seiner Position auf der Scheibe gespeichert. So lässt sich jede Zahl jederzeit neu berechnen – und es ist viel mehr möglich als nur Averages.',
+    '<b>X01</b>: 3-dart and first-9 average, checkout rate, best leg, 60+/100+/140+/180': '<b>X01</b>: 3-Dart- und First-9-Average, Checkout-Quote, bestes Leg, 60+/100+/140+/180',
+    '<b>Cricket</b>: marks per round; win/loss and head-to-head between profiles': '<b>Cricket</b>: Marks pro Runde; Siege/Niederlagen und Direktvergleich zwischen Profilen',
+    '<b>Heatmap and grouping</b> from detected positions, hit rate per double': '<b>Heatmap und Streuung</b> aus den erkannten Positionen, Trefferquote pro Doppel',
+    '<b>Aim deviation</b>: which way and how far you miss the field you aimed at': '<b>Zielabweichung</b>: in welche Richtung und wie weit du das angepeilte Feld verfehlst',
+    '<b>Trends</b> for every training mode, form curve, best and weakest games, achievements': '<b>Verläufe</b> für jeden Trainingsmodus, Formkurve, beste und schwächste Spiele, Achievements',
+    '<b>Export</b> to CSV/JSON, daily database backups with restore': '<b>Export</b> als CSV/JSON, tägliche Datenbank-Backups mit Wiederherstellung',
+    'Profiles &amp; training': 'Profile &amp; Training', 'For the whole household': 'Für den ganzen Haushalt',
+    'Any number of local profiles plus guests. Photos from the phone camera or a gallery of 16 characters, an optional PIN against accidental edits.': 'Beliebig viele lokale Profile plus Gäste. Fotos von der Handykamera oder eine Galerie mit 16 Figuren, optional eine PIN gegen versehentliche Änderungen.',
+    '<b>Training plans</b>: four built-in plans of five sessions, goals per drill, results recorded automatically': '<b>Trainingspläne</b>: vier mitgelieferte Pläne mit je fünf Einheiten, Ziele pro Übung, Ergebnisse werden automatisch erfasst',
+    '<b>Bots</b> with an adjustable average – or a <b>personal bot</b> that throws like you': '<b>Bots</b> mit einstellbarem Average – oder ein <b>persönlicher Bot</b>, der wirft wie du',
+    '<b>Handicap</b>: own start score per player so kids can keep up': '<b>Handicap</b>: eigener Startwert pro Spieler, damit Kinder mithalten können',
+    '<b>Teams</b> sharing a score, and <b>local tournaments</b> (knockout with byes or round robin)': '<b>Teams</b> mit gemeinsamem Punktestand und <b>lokale Turniere</b> (K.-o. mit Freilosen oder Jeder gegen jeden)',
+    'Match, practice, party': 'Match, Training, Party', 'Every mode has a rules help (setup and in-game) in English and German.': 'Jeder Modus hat eine Regelhilfe (beim Einrichten und im Spiel) auf Deutsch und Englisch.',
+    'Match': 'Match', 'Training': 'Training', 'Practice': 'Üben', 'Party': 'Party', 'Game night': 'Spieleabend', 'Animated': 'Animiert',
+    'Single, double, master in &amp; out': 'Single, Double, Master In &amp; Out', 'Legs &amp; sets, play on after the end': 'Legs &amp; Sets, Weiterspielen nach Spielende',
+    'Cricket: standard, cut-throat, no-score': 'Cricket: Standard, Cut-Throat, No-Score', 'Random and hidden cricket': 'Random und Hidden Cricket', 'Bull-off for the throwing order': 'Ausbullen für die Reihenfolge',
+    'Checkout training &amp; checkout streak': 'Checkout-Training &amp; Checkout-Serie', '121 checkout': '121-Checkout', 'Doubles &amp; segment training': 'Doppel- &amp; Segment-Training', 'Score training': 'Punkte-Training',
+    'Teams (2–4 teams)': 'Teams (2–4 Teams)', 'Local tournaments': 'Lokale Turniere', 'Bot opponents': 'Bot-Gegner',
+    'Monster hunt on the real board positions': 'Monster-Jagd auf den echten Positionen der Scheibe', 'X01 Voltage theme': 'X01 im Voltage-Design', 'Round intros &amp; popups': 'Runden-Intros &amp; Popups',
+    'Particle effects (switchable, respects reduced motion)': 'Partikeleffekte (abschaltbar, respektiert „Bewegung reduzieren“)',
+    'The board is the game world': 'Die Scheibe ist die Spielwelt',
+    'The cameras know exactly where each dart landed, so games can use the real position – not only the segment.': 'Die Kameras wissen genau, wo jeder Dart steckt – Spiele können also die echte Position nutzen, nicht nur das Segment.',
+    'Monster hunt': 'Monster-Jagd',
+    'Monsters sit on spots of the board. Hit close enough and they are caught; missed ones grow – easier to hit, but worth fewer points. Some wander every visit, the last round counts double.': 'Monster sitzen auf Stellen der Scheibe. Triffst du nah genug, ist es gefangen; verfehlte Monster wachsen – leichter zu treffen, aber weniger Punkte wert. Manche wandern jede Aufnahme weiter, die letzte Runde zählt doppelt.',
+    'Regular X01 rules, arcade looks: remaining scores drain like batteries, darts appear on a neon board at their real position, big scores strike lightning.': 'Normale X01-Regeln im Arcade-Look: Der Rest leert sich wie eine Batterie, Darts erscheinen an ihrer echten Position auf einer Neon-Scheibe, hohe Aufnahmen lassen Blitze zucken.',
+    'Under the hood': 'Unter der Haube', 'Made for a real living room': 'Gemacht fürs echte Wohnzimmer',
+    'Guided calibration': 'Geführte Kalibrierung', 'Click reference points per camera, get a board overlay to check it, lens calibration with a printable chessboard. Bumped cameras are re-aligned automatically.': 'Referenzpunkte je Kamera anklicken, Board-Overlay zur Kontrolle, Linsenkalibrierung mit druckbarem Schachbrett. Angestoßene Kameras werden automatisch nachjustiert.',
+    'Referee': 'Schiedsrichter', 'Low-confidence darts are re-checked before scoring; any recorded dart can be re-evaluated later. Confirmed darts become training data.': 'Unsichere Darts werden vor der Wertung nachgeprüft; jeder aufgezeichnete Dart lässt sich später neu auswerten. Bestätigte Darts werden zu Trainingsdaten.',
+    'Any screen': 'Jeder Bildschirm', 'Responsive web UI for TV, desktop, tablet and phone, installable as an app. A QR code on the big screen opens dartscore on your phone.': 'Responsive Web-Oberfläche für TV, Desktop, Tablet und Handy, installierbar als App. Ein QR-Code auf dem großen Bildschirm öffnet dartscore auf dem Handy.',
+    'Diagnostics': 'Diagnose', 'CPU and memory, frame rate per camera, detection timing and the latest darts – so you see at once why something was missed.': 'CPU und Speicher, Bildrate pro Kamera, Erkennungszeiten und die letzten Darts – so siehst du sofort, warum etwas nicht erkannt wurde.',
+    'Private by design': 'Privat von Grund auf', 'SQLite on your own machine, photos resized and stripped of metadata. Works without internet after installation.': 'SQLite auf deinem eigenen Rechner, Fotos verkleinert und ohne Metadaten. Läuft nach der Installation ohne Internet.',
+    'Old hardware welcome': 'Alte Hardware willkommen', 'Runs on a 2012 Mac mini without AVX2. The model only runs after the motion trigger and on the board region; Linux first, designed for macOS, Windows and Raspberry Pi 5 as well.': 'Läuft auf einem Mac mini von 2012 ohne AVX2. Das Modell rechnet nur nach dem Bewegungstrigger und nur auf dem Scheibenausschnitt; Linux zuerst, ausgelegt auch für macOS, Windows und Raspberry Pi 5.',
+    'Compared': 'Im Vergleich', 'Local first': 'Lokal zuerst', 'Typical cloud systems': 'Typische Cloud-Systeme',
+    'Automatic scoring with 3 cameras': 'Automatische Wertung mit 3 Kameras', 'Yes': 'Ja', 'Works without internet': 'Funktioniert ohne Internet', 'Mostly no': 'Meist nicht',
+    'Account / subscription': 'Konto / Abo', 'None': 'Keins', 'Required for extras': 'Für Extras nötig', 'Raw data with board coordinates': 'Rohdaten mit Koordinaten',
+    'Export to CSV/JSON': 'Export als CSV/JSON', 'Rarely': 'Selten', 'Open, trainable detection pipeline': 'Offene, trainierbare Erkennung', 'Proprietary': 'Proprietär',
+    'Online matchmaking, lobbies': 'Online-Matchmaking, Lobbys', 'Not a goal': 'Kein Ziel',
+    'What you need': 'Was du brauchst',
+    'A steel-tip board, three USB cameras mounted about 120° apart close to the board plane (an Autodarts-compatible OV9732 set works), and an LED ring for even light.': 'Eine Steeldartscheibe, drei USB-Kameras im Abstand von etwa 120° knapp vor der Scheibenebene (ein Autodarts-kompatibles OV9732-Set passt) und ein LED-Ring für gleichmäßiges Licht.',
+    'Any small PC in your network – the reference machine is a Mac mini from 2012 with Debian 12. Displays are simply browsers.': 'Irgendein kleiner PC im Heimnetz – der Referenzrechner ist ein Mac mini von 2012 mit Debian 12. Als Anzeige dient einfach ein Browser.',
+    'Python 3.12 via <a href="https://docs.astral.sh/uv/">uv</a>, Node.js ≥ 20 for building the UI. FastAPI + SQLite in the backend, React + TypeScript in the browser.': 'Python 3.12 über <a href="https://docs.astral.sh/uv/">uv</a>, Node.js ≥ 20 zum Bauen der Oberfläche. FastAPI + SQLite im Backend, React + TypeScript im Browser.',
+    'A systemd unit is included for running dartscore as a service.': 'Eine systemd-Unit für den Betrieb als Dienst ist dabei.',
+    '# install dependencies and create a config': '# Abhängigkeiten installieren und Konfiguration anlegen',
+    '# build the UI once, then start the server': '# Oberfläche einmal bauen, dann den Server starten',
+    '# open http://&lt;host&gt;:8000 on the TV, tablet or phone': '# http://&lt;host&gt;:8000 auf TV, Tablet oder Handy öffnen',
+    'Details are in the <a href="https://github.com/abartholomaei/dartscore#readme">README</a> and the <a href="https://github.com/abartholomaei/dartscore/blob/main/docs/hardware-setup.md">hardware notes</a>. No cameras yet? Set <code>source = "synthetic"</code> and play with manual input.':
+      'Details stehen im <a href="https://github.com/abartholomaei/dartscore#readme">README</a> und in den <a href="https://github.com/abartholomaei/dartscore/blob/main/docs/hardware-setup.md">Hardware-Notizen</a> (englisch). Noch keine Kameras? Setze <code>source = "synthetic"</code> und spiele mit manueller Eingabe.',
+    'MIT licensed · Screenshots show demo data · <a href="https://github.com/abartholomaei/dartscore">GitHub</a>': 'MIT-Lizenz · Screenshots zeigen Demodaten · <a href="https://github.com/abartholomaei/dartscore">GitHub</a>',
+    // image descriptions
+    'Live X01 match: large remaining scores, checkout suggestion and keypad for corrections': 'Laufendes X01-Match: große Restpunkte, Checkout-Vorschlag und Zahlenfeld für Korrekturen',
+    'The same match on a phone': 'Dasselbe Match auf dem Handy',
+    'Live game with the board input for corrections': 'Laufendes Spiel mit der Scheiben-Eingabe für Korrekturen',
+    'Hit heatmap of a player with grouping values': 'Treffer-Heatmap eines Spielers mit Streuungswerten',
+    'Player page with training plans and X01 statistics': 'Spielerseite mit Trainingsplänen und X01-Statistik',
+    'Monster hunt: monsters sitting on a painted meadow board': 'Monster-Jagd: Monster auf einer gemalten Wiesen-Scheibe',
+    'X01 in the Voltage theme with battery gauges and a neon board': 'X01 im Voltage-Design mit Batterieanzeigen und Neon-Scheibe',
+  };
+  const TEXT = 'title, nav ul a, .eyebrow, h1, h2, h3, .lead, .btn, .chip, .band p, .step p, .ticks li, .mode .tag, .mode li, .arcade-card p, .card p, th, td, footer span, pre .c';
+  const norm = (html) => html.replace(/\s+/g, ' ').trim();
+  const texts = [...document.querySelectorAll(TEXT)].map((el) => [el, el.innerHTML]);
+  const alts = [...document.querySelectorAll('img[alt]')].filter((i) => i.alt).map((img) => [img, img.alt, img.getAttribute('src')]);
+  const meta = document.querySelector('meta[name="description"]');
+  const metaEn = meta.content;
+  // screenshots of the German UI live in img/de with the same file names
+  const localized = new Set(['play', 'play-phone', 'play-board', 'heatmap', 'stats', 'monsters', 'voltage']);
+
+  function setLang(lang) {
+    const de = lang === 'de';
+    document.documentElement.lang = lang;
+    for (const [el, en] of texts) {
+      const t = de && DE[norm(en)];
+      el.innerHTML = t || en;
+    }
+    for (const [img, en, src] of alts) {
+      img.alt = (de && DE[en]) || en;
+      const name = src.match(/^img\/([\w-]+)\.webp$/)?.[1];
+      if (name && localized.has(name)) img.src = de ? `img/de/${name}.webp` : src;
+    }
+    meta.content = (de && DE[metaEn]) || metaEn;
+    for (const b of document.querySelectorAll('.lang button')) b.setAttribute('aria-pressed', String(b.dataset.lang === lang));
+  }
+
+  function initialLang() {
+    const param = new URLSearchParams(location.search).get('lang');
+    if (param === 'de' || param === 'en') return param;
+    try { const saved = localStorage.getItem('dartscore.site.lang'); if (saved) return saved; } catch {}
+    return (navigator.languages || [navigator.language]).some((l) => /^de\b/i.test(l)) ? 'de' : 'en';
+  }
+
+  for (const b of document.querySelectorAll('.lang button')) {
+    b.addEventListener('click', () => {
+      setLang(b.dataset.lang);
+      try { localStorage.setItem('dartscore.site.lang', b.dataset.lang); } catch {}
+      const url = new URL(location.href); url.searchParams.delete('lang'); history.replaceState(null, '', url);
+    });
+  }
+  const start = initialLang();
+  if (start !== 'en') setLang(start);
+  if (new URLSearchParams(location.search).has('i18n-check')) {
+    for (const [, en] of texts) if (/[a-z]{3}/i.test(en) && !(norm(en) in DE)) console.warn('untranslated:', norm(en));
+  }
 </script>
 </body>
 </html>

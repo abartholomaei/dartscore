@@ -7,7 +7,7 @@ import MelonStage from '../components/MelonStage'
 import VoltageStage from '../components/VoltageStage'
 import Avatar from '../components/Avatar'
 import Particles from '../components/Particles'
-import GameIntro, { useGameIntro } from '../components/GameIntro'
+import GameIntro, { useGameIntro, useWinnerIntro, WinnerIntro } from '../components/GameIntro'
 import PlayerIntro from '../components/PlayerIntro'
 import RulesDialog, { RulesButton } from '../components/RulesDialog'
 import DartBoard from '../components/DartBoard'
@@ -32,6 +32,7 @@ export default function Play() {
   const celebration = useCaller(game)
   const audio = useAudioPrefs()
   const opening = useGameIntro(game, audio.intro)
+  const victory = useWinnerIntro(game, audio.intro)
   const reducedMotion = typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
   const effect = celebration && audio.effects && !reducedMotion && <Particles key={`p${celebration.key}`} effect={celebration.kind} />
   const banner = celebration && (
@@ -56,6 +57,7 @@ export default function Play() {
     <>
       {effect}
       {banner}
+      {victory.show && <WinnerIntro game={game} effects={audio.effects && !reducedMotion} onDone={victory.finish} />}
       {opening.show ? <GameIntro game={game} onDone={opening.finish} /> : audio.intro && !game.finished && <PlayerIntro game={game} />}
       {game.finished ? <Finished game={game} /> : <Running game={game} />}
     </>
@@ -280,6 +282,35 @@ function Running({ game }: { game: GameState }) {
     </InputPanel>
   )
 
+  // the monster hunt fills the whole screen too; typing and correcting darts in the popup
+  if (game.mode === 'monster_hunt') {
+    return (
+      <>
+        <ArcadeStage
+          game={game}
+          onTap={(label, x, y) => void enter(label, [x, y])}
+          disabled={busy}
+          onCorrect={(i) => {
+            setCorrecting(i)
+            setPanel(true)
+          }}
+        >
+          <button className={styles.voltButton} onClick={() => void undo()} disabled={busy}>
+            ↶ {t('play.undo')}
+          </button>
+          <button className={styles.voltButton} onClick={() => setPanel(true)}>
+            ✎ {t('play.correct')}
+          </button>
+          <button className={`${styles.voltButton} ${styles.voltPrimary}`} onClick={() => void next()} disabled={busy}>
+            {game.awaiting_next ? t('play.nextPlayer') : t('play.endTurn')}
+          </button>
+        </ArcadeStage>
+        {error && !panel && <p className={`error ${styles.voltError}`}>{error}</p>}
+        {popupPanel}
+      </>
+    )
+  }
+
   // Voltage fills the whole screen; entering and correcting darts happens in a popup
   if (game.mode === 'x01' && game.settings.theme === 'voltage') {
     return (
@@ -312,9 +343,7 @@ function Running({ game }: { game: GameState }) {
       <section className={styles.scores}>
         <MatchInfo game={game} />
         <TargetBanner game={game} />
-        {game.mode === 'monster_hunt' ? (
-          <ArcadeStage game={game} onTap={(label, x, y) => void enter(label, [x, y])} disabled={busy} />
-        ) : game.mode === 'melon_samurai' ? (
+        {game.mode === 'melon_samurai' ? (
           <MelonStage game={game} onTap={(label, x, y) => void enter(label, [x, y])} disabled={busy} />
         ) : game.mode === 'x01' ? (
           <X01Scores game={game} />

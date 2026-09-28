@@ -87,6 +87,9 @@ class _Camera:
     ref_color: Image | None = None
     prev_ref_color: Image | None = None
     empty_small: Gray | None = None
+    # the board right before the first dart of the turn: pulling all darts of the turn brings
+    # it back, even when empty_small is stale (a missed takeout would otherwise never heal)
+    turn_small: Gray | None = None
     # latest raw frame; its undistorted full-size version is computed only when needed
     last_raw: Image | None = None
     last_color: Image | None = None
@@ -279,6 +282,7 @@ class DartDetector:
         """Forget all references (e.g. after the board was cleared manually)."""
         for cam in self._cameras.values():
             cam.ref_small = cam.ref_full = cam.empty_small = cam.prev_small = None
+            cam.turn_small = None
         self.state = DetectorState.IDLE
         self.darts_in_turn = 0
         self._board_dirty = False
@@ -403,6 +407,7 @@ class DartDetector:
         cfg = self.config
         areas: dict[str, float] = {}
         empty_areas: dict[str, float] = {}
+        turn_areas: dict[str, float] = {}
         removal: dict[str, float] = {}
         for cid, cam in self._cameras.items():
             if cam.prev_small is None or cam.ref_small is None or cam.mask_small is None:
@@ -422,6 +427,9 @@ class DartDetector:
                     removal[cid] = (
                         float(np.count_nonzero(changed & ~differs_from_empty)) / n_changed
                     )
+            if cam.turn_small is not None and self.darts_in_turn > 0:
+                differs_from_turn = (color_diff(cam.turn_small, cur) > th) & roi
+                turn_areas[cid] = float(np.count_nonzero(differs_from_turn)) / cam.roi_pixels_small
         if not areas:
             return []
 
@@ -430,10 +438,16 @@ class DartDetector:
             cid for cid, a in areas.items() if cfg.min_dart_area <= a <= cfg.max_dart_area
         ]
         board_empty = bool(empty_areas) and all(a < cfg.min_dart_area for a in empty_areas.values())
+        # all darts of this turn gone again: as good as empty (and heals a stale empty board)
+        back_to_turn_start = len(turn_areas) == len(areas) and all(
+            a < cfg.min_dart_area for a in turn_areas.values()
+        )
 
         # the board looks like at the start of the turn: darts were pulled
-        if board_empty:
-            was_dirty = self._board_dirty
+        if board_empty or back_to_turn_start:
+            was_dirty = self._board_dirty or back_to_turn_start
+            for cam in self._cameras.values():
+                cam.turn_small = None
             self._absorb_current(empty=True)
             self._board_dirty = False
             self.darts_in_turn = 0
@@ -477,6 +491,9 @@ class DartDetector:
             return []
 
         detection = self._locate(dart_sized)
+        if detection is not None and self.darts_in_turn == 0:
+            for cam in self._cameras.values():
+                cam.turn_small = cam.ref_small
         self._absorb_current(empty=False)
         self.state = DetectorState.IDLE
         self.last_evaluation = Evaluation(areas, "dart" if detection else "unlocated")

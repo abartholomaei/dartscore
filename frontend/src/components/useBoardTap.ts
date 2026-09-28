@@ -1,6 +1,6 @@
 import { useRef } from 'react'
 import { scoreAt } from '../dart'
-import styles from './ArcadeStage.module.css'
+import styles from './ArcadeShell.module.css'
 
 export const VIEW = 200 // mm shown around the bull (the board ends at 170)
 

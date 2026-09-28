@@ -6,7 +6,7 @@ style stays consistent: the first sprite sets the style, every further prompt as
 "exactly the same style".
 
 Processing: the PNGs were trimmed to their content, padded to a square and saved as WebP
-(sprites 384 px with alpha, background 1024 px).
+(sprites 512 px with alpha, background 1024 px).
 
 ## Prompts (Monster hunt)
 
@@ -21,11 +21,16 @@ Processing: the PNGs were trimmed to their content, padded to a square and saved
    cheerful…"
 4. **king** – "…a round, chubby light-blue monster king wearing a shiny golden crown with a red
    jewel, rosy cheeks, proud but funny smile. It is the rare, most valuable monster…"
-5. **monster-meadow** (background) – "…a perfectly round magical forest clearing seen exactly
-   from above (top-down), filling the whole square image edge to edge, centered. Soft grass with
-   small flowers, mushrooms and pebbles, a few tiny glowing fireflies, slightly darker towards the
-   rim, calm and not too busy so that monster sprites on top stay clearly visible. Muted greens
-   with a hint of teal, evening mood… No monsters, no characters, no text, no dartboard lines."
+5. **monster-night** (background, made later with sprite-gen `gen --provider codex` and the
+   first meadow background as style reference) – "…in exactly the same style as the attached
+   reference image… A spooky but kid-friendly haunted graveyard clearing at night, seen exactly
+   from above (top-down), a perfectly round clearing filling the whole square image edge to edge,
+   centered. Dark mossy ground and old cobblestones in the middle (calm and fairly plain, so a
+   dartboard and monster sprites on top stay clearly visible), around the rim: small cartoon
+   tombstones, crooked dead tree roots, a few pumpkins, mushrooms, little candles and glowing
+   blue-green wisps, cold moonlight from the top left, darker towards the rim. Colors: deep night
+   blue, teal and dark green with small warm orange accents. No monsters, no characters, no text,
+   no dartboard lines, square format." (saved as 1024 px WebP)
 6. **poof** (catch effect) – "…a cheerful magic 'poof' burst when a monster is caught - a round
    puffy white-and-light-green smoke cloud with little golden stars and sparkles flying outward…
    Transparent background (PNG), square."
@@ -68,23 +73,23 @@ Processing: the fruits were trimmed to their circle, scaled to 768 px, given a c
 edge (the game clips to the same circle) and saved as WebP in `frontend/public/arcade/melon/`;
 the background is 1024 px. The golden glow of the last round, slash, juice drops and the flying pieces are drawn in code.
 
-## Animations (sprite-gen)
+## Animations (puppets, in code)
 
-The idle and "caught" animations were made from the still sprites with
-[sprite-gen](https://github.com/aldegad/sprite-gen) (Apache-2.0), using the Codex CLI logged in
-with ChatGPT as the image provider (`codex login`, Codex ≥ 0.157):
+The monsters are animated like puppets: each kind is **one still** (`monsters/<kind>.webp`, the
+ChatGPT sprite trimmed and padded to 512 px), deformed on the GPU every frame by
+`frontend/src/components/MonsterPuppets.tsx` (WebGL, a 36×36 grid mesh): breathing (squash &
+stretch around the feet), a jelly wave (blob), hops (imp), hovering (bat), swinging arms, ears,
+tail, crown and cape, flapping wings, blinking eyelids (the lid is the monster's own skin taken
+from just above the eye), and for hits a white flash with a squash, a knock-back tilt and
+squeezed eyes; a monster that goes down jumps, flattens like a pancake and fades into the poof.
+The rig per kind (eye ellipses, limb pivots and regions in texture space) is in `RIGS`. The
+development page `/dev/puppets` shows all of them large with hit/kill buttons.
 
-```bash
-sprite-gen prepare --out-dir runs/<kind> --character-id <kind> --base-image <kind>.png \
-  --description "…" --style "colorful cartoon, thick dark outlines, soft cel shading" \
-  --cell-size 256 --request sprite-gen/<kind>-request.json
-sprite-gen gen-set --run-dir runs/<kind> --provider codex --concurrency 2   # ~1 min per row
-sprite-gen extract --run-dir runs/<kind>
-sprite-gen compose-atlas --run-dir runs/<kind>
-```
+An earlier try generated 4 and then 8 frames per animation with
+[sprite-gen](https://github.com/aldegad/sprite-gen) (image rows via Codex). It was dropped: every
+frame is drawn anew by the image model, so size, position and details change from frame to frame
+and the motion jitters, however many frames there are. The still stays identical and runs at the
+display's frame rate.
 
-The four 256 px frames of each state (`frames/<state>/frame-N.png`) were joined into one
-horizontal strip `frontend/public/arcade/monsters/<kind>-<state>.webp` (1024×256); the arcade
-stage clips one cell and steps through the strip with CSS (`idle` loops, `hurt` plays once when
-the monster is caught). The request files with the per-state action prompts are in
-`sprite-gen/`.
+Bullet holes, cartridges, sparks, smoke, fireflies, fog and leaves are drawn in code (SVG/CSS),
+not images.

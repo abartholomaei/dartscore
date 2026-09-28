@@ -77,7 +77,8 @@ export default function VoltageSky({ strike }: { strike: Strike | null }) {
     let flash = 0
 
     const resize = () => {
-      const dpr = Math.min(window.devicePixelRatio || 1, 1.5)
+      // native resolution is not worth it for glow and sparks; keeps the fill rate low
+      const dpr = 1
       w = stage.clientWidth
       h = stage.clientHeight
       for (const [c, ctx] of [[bc, b], [fc, f]] as const) {
@@ -85,7 +86,7 @@ export default function VoltageSky({ strike }: { strike: Strike | null }) {
         c.height = h * dpr
         ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
       }
-      const count = Math.min(180, Math.round((w * h) / 9000))
+      const count = Math.min(70, Math.round((w * h) / 20000))
       embers = Array.from({ length: count }, () => ({
         x: Math.random() * w,
         y: Math.random() * h,
@@ -204,8 +205,12 @@ export default function VoltageSky({ strike }: { strike: Strike | null }) {
       }
     }
 
+    let frontDirty = true
     const tick = (now: number) => {
-      const dt = Math.min(3, (now - last) / 16.7)
+      frame = requestAnimationFrame(tick)
+      // 30 fps is plenty for this and halves the work on slow machines
+      if (now - last < 32) return
+      const dt = Math.min(4, (now - last) / 16.7)
       last = now
 
       // distant lightning somewhere in the sky
@@ -225,7 +230,7 @@ export default function VoltageSky({ strike }: { strike: Strike | null }) {
           bolt(p, q, { spread: 0.45, branches: false, decay: 0.11, width: 0.8 })
           if (Math.random() < 0.5) burst(p, 5, ['125 211 252', '255 255 255'], 2.5)
         }
-        nextCrackle = now + 120 + Math.random() * 380
+        nextCrackle = now + 300 + Math.random() * 700
       }
 
       // back layer: flash, embers, distant bolts
@@ -251,7 +256,15 @@ export default function VoltageSky({ strike }: { strike: Strike | null }) {
       b.globalAlpha = 1
       drawBolts(b, false)
 
-      // front layer: strikes, arcs, sparks
+      for (let i = bolts.length - 1; i >= 0; i--) {
+        bolts[i].life -= bolts[i].decay * dt
+        if (bolts[i].life <= 0) bolts.splice(i, 1)
+      }
+
+      // front layer: strikes, arcs, sparks (left alone while there is nothing to draw)
+      const busy = sparks.length > 0 || bolts.some((bo) => bo.front)
+      if (!busy && !frontDirty) return
+      frontDirty = busy
       f.clearRect(0, 0, w, h)
       f.globalCompositeOperation = 'lighter'
       f.lineCap = 'round'
@@ -270,12 +283,7 @@ export default function VoltageSky({ strike }: { strike: Strike | null }) {
         f.lineTo(s.x - s.vx * 2.2, s.y - s.vy * 2.2)
         f.stroke()
       }
-      for (let i = bolts.length - 1; i >= 0; i--) {
-        bolts[i].life -= bolts[i].decay * dt
-        if (bolts[i].life <= 0) bolts.splice(i, 1)
-      }
       for (let i = sparks.length - 1; i >= 0; i--) if (sparks[i].life <= 0) sparks.splice(i, 1)
-      frame = requestAnimationFrame(tick)
     }
     frame = requestAnimationFrame(tick)
     return () => {

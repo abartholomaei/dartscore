@@ -2,24 +2,27 @@ import { useCallback, useEffect, useState, type CSSProperties } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { GamePlayer, GameState } from '../api'
 import Avatar from './Avatar'
+import Particles from './Particles'
 import styles from './GameIntro.module.css'
 
 const SEEN_KEY = 'dartscore.introSeen'
+const WINNER_SEEN_KEY = 'dartscore.winnerSeen'
 const VERSUS_DURATION = 3400
+const WINNER_DURATION = 4200
 // line-up of more than two: every player gets a short moment, the whole show stays below ~8 s
 const lineUpStep = (count: number) => Math.max(1000, Math.min(1500, 8000 / count))
 
-function seenGames(): number[] {
+function seenGames(key = SEEN_KEY): (number | string)[] {
   try {
-    return JSON.parse(sessionStorage.getItem(SEEN_KEY) ?? '[]') as number[]
+    return JSON.parse(sessionStorage.getItem(key) ?? '[]') as (number | string)[]
   } catch {
     return []
   }
 }
 
-function markSeen(id: number) {
+function markSeen(id: number | string, key = SEEN_KEY) {
   try {
-    sessionStorage.setItem(SEEN_KEY, JSON.stringify([...seenGames().slice(-20), id]))
+    sessionStorage.setItem(key, JSON.stringify([...seenGames(key).slice(-20), id]))
   } catch {
     // no storage: the intro may show again after a reload
   }
@@ -29,7 +32,7 @@ function markSeen(id: number) {
  *  entries that this browser has not introduced yet. The bull-off is skipped, the game after it
  *  gets the intro. */
 export function useGameIntro(game: GameState | null, enabled: boolean) {
-  const [done, setDone] = useState<number[]>(seenGames)
+  const [done, setDone] = useState(() => seenGames())
   const show =
     enabled &&
     !!game &&
@@ -45,6 +48,28 @@ export function useGameIntro(game: GameState | null, enabled: boolean) {
     markSeen(id)
     setDone((ids) => [...ids, id])
   }, [id])
+  return { show, finish }
+}
+
+/** Whether the winner reveal should run: a game with at least two entries that just ended with a
+ *  winner and was not revealed in this browser yet. */
+export function useWinnerIntro(game: GameState | null, enabled: boolean) {
+  const [done, setDone] = useState(() => seenGames(WINNER_SEEN_KEY))
+  // a match that is played on ends a second time under the same id
+  const token = game ? `${game.id}:${game.event_count}` : undefined
+  const show =
+    enabled &&
+    !!game &&
+    game.finished &&
+    game.winner !== null &&
+    game.mode !== 'bull_off' &&
+    game.players.length >= 2 &&
+    token !== undefined && !done.includes(token)
+  const finish = useCallback(() => {
+    if (token === undefined) return
+    markSeen(token, WINNER_SEEN_KEY)
+    setDone((ids) => [...ids, token])
+  }, [token])
   return { show, finish }
 }
 
@@ -138,6 +163,48 @@ export default function GameIntro({ game, onDone }: { game: GameState; onDone: (
           />
         ))}
       </div>
+    </div>
+  )
+}
+
+/** End of a game: the winner alone on the screen, with profile picture, confetti and the final
+ *  score, before the statistics show up. Tap to skip. */
+export function WinnerIntro({ game, effects, onDone }: { game: GameState; effects: boolean; onDone: () => void }) {
+  const { t } = useTranslation()
+  const winner = game.players[game.winner ?? 0]
+  const sets = Number(game.settings.sets_to_win ?? 1) > 1
+  const legs = Number(game.settings.legs_to_win ?? 1) > 1 || sets
+  const won = sets ? game.sets_won : game.legs_won
+  // with two players the final score reads like a result (3 : 1), with more only the winner's count
+  const result =
+    (game.mode === 'x01' || game.mode === 'cricket') && legs && won
+      ? game.players.length === 2
+        ? `${won[winner.position]} : ${won[1 - winner.position]}`
+        : t(sets ? 'play.introSets' : 'play.introLegs', { count: won[winner.position] })
+      : null
+
+  useEffect(() => {
+    const timer = window.setTimeout(onDone, WINNER_DURATION)
+    return () => window.clearTimeout(timer)
+  }, [onDone])
+
+  return (
+    <div
+      className={`${styles.overlay} ${styles.winnerOverlay}`}
+      onClick={onDone}
+      role="status"
+      aria-live="assertive"
+      style={{ '--player': winner.color } as CSSProperties}
+    >
+      <div className={styles.rays} />
+      {effects && <Particles effect="180" />}
+      <div className={styles.winnerContent}>
+        <span className={styles.trophy}>🏆</span>
+        <span className={styles.winnerLabel}>{t('play.introWinner')}</span>
+        <Fighter player={winner} />
+        {result && <span className={styles.result}>{result}</span>}
+      </div>
+      <div className={styles.flash} />
     </div>
   )
 }

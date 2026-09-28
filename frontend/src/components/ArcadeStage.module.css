@@ -1,66 +1,188 @@
+/* Full screen above the app header; the input popup (a modal dialog) lies above it. */
 .stage {
-  position: relative;
+  position: fixed;
+  inset: 0;
+  z-index: 20;
   display: grid;
-  gap: 10px;
-}
-
-.header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.round {
-  display: flex;
+  grid-template-rows: auto minmax(0, 1fr) auto;
   gap: 6px;
+  padding: 10px clamp(12px, 2vw, 28px);
+  background: #04090d;
+  color: #e6fff7;
+  overflow: hidden;
 }
 
-.round span {
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  border: 2px solid var(--accent);
+.stage > :not(.backdrop, .ambient, .intro) {
+  position: relative;
+  z-index: 2;
 }
 
-.roundDone {
-  background: var(--accent);
+/* the graveyard, dark behind everything (static: filters and zooms are costly on slow machines) */
+.backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background:
+    radial-gradient(ellipse at 50% 50%, rgb(4 9 13 / 0.55), rgb(4 9 13 / 0.93) 70%),
+    url('/arcade/monster-night.webp') center / cover no-repeat;
 }
 
-.roundNow {
-  background: var(--accent);
-  box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 35%, transparent);
+.ambient {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  overflow: hidden;
 }
 
-.roundOpen {
-  opacity: 0.4;
+/* ground fog rolling slowly across the scene */
+.fog {
+  position: absolute;
+  left: -60%;
+  bottom: -12%;
+  width: 120%;
+  height: 55%;
+  background:
+    radial-gradient(ellipse 30% 40% at 30% 60%, rgb(190 240 230 / 0.13), transparent 70%),
+    radial-gradient(ellipse 25% 35% at 70% 50%, rgb(190 240 230 / 0.1), transparent 70%);
+  animation: fog 34s linear infinite;
+}
+
+.fogLate {
+  bottom: auto;
+  top: -10%;
+  animation-duration: 47s;
+  animation-delay: -20s;
+  opacity: 0.7;
+}
+
+/* leaves drifting down at the sides */
+.leaf {
+  position: absolute;
+  top: -5%;
+  border-radius: 0 80% 0 80%;
+  background: linear-gradient(135deg, hsl(var(--hue) 75% 52%), hsl(var(--hue) 70% 30%));
+  box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.35);
+  opacity: 0.85;
+  animation: leaf linear infinite;
+}
+
+/* --- top bar: round, remaining rounds as graves, fullscreen/home ---------------------- */
+
+.hud {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
 }
 
 .roundText {
   font-family: var(--font-display);
-  font-size: clamp(1.1rem, 2vw, 1.6rem);
-  font-weight: 700;
+  font-size: clamp(1.1rem, 2vw, 1.7rem);
+  font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.05em;
+  text-shadow: 0 2px 8px rgb(0 0 0 / 0.8);
 }
 
 .double {
   color: #facc15;
 }
 
-.world {
+.graves {
+  display: flex;
+  gap: clamp(4px, 0.8vw, 10px);
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: rgb(4 12 16 / 0.65);
+  border: 1px solid rgb(94 234 212 / 0.35);
+}
+
+.graves svg {
+  width: clamp(16px, 1.8vw, 26px);
+  height: auto;
+  transition:
+    transform 0.3s,
+    opacity 0.3s;
+}
+
+.grave path:first-child,
+.graveNow path:first-child,
+.graveDone path:first-child {
+  stroke: #0b1310;
+  stroke-width: 1.5;
+}
+
+.grave path:first-child {
+  fill: #64748b;
+}
+
+.graveNow path:first-child {
+  fill: #5eead4;
+}
+
+.graveNow {
+  transform: translateY(-3px) scale(1.15);
+  filter: drop-shadow(0 0 6px rgb(94 234 212 / 0.9));
+}
+
+.graveDone {
+  opacity: 0.3;
+}
+
+.graveDone path:first-child {
+  fill: #334155;
+}
+
+.graveCross {
+  fill: none;
+  stroke: rgb(11 19 16 / 0.6);
+  stroke-width: 1.6;
+  stroke-linecap: round;
+}
+
+.corner {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.icon {
   display: grid;
-  grid-template-columns: minmax(150px, 220px) minmax(0, 1fr);
-  gap: 12px;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 1px solid rgb(94 234 212 / 0.5);
+  border-radius: 50%;
+  background: rgb(4 12 16 / 0.6);
+  color: #ccfbf1;
+  font-size: 1.2rem;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.icon:hover {
+  box-shadow: 0 0 14px rgb(94 234 212 / 0.6);
+}
+
+/* --- arena: players | board | ammo ---------------------------------------------------- */
+
+.arena {
+  display: grid;
+  grid-template-columns: minmax(150px, 230px) minmax(0, 1fr) minmax(90px, 130px);
+  gap: clamp(8px, 1.5vw, 24px);
   align-items: center;
+  min-height: 0;
 }
 
 @media (max-width: 700px) {
-  .world {
-    grid-template-columns: 1fr;
+  .arena {
+    grid-template-columns: minmax(0, 1fr) 70px;
+    grid-template-rows: auto minmax(0, 1fr);
   }
 
   .players {
+    grid-column: 1 / -1;
     display: flex !important;
     flex-wrap: wrap;
   }
@@ -70,18 +192,24 @@
   display: grid;
   gap: 8px;
   align-content: center;
+  max-height: 100%;
+  overflow-y: auto;
 }
 
 .card {
   display: grid;
-  grid-template-columns: auto 1fr;
-  grid-template-areas: 'avatar name' 'avatar score';
+  grid-template-columns: auto 1fr auto;
+  grid-template-areas: 'avatar name name' 'avatar score kills';
   column-gap: 10px;
   align-items: center;
-  padding: 8px 10px;
-  border: 2px solid var(--border);
-  border-radius: var(--radius);
-  background: var(--surface);
+  padding: 8px 12px;
+  border: 2px solid rgb(94 234 212 / 0.2);
+  border-radius: 14px;
+  background: rgb(4 14 18 / 0.72);
+  transition:
+    border-color 0.3s,
+    box-shadow 0.3s,
+    transform 0.3s;
 }
 
 .card > :first-child {
@@ -89,8 +217,9 @@
 }
 
 .cardActive {
-  border-color: var(--accent);
-  box-shadow: 0 0 18px color-mix(in srgb, var(--accent) 35%, transparent);
+  border-color: #5eead4;
+  box-shadow: 0 0 22px rgb(94 234 212 / 0.45);
+  transform: translateX(6px);
 }
 
 .cardName {
@@ -107,48 +236,83 @@
   grid-area: score;
   font-family: var(--font-display);
   font-weight: 800;
-  font-size: 1.6rem;
+  font-size: 1.7rem;
   line-height: 1;
-  color: var(--accent);
+  color: #5eead4;
   font-variant-numeric: tabular-nums;
 }
 
+.cardKills {
+  grid-area: kills;
+  font-family: var(--font-display);
+  font-weight: 700;
+  color: #facc15;
+}
+
+.center {
+  display: grid;
+  place-items: center;
+  min-height: 0;
+  height: 100%;
+}
+
+/* three layers on the same square: board SVG, the monster puppets (WebGL), effects SVG */
 .board {
-  width: 100%;
-  max-height: 72vh;
+  position: relative;
+  width: min(100%, calc(100vh - 190px));
   aspect-ratio: 1;
-  border-radius: 50%;
+}
+
+.layer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
 }
 
 .tappable {
   cursor: crosshair;
 }
 
+/* the board: glowing teal lines over the graveyard */
 .boardFace {
+  fill: rgb(6 30 32 / 0.28);
+}
+
+.halo {
   fill: none;
-  stroke: rgb(255 255 255 / 0.45);
-  stroke-width: 1.6;
+  stroke: rgb(94 234 212 / 0.18);
+  stroke-width: 9;
+}
+
+.rim {
+  fill: none;
+  stroke: #99f6e4;
+  stroke-width: 1.8;
+  animation: glow 3.2s ease-in-out infinite;
 }
 
 .ring {
   fill: none;
-  stroke: rgb(255 255 255 / 0.22);
+  stroke: rgb(153 246 228 / 0.42);
   stroke-width: 0.9;
 }
 
 .bull {
-  fill: rgb(255 255 255 / 0.25);
+  fill: rgb(153 246 228 / 0.3);
+  stroke: rgb(153 246 228 / 0.6);
+  stroke-width: 0.7;
 }
 
 .wire {
-  stroke: rgb(255 255 255 / 0.16);
+  stroke: rgb(153 246 228 / 0.22);
   stroke-width: 0.7;
 }
 
 .number {
-  fill: #eafff1;
+  fill: #ccfbf1;
   paint-order: stroke;
-  stroke: rgb(0 0 0 / 0.7);
+  stroke: rgb(0 0 0 / 0.75);
   stroke-width: 3px;
   font-family: var(--font-display);
   font-weight: 700;
@@ -157,158 +321,327 @@
   dominant-baseline: central;
 }
 
-.monster,
-.monsterGone {
-  transition: transform 0.6s ease-in-out;
+.firefly {
+  animation: firefly ease-in-out infinite alternate;
+  pointer-events: none;
 }
 
-.monster svg,
-.monsterGone svg {
-  transition:
-    x 0.4s ease-out,
-    y 0.4s ease-out,
-    width 0.4s ease-out,
-    height 0.4s ease-out;
+/* --- bullet holes ------------------------------------------------------------------------ */
+
+.hole {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: holeIn 0.18s ease-out;
 }
 
-.bob {
-  filter: drop-shadow(0 2px 1.5px rgb(0 0 0 / 0.65));
+.scorch {
+  fill: rgb(0 0 0 / 0.35);
 }
 
-/* sprite strips: 4 frames side by side, 256 px each */
-.stripLoop {
-  animation: strip 0.8s steps(4) infinite;
+.crack {
+  stroke: #0a0a0a;
+  stroke-width: 0.8;
+  stroke-linecap: round;
 }
 
-.stripOnce {
-  animation: stripOnce 0.45s steps(4, jump-none) forwards;
+.holeCore {
+  fill: #050505;
+  stroke: #57534e;
+  stroke-width: 0.8;
 }
 
-@keyframes strip {
-  to {
-    transform: translateX(-1024px);
-  }
+.holeDeep {
+  fill: #292524;
 }
 
-@keyframes stripOnce {
-  from {
-    transform: translateX(0);
-  }
-  to {
-    transform: translateX(-768px);
-  }
+.flash {
+  pointer-events: none;
+  opacity: 0;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: muzzle 0.22s ease-out;
 }
 
-.wobble .bob {
-  animation: wobble 0.5s ease-in-out, bob 1.6s ease-in-out 0.5s infinite;
+.sparks line {
+  stroke: #fde68a;
+  stroke-width: 1.2;
+  stroke-linecap: round;
+}
+
+.sparks {
+  opacity: 0;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: sparks 0.4s ease-out;
+}
+
+.smoke circle {
+  fill: rgb(203 213 225 / 0.55);
+}
+
+.smoke {
+  opacity: 0;
+  animation: smoke 1.6s ease-out;
+  pointer-events: none;
+}
+
+/* --- the monster ------------------------------------------------------------------------ */
+
+.monster {
+  /* walkers stride to their new spot */
+  transition: transform 0.9s cubic-bezier(0.45, 0, 0.25, 1);
+}
+
+
+.spawn {
+  transform-box: fill-box;
+  transform-origin: 50% 80%;
+  animation: spawn 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) 0.35s backwards;
+}
+
+
+
+
+
+
+
+
+.reticle {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: spin 9s linear infinite;
+  pointer-events: none;
+}
+
+.reticleRing {
+  fill: rgb(248 113 113 / 0.05);
+  stroke: rgb(254 202 202 / 0.55);
+  stroke-width: 0.9;
+  stroke-dasharray: 5 4;
+  transition: r 0.4s ease-out;
+}
+
+.reticleCore {
+  fill: none;
+  stroke: rgb(248 113 113 / 0.5);
+  stroke-width: 0.7;
+  transition: r 0.4s ease-out;
+}
+
+.reticleTick {
+  stroke: #fecaca;
+  stroke-width: 1.2;
+  stroke-linecap: round;
+}
+
+.life {
+  fill: #4ade80;
+  stroke: #052e16;
+  stroke-width: 0.8;
+}
+
+.lifeLost {
+  fill: rgb(15 23 42 / 0.7);
+  stroke: rgb(148 163 184 / 0.6);
+  stroke-width: 0.8;
+}
+
+.valueTag {
+  fill: rgb(4 12 16 / 0.8);
+  stroke: #facc15;
+  stroke-width: 0.8;
+}
+
+.value {
+  fill: #fde68a;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 9px;
+  text-anchor: middle;
+  dominant-baseline: central;
 }
 
 .poof {
   transform-box: fill-box;
   transform-origin: center;
-  animation: poof 0.75s ease-out forwards;
+  animation: poof 0.8s ease-out 0.55s backwards;
+  opacity: 0;
   pointer-events: none;
 }
 
-.dust circle {
-  fill: rgb(214 211 186 / 0.8);
-}
-
-.dust {
-  animation: dust 0.6s ease-out forwards;
-}
-
-.pulse {
-  transform-origin: center;
-  animation: pulse 0.45s ease-out;
-}
-
-.hitArea {
-  fill: rgb(34 197 94 / 0.08);
-  stroke: rgb(34 197 94 / 0.35);
-  stroke-width: 0.8;
-  stroke-dasharray: 3 3;
-  transition: r 0.4s ease-out;
-}
-
-.monsterGone {
-  /* the "caught" frames play first, then it disappears in the poof */
-  animation: vanish 0.8s ease-in 0.35s forwards;
-}
-
-.bob {
-  animation: bob 1.6s ease-in-out infinite;
-}
-
-.value {
-  fill: #fff;
+.good,
+.great,
+.bad {
   font-family: var(--font-display);
   font-weight: 800;
-  font-size: 10px;
-  text-anchor: middle;
-  paint-order: stroke;
-  stroke: #0b120e;
-  stroke-width: 3px;
-}
-
-.dart circle {
-  fill: #facc15;
-  stroke: #0b120e;
-  stroke-width: 1.5;
-}
-
-.dart .dartTip {
-  fill: #0b120e;
-  stroke: none;
-}
-
-.dart {
-  animation: land 0.25s ease-out;
-}
-
-.popup,
-.popupBad {
-  font-family: var(--font-display);
-  font-weight: 800;
-  font-size: 22px;
+  font-size: 20px;
   text-anchor: middle;
   paint-order: stroke;
   stroke: #0b120e;
   stroke-width: 4px;
-  animation: rise 1.4s ease-out forwards;
+  animation: rise 1.5s ease-out forwards;
+  pointer-events: none;
 }
 
-.popup {
+.good {
   fill: #facc15;
 }
 
-.popupBad {
+.great {
+  fill: #f87171;
+  font-size: 24px;
+}
+
+.bad {
   fill: #fb923c;
-  font-size: 15px;
+  font-size: 14px;
+}
+
+/* --- ammo: one cartridge per dart ------------------------------------------------------- */
+
+.ammo {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  padding: 12px 8px;
+  border-radius: 18px;
+  background: rgb(4 14 18 / 0.72);
+  border: 1px solid rgb(250 204 21 / 0.3);
+}
+
+.ammoTitle {
+  font-family: var(--font-display);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #fde68a;
+}
+
+.shell {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+}
+
+.shell:not(:disabled) {
+  cursor: pointer;
+}
+
+.cartridge {
+  width: clamp(22px, 2.6vw, 36px);
+  height: auto;
+  transition:
+    opacity 0.25s,
+    filter 0.25s;
+}
+
+.tip {
+  fill: #c2410c;
+  stroke: #431407;
+  stroke-width: 1.2;
+}
+
+.casing {
+  fill: #eab308;
+  stroke: #713f12;
+  stroke-width: 1.2;
+}
+
+.base {
+  fill: #ca8a04;
+  stroke: #713f12;
+  stroke-width: 1.2;
+}
+
+.shine {
+  fill: rgb(255 255 255 / 0.45);
+}
+
+.shellSpent .cartridge:first-child {
+  opacity: 0.22;
+  filter: grayscale(1);
+}
+
+/* the empty case flying out */
+.eject {
+  position: absolute;
+  top: 0;
+  animation: eject 0.7s cubic-bezier(0.2, 0.6, 0.4, 1) forwards;
+  pointer-events: none;
+}
+
+.shellLabel {
+  min-height: 1.2em;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: #ccfbf1;
+}
+
+.turnPoints {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: clamp(1.4rem, 2.4vw, 2.2rem);
+  color: #facc15;
+  font-variant-numeric: tabular-nums;
+}
+
+/* --- bottom: banner and toolbar ---------------------------------------------------------- */
+
+.footer {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
 }
 
 .banner {
-  padding: 10px 16px;
-  border-radius: var(--radius);
-  background: color-mix(in srgb, var(--accent) 14%, var(--surface));
-  border: 1px solid var(--accent);
+  justify-self: center;
+  padding: 8px 28px;
+  border-radius: 12px;
+  background: linear-gradient(rgb(20 50 44 / 0.92), rgb(6 22 20 / 0.92));
+  border: 2px solid #5eead4;
+  box-shadow: 0 0 20px rgb(94 234 212 / 0.3);
   font-family: var(--font-display);
-  font-size: clamp(1.2rem, 2.5vw, 2rem);
+  font-size: clamp(1.2rem, 2.4vw, 2rem);
   font-weight: 800;
   text-align: center;
   text-transform: uppercase;
-  letter-spacing: 0.03em;
+  letter-spacing: 0.04em;
+  animation: bannerIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+@media (max-width: 900px) {
+  .footer {
+    grid-template-columns: 1fr;
+  }
+
+  .toolbar {
+    justify-content: center;
+  }
 }
 
 .intro {
   position: absolute;
   inset: 0;
+  z-index: 5;
   display: grid;
   place-content: center;
   justify-items: center;
   gap: 8px;
-  background: rgb(11 11 12 / 0.72);
-  border-radius: var(--radius);
+  background: rgb(2 8 10 / 0.72);
   pointer-events: none;
   animation: introFade 1.8s ease-in-out forwards;
 }
@@ -318,7 +651,7 @@
   font-size: clamp(1.4rem, 3vw, 2.5rem);
   font-weight: 700;
   text-transform: uppercase;
-  color: var(--text-muted);
+  color: #99f6e4;
 }
 
 .intro strong {
@@ -326,29 +659,145 @@
   font-size: clamp(2.5rem, 7vw, 6rem);
   font-weight: 800;
   text-transform: uppercase;
-  color: var(--accent);
+  color: #5eead4;
+  text-shadow: 0 0 24px rgb(94 234 212 / 0.6);
 }
 
-@keyframes bob {
-  0%,
-  100% {
-    transform: translateY(0) scale(1, 1);
-  }
-  50% {
-    transform: translateY(-3px) scale(1.04, 0.96);
+/* screen shake on every shot (two copies so it restarts) */
+.shakeA {
+  animation: shakeA 0.28s ease-out;
+}
+
+.shakeB {
+  animation: shakeB 0.28s ease-out;
+}
+
+.shakeBigA {
+  animation: shakeBigA 0.45s ease-out;
+}
+
+.shakeBigB {
+  animation: shakeBigB 0.45s ease-out;
+}
+
+/* --- keyframes ---------------------------------------------------------------------------- */
+
+
+@keyframes fog {
+  to {
+    transform: translateX(100%);
   }
 }
 
-@keyframes vanish {
+@keyframes leaf {
   0% {
-    opacity: 1;
+    transform: translate(0, 0) rotate(0deg);
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.85;
   }
   25% {
+    transform: translate(30px, 25vh) rotate(120deg);
+  }
+  50% {
+    transform: translate(-20px, 50vh) rotate(220deg);
+  }
+  75% {
+    transform: translate(25px, 75vh) rotate(330deg);
+  }
+  90% {
+    opacity: 0.85;
+  }
+  100% {
+    transform: translate(0, 108vh) rotate(420deg);
+    opacity: 0;
+  }
+}
+
+@keyframes glow {
+  50% {
+    stroke: #5eead4;
+    stroke-width: 2.6;
+  }
+}
+
+@keyframes firefly {
+  0% {
+    transform: translate(0, 0);
+    opacity: 0.2;
+  }
+  50% {
     opacity: 1;
-    filter: brightness(2.2);
+  }
+  100% {
+    transform: translate(var(--dx), var(--dy));
+    opacity: 0.35;
+  }
+}
+
+@keyframes holeIn {
+  from {
+    transform: scale(0.2);
+  }
+}
+
+@keyframes muzzle {
+  0% {
+    opacity: 1;
+    transform: scale(0.4);
   }
   100% {
     opacity: 0;
+    transform: scale(1.3);
+  }
+}
+
+@keyframes sparks {
+  0% {
+    opacity: 1;
+    transform: scale(0.6);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(2.6);
+  }
+}
+
+@keyframes smoke {
+  0% {
+    opacity: 0.8;
+    transform: translateY(0) scale(0.6);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-22px) scale(1.8);
+  }
+}
+
+@keyframes spawn {
+  0% {
+    transform: scale(0.1, 0);
+    opacity: 0;
+  }
+  60% {
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+
+
+
+
+
+
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
   }
 }
 
@@ -362,44 +811,7 @@
     opacity: 1;
   }
   100% {
-    transform: scale(1.5);
-    opacity: 0;
-  }
-}
-
-@keyframes dust {
-  0% {
-    transform: scale(0.4);
-    opacity: 0.9;
-  }
-  100% {
-    transform: scale(2.2);
-    opacity: 0;
-  }
-}
-
-@keyframes wobble {
-  0%,
-  100% {
-    transform: rotate(0);
-  }
-  25% {
-    transform: rotate(-8deg) scale(1.08);
-  }
-  75% {
-    transform: rotate(8deg) scale(1.08);
-  }
-}
-
-@keyframes pulse {
-  50% {
-    transform: scale(1.025);
-  }
-}
-
-@keyframes land {
-  from {
-    transform: scale(2.2);
+    transform: scale(1.6);
     opacity: 0;
   }
 }
@@ -407,14 +819,40 @@
 @keyframes rise {
   0% {
     opacity: 0;
-    transform: translateY(6px);
+    transform: translateY(6px) scale(0.7);
   }
   15% {
     opacity: 1;
+    transform: translateY(0) scale(1.1);
+  }
+  25% {
+    transform: scale(1);
   }
   100% {
     opacity: 0;
-    transform: translateY(-26px);
+    transform: translateY(-30px);
+  }
+}
+
+@keyframes eject {
+  0% {
+    transform: translate(0, 0) rotate(0);
+    opacity: 1;
+  }
+  45% {
+    transform: translate(40px, -50px) rotate(260deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(70px, 60px) rotate(540deg);
+    opacity: 0;
+  }
+}
+
+@keyframes bannerIn {
+  from {
+    transform: scale(0.85);
+    opacity: 0;
   }
 }
 
@@ -431,17 +869,78 @@
   }
 }
 
+@keyframes shakeA {
+  25% {
+    transform: translate(-4px, 2px);
+  }
+  50% {
+    transform: translate(3px, -2px);
+  }
+  75% {
+    transform: translate(-1px, 1px);
+  }
+}
+
+@keyframes shakeB {
+  25% {
+    transform: translate(4px, -2px);
+  }
+  50% {
+    transform: translate(-3px, 2px);
+  }
+  75% {
+    transform: translate(1px, -1px);
+  }
+}
+
+@keyframes shakeBigA {
+  15% {
+    transform: translate(-9px, 4px) rotate(-0.6deg);
+  }
+  35% {
+    transform: translate(8px, -5px) rotate(0.5deg);
+  }
+  60% {
+    transform: translate(-4px, 2px);
+  }
+  80% {
+    transform: translate(2px, -1px);
+  }
+}
+
+@keyframes shakeBigB {
+  15% {
+    transform: translate(9px, -4px) rotate(0.6deg);
+  }
+  35% {
+    transform: translate(-8px, 5px) rotate(-0.5deg);
+  }
+  60% {
+    transform: translate(4px, -2px);
+  }
+  80% {
+    transform: translate(-2px, 1px);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .bob,
-  .dart,
-  .monsterGone,
-  .stripLoop,
-  .stripOnce,
+  .rim,
+  .spawn,
+  .reticle,
+  .hole,
+  .flash,
+  .sparks,
+  .smoke,
   .poof,
-  .dust,
-  .pulse,
-  .popup,
-  .popupBad {
+  .good,
+  .great,
+  .bad,
+  .eject,
+  .banner,
+  .shakeA,
+  .shakeB,
+  .shakeBigA,
+  .shakeBigB {
     animation: none;
   }
 }

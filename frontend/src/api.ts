@@ -339,9 +339,29 @@ export type GameState = {
   streak?: number[]
   best_streak?: number[]
   // arcade (monster hunt, melon samurai)
-  monsters?: { id: number; kind: string; x: number; y: number; radius: number; value: number; alive: boolean }[]
+  monsters?: {
+    id: number
+    kind: string
+    x: number
+    y: number
+    radius: number
+    value: number
+    hp: number
+    max_hp: number
+    status: 'waiting' | 'active' | 'dead'
+    alive: boolean
+  }[]
   arcade_darts?: { label: string; position: [number, number] | null }[]
-  last_effect?: Record<string, unknown> | null
+  last_effect?: {
+    player: number
+    target: number | null
+    hit: boolean
+    killed: boolean
+    headshot: boolean
+    grew: boolean
+    points: number
+    position: [number, number] | null
+  } | null
   fruit?: string
   fruit_left?: [number, number][]
   double_round?: boolean

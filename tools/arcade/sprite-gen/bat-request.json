@@ -1,4 +1,0 @@
-{"states": {
-  "idle": {"frames": 4, "fps": 5, "loop": true, "action": "flying idle: wings flap up and down in a smooth loop, body bobs slightly; stays in place, same size"},
-  "hurt": {"frames": 4, "fps": 10, "loop": false, "action": "caught: startled jump with big surprised eyes, then squashes flat and dizzy; no detached effects, same character"}
-}}

@@ -170,6 +170,11 @@ export default function VoltageStage({
           {left.map(battery)}
         </div>
         <div className={styles.center}>
+          <div className={styles.boardWrap}>
+          {/* the pulses are separate layers animated with transform/opacity only, so the
+              blurred board itself is rasterized once instead of every frame */}
+          <div className={styles.pulse} aria-hidden />
+          <div className={`${styles.pulse} ${styles.pulseLate}`} aria-hidden />
           <svg className={styles.board} viewBox={`${-VIEW} ${-VIEW} ${2 * VIEW} ${2 * VIEW}`} role="img" aria-label={t('voltage.board')}>
             <defs>
               <filter id="voltGlow" x="-50%" y="-50%" width="200%" height="200%">
@@ -181,9 +186,6 @@ export default function VoltageStage({
               </filter>
             </defs>
             <circle r={R.doubleOuter + 12} className={styles.plate} />
-            <circle r={R.doubleOuter + 17} className={styles.orbit} />
-            <circle r={R.doubleOuter + 6} className={styles.orbitReverse} />
-            <circle r={R.tripleInner - 6} className={styles.orbitInner} />
             <g filter="url(#voltGlow)">
               {[R.doubleOuter, R.doubleInner, R.tripleOuter, R.tripleInner, R.outerBull].map((r) => (
                 <circle key={r} r={r} className={r === R.doubleOuter || r === R.tripleOuter ? styles.ringStrong : styles.ring} />
@@ -199,12 +201,9 @@ export default function VoltageStage({
                     x2={R.doubleOuter * Math.cos(a)}
                     y2={-R.doubleOuter * Math.sin(a)}
                     className={styles.wire}
-                    style={{ animationDelay: `${(i * 0.37) % 3}s` }}
                   />
                 )
               })}
-              <circle r={R.outerBull} className={styles.pulse} />
-              <circle r={R.outerBull} className={`${styles.pulse} ${styles.pulseLate}`} />
             </g>
             {SEGMENTS.map((n, i) => {
               const c = ((90 - i * SEGMENT_DEG) * Math.PI) / 180
@@ -215,7 +214,7 @@ export default function VoltageStage({
               )
             })}
             {route.length > 0 && (
-              <g filter="url(#voltGlow)">
+              <g>
                 <polyline points={route.map(([x, y]) => `${x},${-y}`).join(' ')} className={styles.trail} />
                 {route.map(([x, y], i) => (
                   <circle key={i} cx={x} cy={-y} r={6} className={styles.trailStop} />
@@ -243,6 +242,7 @@ export default function VoltageStage({
               )
             })}
           </svg>
+          </div>
         </div>
         <div className={styles.side} style={{ '--rows': Math.max(1, right.length) } as CSSProperties}>
           {right.map(battery)}

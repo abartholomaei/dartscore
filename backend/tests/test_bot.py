@@ -142,7 +142,7 @@ def test_personal_bot_takes_level_and_bias_from_the_player(client: TestClient) -
     assert bot["bot_level"] == 50  # no finished X01 game yet: default level
 
 
-def test_bots_wear_a_gallery_picture_nobody_else_has(client: TestClient) -> None:
+def test_bots_wear_a_robot_picture_nobody_else_has(client: TestClient) -> None:
     ids = []
     for name in ("fox", "owl", "robot", "cat", "dog"):
         ids.append(client.post("/api/players", json={"name": name}).json()["id"])
@@ -158,5 +158,6 @@ def test_bots_wear_a_gallery_picture_nobody_else_has(client: TestClient) -> None
         players = created.json()["players"]
         worn = [p["avatar"] for p in players if not p["bot_level"]]
         bots = [p["avatar"] for p in players if p["bot_level"]]
-        assert all(a and a.startswith("/avatars/") and a not in worn for a in bots)
+        assert all(a and a.startswith("/avatars/bots/") for a in bots)
+        assert not {a.rsplit("/", 1)[1] for a in bots} & {a.rsplit("/", 1)[1] for a in worn}
         assert bots[0] != bots[1]

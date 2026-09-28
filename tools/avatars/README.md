@@ -43,3 +43,19 @@ frame, no border."
 
 A rabbit was planned instead of the lion, but every rabbit prompt was rejected by the image
 safety filter; migration 0010 moves profiles that had picked the old rabbit picture to the lion.
+
+## Robot versions for bots
+
+Bots wear `frontend/public/avatars/bots/<name>.webp`: a robot version of each gallery picture,
+never the one matching a picture a player in the same game wears. `bots/robot.webp` is a copy of
+the gallery robot. The others were generated with the Codex CLI, the gallery picture attached as
+reference (`codex exec -i <name>.png - < prompt.txt`), same processing as above:
+
+"Use your image generation tool to create ONE new square image […]. It is the robot version of
+the attached profile picture: the same <name> character, same 3D cartoon render style, same framing
+and pose, same expression, same outfit and accessories (darts jersey, the three darts in the hand),
+same background colour and gradient. But the character is a friendly robot: head (and ears, if
+any) built from polished metal panels painted in the character's original colours, with visible
+seams and small rivets, softly glowing eyes, a small antenna with a light on top, chrome joints at
+the neck, a metal robot hand holding the darts. It must still be clearly recognisable as the
+<name>. Cute and friendly, not scary. No text, no logos."

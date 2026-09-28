@@ -202,7 +202,7 @@ class GameService:
             stored = game.settings_dict() | ({"teams": teams} if teams else {})
             with self._sessions() as session:
                 record = GameRecord(mode=mode, settings=stored)
-                # bots get a random gallery picture nobody else in the game wears
+                # bots get a random robot picture, never the robot version of a picture in the game
                 taken: set[str] = set()
                 for ref in players:
                     profile = session.get(Player, ref.player_id) if ref.player_id else None
@@ -231,7 +231,7 @@ class GameService:
                             guest_name=bot_name,
                             bot_level=ref.bot_level,
                             bot_of=ref.bot_of,
-                            avatar=f"gallery:{picture}",
+                            avatar=f"bot:{picture}",
                         )
                     else:
                         name = " ".join((ref.guest_name or "").split())[:40] or None

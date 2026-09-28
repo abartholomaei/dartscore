@@ -25,6 +25,9 @@ def avatar_url(player_id: int, avatar: str | None) -> str | None:
         return f"/api/players/{player_id}/avatar.jpg?v={value}"
     if kind == "gallery":
         return f"/avatars/{value}.webp"
+    if kind == "bot":
+        # robot versions of the gallery pictures (frontend/public/avatars/bots/<name>.webp)
+        return f"/avatars/bots/{value}.webp"
     return None
 
 

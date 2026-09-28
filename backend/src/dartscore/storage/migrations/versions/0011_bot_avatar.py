@@ -1,4 +1,4 @@
-"""bots wear a gallery picture
+"""bots wear a robot picture
 
 Revision ID: 0011
 Revises: 0010

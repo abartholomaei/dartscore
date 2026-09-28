@@ -18,16 +18,15 @@
   z-index: 2;
 }
 
-/* the city, slowly drifting (Ken Burns) */
+/* the city (static: a full-screen zoom costs too much on slow machines) */
 .backdrop {
   position: absolute;
-  inset: -4%;
+  inset: 0;
   z-index: 0;
   background:
     radial-gradient(ellipse at 50% 55%, rgb(5 8 20 / 0.1), rgb(5 8 20 / 0.75) 75%),
     linear-gradient(rgb(5 8 20 / 0.3), rgb(5 8 20 / 0.55)),
     url('/arcade/voltage-city.webp') center / cover no-repeat;
-  animation: drift 38s ease-in-out infinite alternate;
 }
 
 /* synthwave grid floor rushing towards the viewer */
@@ -587,15 +586,6 @@
     bottom: 0;
     padding: 8px 0 4px;
     background: linear-gradient(transparent, rgb(5 8 20 / 0.85) 35%);
-  }
-}
-
-@keyframes drift {
-  from {
-    transform: scale(1) translate(0, 0);
-  }
-  to {
-    transform: scale(1.08) translate(-1.5%, 1%);
   }
 }
 

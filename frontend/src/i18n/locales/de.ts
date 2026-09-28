@@ -559,6 +559,8 @@ const de: Translations = {
     confirmAbort: 'Es läuft noch ein Spiel. Abbrechen und ein neues starten?',
   },
   play: {
+    upNext: 'Am Zug',
+    introRemaining: 'noch {{score}}',
     streak: 'Serie {{streak}} (beste {{best}})',
     displayModeOn: 'Anzeige-Modus',
     displayModeOff: 'Anzeige-Modus beenden',
@@ -672,6 +674,7 @@ const de: Translations = {
   },
   settings: {
     effects: 'Effekte: Konfetti, Feuerwerk und Staub bei 180, Checkout und Bust',
+    intro: 'Spieler-Intro: bei mehr als zwei Spielern kurz im Vollbild zeigen, wer als Nächstes wirft',
     voice: 'Stimme',
     voiceStadium: 'Stadionsprecher (Englisch, Stimme von ElevenLabs)',
     voiceBrowser: 'Browser-Stimme',

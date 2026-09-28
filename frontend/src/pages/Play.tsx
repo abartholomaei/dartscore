@@ -6,6 +6,7 @@ import ArcadeStage from '../components/ArcadeStage'
 import VoltageStage from '../components/VoltageStage'
 import Avatar from '../components/Avatar'
 import Particles from '../components/Particles'
+import PlayerIntro from '../components/PlayerIntro'
 import RulesDialog, { RulesButton } from '../components/RulesDialog'
 import DartBoard from '../components/DartBoard'
 import DetectionBadge from '../components/DetectionBadge'
@@ -52,6 +53,7 @@ export default function Play() {
     <>
       {effect}
       {banner}
+      {audio.intro && !game.finished && <PlayerIntro game={game} />}
       {game.finished ? <Finished game={game} /> : <Running game={game} />}
     </>
   )

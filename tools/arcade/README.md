@@ -46,8 +46,15 @@ single prompt that asks for the images in the same style. Shared part:
 > everything outside the circle is fully transparent (PNG with alpha). The rind forms a thin ring
 > at the edge. No knife, no hands, no text, no shadow, no plate, square 1024x1024.
 
-1. **watermelon** – bright red juicy flesh with black seeds arranged in a ring, thin white layer
-   and dark green striped rind.
+1. **watermelon** – regenerated separately (with the orange attached as style reference) because
+   the first one looked artificial: "…must look NATURAL, like a real sliced watermelon, not
+   artificial or symmetric: the black seeds are scattered IRREGULARLY in a loose, uneven band
+   roughly two thirds of the way out, NOT in a perfect ring and NOT evenly spaced: different
+   sizes, different angles, some clustered, some gaps, a few small pale white immature seeds in
+   between; the red flesh has an organic juicy, slightly grainy/crystalline texture, redder in
+   the middle and lighter pink towards the rind - no radial star pattern, no symmetry; a thin
+   pale greenish-white layer, then the green rind with slightly irregular dark green stripes."
+   Three variants were made, the most irregular one was kept.
 2. **orange** – bright orange segments radiating from a pale center, white pith lines, peel ring.
 3. **kiwi** – bright green flesh, creamy white core, a ring of small black seeds with fine rays,
    thin brown fuzzy skin.

@@ -767,7 +767,7 @@
     'macOS 14 or newer on Apple Silicon (M1 and later). Installs dartscore.app with a shortcut on the desktop.': 'macOS 14 oder neuer auf Apple Silicon (ab M1). Installiert dartscore.app mit einer Verknüpfung auf dem Schreibtisch.',
     'Debian 12+, Ubuntu 22.04+ and Raspberry Pi OS (x86_64 and ARM64). App menu and desktop entry, optional start at boot.': 'Debian 12+, Ubuntu 22.04+ und Raspberry Pi OS (x86_64 und ARM64). Eintrag im App-Menü und auf dem Desktop, optional Start beim Hochfahren.',
     'Download for Windows': 'Für Windows laden', 'Download for macOS': 'Für macOS laden', 'Download for Linux': 'Für Linux laden',
-    'Installation guide': 'Installationsanleitung (englisch)', 'All releases and files': 'Alle Releases und Dateien',
+    'Installation guide': 'Installationsanleitung', 'All releases and files': 'Alle Releases und Dateien',
     '# Linux and macOS: download and install the latest release in one line': '# Linux und macOS: neuestes Release in einer Zeile laden und installieren',
     'Nothing to install first: the <a href="#download">downloads</a> for Windows, macOS and Linux bring everything along and add a shortcut that starts dartscore and opens it in the browser.': 'Keine Vorinstallation nötig: Die <a href="#download">Downloads</a> für Windows, macOS und Linux bringen alles mit und legen eine Verknüpfung an, die dartscore startet und im Browser öffnet.',
     'From source: Python 3.12 via <a href="https://docs.astral.sh/uv/">uv</a> and Node.js ≥ 20. FastAPI + SQLite in the backend, React + TypeScript in the browser.': 'Aus dem Quellcode: Python 3.12 über <a href="https://docs.astral.sh/uv/">uv</a> und Node.js ≥ 20. FastAPI + SQLite im Backend, React + TypeScript im Browser.',
@@ -812,6 +812,10 @@
       if (name && localized.has(name)) img.src = de ? `img/de/${name}.webp` : src;
     }
     for (const [el, en] of labels) el.setAttribute('aria-label', (de && DE[en]) || en);
+    // the installation guides exist in German too (docs/install/de)
+    for (const a of document.querySelectorAll('.dl .guide')) {
+      a.href = a.href.replace(/\/docs\/install\/(de\/)?/, de ? '/docs/install/de/' : '/docs/install/');
+    }
     meta.content = (de && DE[metaEn]) || metaEn;
     for (const b of document.querySelectorAll('.lang button')) b.setAttribute('aria-pressed', String(b.dataset.lang === lang));
   }

@@ -1,7 +1,8 @@
 """Diagnostics: cameras, detection and the load of the process, without SSH."""
 
+import ctypes
 import os
-import resource
+import sys
 import threading
 import time
 from pathlib import Path
@@ -31,12 +32,41 @@ def _cpu_percent() -> float | None:
 
 
 def _memory_mb() -> float:
+    if sys.platform == "win32":
+        return round(_windows_working_set() / 1024**2, 1)
     statm = Path("/proc/self/statm")
     if statm.is_file():  # Linux: current resident size
         pages = int(statm.read_text().split()[1])
         return round(pages * os.sysconf("SC_PAGE_SIZE") / 1024**2, 1)
+    import resource  # Unix only
+
     peak = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss  # macOS: bytes, peak only
     return round(peak / 1024**2, 1)
+
+
+def _windows_working_set() -> int:
+    """Current working set of this process in bytes (GetProcessMemoryInfo)."""
+
+    class Counters(ctypes.Structure):
+        _fields_ = [
+            ("cb", ctypes.c_ulong),
+            ("PageFaultCount", ctypes.c_ulong),
+            ("PeakWorkingSetSize", ctypes.c_size_t),
+            ("WorkingSetSize", ctypes.c_size_t),
+            ("QuotaPeakPagedPoolUsage", ctypes.c_size_t),
+            ("QuotaPagedPoolUsage", ctypes.c_size_t),
+            ("QuotaPeakNonPagedPoolUsage", ctypes.c_size_t),
+            ("QuotaNonPagedPoolUsage", ctypes.c_size_t),
+            ("PagefileUsage", ctypes.c_size_t),
+            ("PeakPagefileUsage", ctypes.c_size_t),
+        ]
+
+    counters = Counters()
+    counters.cb = ctypes.sizeof(counters)
+    windll = ctypes.windll  # type: ignore[attr-defined]
+    process = windll.kernel32.GetCurrentProcess()
+    ok = windll.psapi.GetProcessMemoryInfo(process, ctypes.byref(counters), counters.cb)
+    return int(counters.WorkingSetSize) if ok else 0
 
 
 @router.get("/diagnostics")
@@ -45,7 +75,7 @@ def diagnostics(request: Request) -> dict[str, Any]:
     detection: DetectionService = request.app.state.detection
     try:
         load = [round(x, 2) for x in os.getloadavg()]
-    except OSError:
+    except (OSError, AttributeError):  # not available on Windows
         load = []
     return {
         "process": {

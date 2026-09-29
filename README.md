@@ -22,6 +22,12 @@
 </p>
 
 <p align="center">
+  <a href="https://github.com/abartholomaei/dartscore/releases/latest"><img alt="Download for Windows, macOS and Linux" src="https://img.shields.io/badge/%E2%AC%87%EF%B8%8F%20Download-Windows%20%C2%B7%20macOS%20%C2%B7%20Linux-22c55e?style=for-the-badge"></a>
+  &nbsp;
+  <a href="https://abartholomaei.github.io/dartscore/"><img alt="Project page" src="https://img.shields.io/badge/Project%20page-open-18181b?style=for-the-badge"></a>
+</p>
+
+<p align="center">
   <img src="docs/site/img/play.webp" alt="Live X01 match with the board and checkout route in the middle" width="900">
 </p>
 

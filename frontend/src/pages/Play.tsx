@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useNavigate } from 'react-router'
 import { getJson, sendJson, type CricketVariant, type GamePlayer, type GameState, type InOutRule } from '../api'
@@ -16,7 +16,7 @@ import VisitPhotos, { type VisitRef } from '../components/VisitPhotos'
 import { dartLabel, dartPoints } from '../dart'
 import { useLiveGame } from '../LiveGame'
 import { useAudioPrefs, useCaller } from '../caller'
-import { PENDING_KEY, useErrorText, type PendingGame } from '../helpers'
+import { onSideColor, PENDING_KEY, sideColor, useErrorText, type PendingGame } from '../helpers'
 import { trainingTarget, useTargetText } from '../target'
 import styles from './Play.module.css'
 
@@ -24,6 +24,12 @@ type InputMode = 'pad' | 'board'
 
 // automatic detections below this confidence are marked for checking
 const LOW_CONFIDENCE = 0.5
+
+/** CSS variables with a player's side colour (green against amber in a duel). */
+function sideVars(game: GameState, position: number) {
+  const color = sideColor(game.players, position)
+  return { '--side': color, '--on-side': onSideColor(color) } as CSSProperties
+}
 
 export default function Play() {
   const { t } = useTranslation()
@@ -149,14 +155,15 @@ function Running({ game }: { game: GameState }) {
   const legWinner = game.leg_winner !== null && game.awaiting_next ? game.players[game.leg_winner] : null
 
   const turnCardFor = (inPanel: boolean) => (
-      <section className={`card ${styles.turn}`} aria-live="polite">
+      <section className={`card ${styles.turn}`} aria-live="polite" style={sideVars(game, current.position)}>
         <div className={styles.turnHeader}>
-          <span className={styles.dot} style={{ background: current.color }} />
+          <span className={styles.stripe} />
           <strong>{game.thrower && !game.awaiting_next ? game.thrower.name : current.name}</strong>
           {game.thrower && !game.awaiting_next && <span className="muted">{current.name}</span>}
           {(game.mode === 'x01' || game.mode === 'checkout_training' || game.mode === 'checkout_121') && game.checkout && !game.awaiting_next && (
             <span className={styles.checkout}>
-              {t('play.checkout')}: {game.checkout.join(' · ')}
+              <span className={styles.checkoutLabel}>{t('play.checkout')}</span>
+              <span className={styles.checkoutRoute}>{game.checkout.join(' · ')}</span>
             </span>
           )}
           <span className={styles.detection}>
@@ -351,6 +358,7 @@ function Running({ game }: { game: GameState }) {
         <TargetBanner game={game} />
         {turnCardFor(false)}
         {error && !panel && <p className="error">{error}</p>}
+        {game.mode === 'x01' && game.players.length === 2 && <MatchStats game={game} />}
         <History game={game} />
       </div>
       <div className={styles.stageToolbar}>
@@ -455,6 +463,10 @@ function MatchInfo({ game }: { game: GameState }) {
   return (
     <>
       <p className={styles.matchInfo}>
+        <span className={styles.live}>
+          <span className={styles.liveDot} aria-hidden="true" />
+          {t('home.live')}
+        </span>{' '}
         {title}
         {(legs > 1 || sets > 1) && (
           <>
@@ -505,7 +517,7 @@ function X01Scores({ game }: { game: GameState }) {
         const running = game.turn && !game.turn.closed && game.turn.player === p.position
         const last = running ? own.at(-2) : own.at(-1)
         return (
-          <article key={p.position} className={`card ${styles.player} ${active ? styles.active : ''}`}>
+          <article key={p.position} className={`card ${styles.player} ${active ? styles.active : ''}`} style={sideVars(game, p.position)}>
             <PlayerHeader game={game} player={p} />
             <div className={styles.remaining}>{game.remaining?.[p.position]}</div>
             <div className={styles.playerStats}>
@@ -669,7 +681,7 @@ function TrainingScores({ game }: { game: GameState }) {
           }
         }
         return (
-          <article key={i} className={`card ${styles.player} ${active ? styles.active : ''}`}>
+          <article key={i} className={`card ${styles.player} ${active ? styles.active : ''}`} style={sideVars(game, i)}>
             <PlayerHeader game={game} player={p} />
             <div className={styles.remaining}>{big}</div>
             <div className={styles.playerStats}>
@@ -756,8 +768,8 @@ function History({ game }: { game: GameState }) {
           const player = game.players[turn.player]
           const turnIndex = game.history.length - 1 - i
           return (
-            <li key={turnIndex}>
-              <span className={styles.dot} style={{ background: player.color }} />
+            <li key={turnIndex} style={sideVars(game, turn.player)}>
+              <span className={styles.stripe} />
               <span className={styles.historyName}>{player.name}</span>
               <span className={styles.historyDarts}>{turn.darts.join(' ')}</span>
               <span className={turn.bust ? styles.bust : styles.historyTotal}>
@@ -769,7 +781,7 @@ function History({ game }: { game: GameState }) {
                 aria-label={t('photos.show')}
                 onClick={() => setPhotos({ ...game.history_leg, turn_index: turnIndex })}
               >
-                📷
+                <CameraIcon />
               </button>
             </li>
           )
@@ -784,6 +796,56 @@ function History({ game }: { game: GameState }) {
           onCorrected={setGame}
         />
       )}
+    </section>
+  )
+}
+
+function CameraIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M3 8h3l2-3h8l2 3h3v11H3z" />
+      <circle cx="12" cy="13" r="3.5" />
+    </svg>
+  )
+}
+
+/** Duel comparison like a broadcast graphic: both values with a split bar in the side colours. */
+function MatchStats({ game }: { game: GameState }) {
+  const { t } = useTranslation()
+  const [a, b] = game.players
+  const tons = (p: GamePlayer) => p.stats.tons['100'] + p.stats.tons['140'] + p.stats.tons['180']
+  const rows: { key: 'play.stats.average' | 'play.stats.highestTurn' | 'play.stats.hundredPlus' | 'play.stats.darts'; a: number | null; b: number | null; digits?: number }[] = [
+    { key: 'play.stats.average', a: a.stats.average, b: b.stats.average, digits: 1 },
+    { key: 'play.stats.highestTurn', a: a.stats.highest_turn, b: b.stats.highest_turn },
+    { key: 'play.stats.hundredPlus', a: tons(a), b: tons(b) },
+    { key: 'play.stats.darts', a: a.stats.darts, b: b.stats.darts },
+  ]
+  if (!a.stats.darts && !b.stats.darts) return null
+  const show = (v: number | null, digits = 0) => (v === null ? '–' : v.toFixed(digits))
+  return (
+    <section className={`card ${styles.matchStats}`}>
+      <div className={styles.matchStatsHead}>
+        <span className="broadcast" style={{ color: sideColor(game.players, 0) }}>{a.name}</span>
+        <span className="label">{t('play.matchStats')}</span>
+        <span className="broadcast" style={{ color: sideColor(game.players, 1) }}>{b.name}</span>
+      </div>
+      {rows.map((row) => {
+        const total = (row.a ?? 0) + (row.b ?? 0)
+        const share = total > 0 ? ((row.a ?? 0) / total) * 100 : 50
+        return (
+          <div key={row.key} className={styles.compare}>
+            <div className={styles.compareValues}>
+              <span className="broadcast">{show(row.a, row.digits)}</span>
+              <span className="label">{t(row.key)}</span>
+              <span className="broadcast">{show(row.b, row.digits)}</span>
+            </div>
+            <div className={styles.compareBar} aria-hidden="true">
+              <span style={{ width: `${share}%`, background: sideColor(game.players, 0) }} />
+              <span style={{ background: sideColor(game.players, 1) }} />
+            </div>
+          </div>
+        )
+      })}
     </section>
   )
 }

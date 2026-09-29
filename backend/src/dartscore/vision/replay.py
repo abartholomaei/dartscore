@@ -18,14 +18,7 @@ from dartscore.config import DetectionConfig
 from dartscore.game.dart import Dart
 from dartscore.vision import board
 from dartscore.vision.calibration import BoardCalibration
-from dartscore.vision.detection import (
-    CameraHit,
-    _roi_mask,
-    find_dart_tip,
-    fuse,
-    local_resolution,
-    refine_with_model,
-)
+from dartscore.vision.detection import CameraHit, CameraView, _roi_mask, find_dart_tip, locate
 from dartscore.vision.model import TipModel
 
 
@@ -45,11 +38,11 @@ def replay_recording(
     model: TipModel | None = None,
 ) -> tuple[str | None, tuple[CameraHit, ...]]:
     """``homographies`` replaces the recorded calibrations (to compare calibrations),
-    ``model`` refines the tips like in live detection."""
+    ``model`` is asked for uncertain darts like in live detection."""
     meta = json.loads((folder / "meta.json").read_text())
     # darts that were in the board before this throw
     known = [tuple(p) for p in (meta.get("board_darts") or [])[:-1]]
-    hits: list[CameraHit] = []
+    views: list[CameraView] = []
     for cid, cal_info in meta.get("calibrations", {}).items():
         before = cv2.imread(str(folder / f"{cid}_before.jpg"))
         after = cv2.imread(str(folder / f"{cid}_after.jpg"))
@@ -76,24 +69,11 @@ def replay_recording(
             config.pixel_threshold,
             min_px,
         )
-        if model is not None:
-            found = refine_with_model(model, calibration, after, found, known)
-        if found is None:
-            continue
-        (tx, ty), area = found
-        bx, by = calibration.image_to_board(np.array([[tx, ty]]))[0]
-        hits.append(
-            CameraHit(
-                cid,
-                (round(tx, 1), round(ty, 1)),
-                (round(float(bx), 1), round(float(by), 1)),
-                area,
-                mm_per_px=round(local_resolution(calibration, tx, ty), 2),
-            )
-        )
-    if not hits:
+        views.append(CameraView(cid, calibration, after, found))
+    located = locate(views, config, len(meta.get("calibrations", {})), model, known)
+    if located is None:
         return None, ()
-    x, y, _, marked = fuse(hits, config.max_spread_mm, len(meta.get("calibrations", {})))
+    x, y, _, marked = located
     return board.score_at(x, y).label, tuple(marked)
 
 

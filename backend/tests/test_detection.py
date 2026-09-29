@@ -6,7 +6,15 @@ import pytest
 from dartscore.config import CameraConfig, DetectionConfig
 from dartscore.vision import board
 from dartscore.vision.calibration import BoardCalibration
-from dartscore.vision.detection import DartDetection, DartDetector, DetectorState, Takeout
+from dartscore.vision.detection import (
+    CameraView,
+    DartDetection,
+    DartDetector,
+    DetectorState,
+    Takeout,
+    locate,
+)
+from dartscore.vision.model import Keypoint
 from dartscore.vision.sources import SimulatedBoard, SyntheticSource
 
 STEP = 1 / 15
@@ -203,3 +211,62 @@ def test_takeout_with_a_stale_empty_reference(rig: Rig, with_hand: bool) -> None
         events += rig.step(1.0)
         assert sum(isinstance(e, Takeout) for e in events) == 1, f"turn {turn}"
         assert rig.detector.darts_in_turn == 0
+
+
+class _FakeModel:
+    """Finds one tip at a fixed pixel in every image and counts how often it was asked."""
+
+    def __init__(self, tip: tuple[float, float]) -> None:
+        self.tip = tip
+        self.calls = 0
+
+    def tips(self, image: object) -> list[Keypoint]:
+        self.calls += 1
+        return [Keypoint(0, self.tip[0], self.tip[1], 0.9)]
+
+
+def _views(tips: list[tuple[float, float] | None]) -> list[CameraView]:
+    image = np.zeros((720, 1280, 3), np.uint8)
+    homography = np.eye(3)
+    return [
+        CameraView(
+            f"cam{i}",
+            BoardCalibration(f"cam{i}", {}, homography, (1280, 720), False, None, 0.0),
+            image,
+            None if tip is None else (tip, 100),
+        )
+        for i, tip in enumerate(tips)
+    ]
+
+
+def test_locate_skips_the_model_when_the_classic_result_is_confident() -> None:
+    model = _FakeModel((50.0, 50.0))
+    config = DetectionConfig(model_below_confidence=0.7)
+    located = locate(
+        _views([(10.0, 10.0), (10.5, 10.0), (10.0, 10.5)]),
+        config,
+        3,
+        model,  # type: ignore[arg-type]
+    )
+    assert located is not None
+    x, y, confidence, _ = located
+    assert confidence >= 0.7
+    assert model.calls == 0
+    assert (x, y) == pytest.approx((10.17, 10.17), abs=0.1)
+
+
+def test_locate_asks_the_model_when_cameras_disagree() -> None:
+    # the model tip is near the classic tip of every camera, so all three agree afterwards
+    model = _FakeModel((12.0, 12.0))
+    config = DetectionConfig(model_below_confidence=0.7)
+    located = locate(
+        _views([(10.0, 10.0), (40.0, 10.0), (10.0, 40.0)]),
+        config,
+        3,
+        model,  # type: ignore[arg-type]
+    )
+    assert located is not None
+    _, _, confidence, hits = located
+    assert model.calls == 3
+    assert confidence > 0.7
+    assert all(h.used for h in hits)

@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from dartscore.vision.model import decode, letterbox
+from dartscore.vision.model import decode, decode_heatmaps, letterbox
 
 
 def test_decode_classic_output_with_nms() -> None:
@@ -33,3 +33,16 @@ def test_letterbox_maps_back() -> None:
     assert tensor.shape == (1, 3, 640, 640)
     assert scale == 0.5
     assert (pad_x, pad_y) == (0, 140)
+
+
+def test_decode_heatmaps_peaks_with_offsets() -> None:
+    # 5 classes + dx, dy on a 20x20 grid, stride 4
+    out = np.zeros((1, 7, 20, 20), np.float32)
+    out[0, 0, 10, 5] = 0.9  # tip in cell (5, 10)
+    out[0, 0, 10, 6] = 0.5  # its neighbour: not a local maximum
+    out[0, 5, 10, 5], out[0, 6, 10, 5] = 0.25, 0.75
+    out[0, 3, 2, 15] = 0.7  # calibration point, class 3
+    out[0, 1, 18, 18] = 0.1  # below the confidence
+    result = sorted(decode_heatmaps(out, classes=5, stride=4, confidence=0.3))
+    assert [(c, x, y) for c, x, y, _ in result] == [(0, 21.0, 43.0), (3, 60.0, 8.0)]
+    assert [s for *_, s in result] == pytest.approx([0.9, 0.7])

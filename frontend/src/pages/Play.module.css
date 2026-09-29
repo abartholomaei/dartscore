@@ -85,7 +85,9 @@
   .stage {
     /* the page below the app header */
     height: calc(100dvh - 64px - 2 * var(--gutter));
-    grid-template-columns: minmax(300px, 1fr) auto minmax(360px, 1fr);
+    /* the board gets a share of the width instead of an auto track: Firefox sizes an auto
+       track around the SVG as 0 px, because its size depends on the row height */
+    grid-template-columns: minmax(300px, 1fr) minmax(0, 2.2fr) minmax(360px, 1fr);
     grid-template-rows: auto minmax(0, 1fr) auto;
     grid-template-areas:
       'top top top'
@@ -97,13 +99,18 @@
   .stageSide {
     min-height: 0;
     overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+
+  /* the board fills the largest square that fits its cell */
+  .stageBoard {
+    container-type: size;
   }
 
   .stageBoard > svg {
-    width: auto;
-    height: 100%;
-    max-width: min(46vw, 100%);
-    max-height: 100%;
+    width: min(100cqw, 100cqh);
+    height: min(100cqw, 100cqh);
   }
 
   .stageToolbar {

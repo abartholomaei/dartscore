@@ -26,9 +26,9 @@ def main() -> None:
     exe = Path(sys.argv[1]) if len(sys.argv) > 1 else ROOT / "build/dist/dartscore" / exe_name
     with tempfile.TemporaryDirectory() as home:
         env = {**os.environ, "DARTSCORE_HOME": home, "DARTSCORE_SERVER__PORT": str(PORT)}
-        version = subprocess.run(
-            [exe, "--version"], env=env, capture_output=True, text=True, check=True
-        )
+        version = subprocess.run([exe, "--version"], env=env, capture_output=True, text=True)
+        if version.returncode != 0:
+            sys.exit(f"--version failed:\n{version.stdout}\n{version.stderr}")
         print(version.stdout.strip())
         proc = subprocess.Popen([exe, "launch", "--no-browser"], env=env)
         try:

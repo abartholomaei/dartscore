@@ -141,8 +141,15 @@ EOF
   if [ -d "$DESKTOP_DIR" ]; then
     cp "$APPS_DIR/dartscore.desktop" "$DESKTOP_DIR/dartscore.desktop"
     chmod +x "$DESKTOP_DIR/dartscore.desktop"
-    # GNOME only starts desktop files that are marked as trusted
-    gio set "$DESKTOP_DIR/dartscore.desktop" metadata::trusted true 2>/dev/null || true
+    # GNOME only starts desktop files that are marked as trusted; gio needs the session bus,
+    # which is missing when the script runs via su or ssh
+    bus="/run/user/$(id -u)/bus"
+    if [ -z "${DBUS_SESSION_BUS_ADDRESS:-}" ] && [ -S "$bus" ]; then
+      DBUS_SESSION_BUS_ADDRESS="unix:path=$bus" gio set "$DESKTOP_DIR/dartscore.desktop" \
+        metadata::trusted true 2>/dev/null || true
+    else
+      gio set "$DESKTOP_DIR/dartscore.desktop" metadata::trusted true 2>/dev/null || true
+    fi
   fi
   update-desktop-database "$APPS_DIR" 2>/dev/null || true
 

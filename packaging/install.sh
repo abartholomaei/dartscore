@@ -193,7 +193,7 @@ if [ "$PLATFORM" = linux ]; then
 else
   say "  Start:     dartscore in $APP_DIR (Launchpad) or on the Desktop"
 fi
-say "  Cameras:   dartscore devices   (then edit config.toml, see below)"
+say "  Cameras:   dartscore devices   (then enter them in config.toml)"
 say "  Settings:  $HOME_DIR/config.toml (created on the first start)"
 case ":$PATH:" in
   *":$BIN_DIR:"*) ;;

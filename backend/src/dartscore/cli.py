@@ -87,7 +87,7 @@ def cmd_launch(settings: Settings, args: argparse.Namespace) -> None:
     if others:
         print(f"  Phones/tablets:\n{others}")
     print(f"  Settings & data: {Path.cwd()}\n")
-    print("Close this window or press Ctrl+C to stop dartscore.\n")
+    print("Close this window or press Ctrl+C to stop dartscore.\n", flush=True)
     if not getattr(args, "no_browser", False):
         threading.Thread(target=_open_when_ready, args=(url,), daemon=True).start()
     try:

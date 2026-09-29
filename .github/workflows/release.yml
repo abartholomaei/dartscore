@@ -1,0 +1,96 @@
+# Builds the release packages for Linux, macOS and Windows (packaging/build.py), tests each
+# bundle and, for a pushed tag vX.Y.Z, publishes them as a GitHub release.
+# Pull requests that touch packaging/ and manual runs (Actions > Release > Run workflow) only
+# build and test; the packages are attached to the run as artifacts. See docs/releasing.md.
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+  pull_request:
+    paths: ["packaging/**", ".github/workflows/release.yml"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build ${{ matrix.target }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # oldest supported glibc (2.35) keeps the Linux builds running on Debian 12 / Pi OS
+          - { os: ubuntu-22.04, target: linux-x86_64 }
+          - { os: ubuntu-22.04-arm, target: linux-arm64 }
+          - { os: macos-14, target: macos-arm64 }
+          - { os: windows-2022, target: windows-x64 }
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Check that the tag matches the version in pyproject.toml
+        if: startsWith(github.ref, 'refs/tags/v')
+        shell: bash
+        run: |
+          version=$(sed -n 's/^version = "\(.*\)"/\1/p' backend/pyproject.toml | head -n 1)
+          if [ "v$version" != "$GITHUB_REF_NAME" ]; then
+            echo "::error::tag $GITHUB_REF_NAME does not match version $version in backend/pyproject.toml"
+            exit 1
+          fi
+
+      - uses: actions/setup-python@v6
+        id: python
+        with:
+          python-version: "3.12"
+      - uses: astral-sh/setup-uv@v6
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install Python dependencies
+        # PyInstaller needs a regular (shared) CPython, not uv's standalone builds
+        run: uv sync --project backend --group package --no-dev --locked --python "${{ steps.python.outputs.python-path }}"
+
+      - name: Install Inno Setup
+        if: runner.os == 'Windows'
+        run: if (-not (Get-Command iscc -ErrorAction SilentlyContinue) -and -not (Test-Path "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe")) { choco install innosetup -y --no-progress }
+
+      - name: Build
+        run: uv run --project backend --group package --no-dev --locked python packaging/build.py
+
+      - name: Smoke test
+        run: python packaging/smoke_test.py
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dartscore-${{ matrix.target }}
+          path: release/*
+          if-no-files-found: error
+
+  publish:
+    name: Publish release
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/download-artifact@v5
+        with:
+          path: release
+          merge-multiple: true
+      - name: Create the GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cp packaging/install.sh release/install.sh
+          (cd release && sha256sum * > SHA256SUMS.txt)
+          gh release create "$GITHUB_REF_NAME" release/* \
+            --title "dartscore ${GITHUB_REF_NAME#v}" \
+            --notes-file packaging/release-notes.md \
+            --generate-notes

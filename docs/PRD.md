@@ -468,8 +468,10 @@ Aggregierte Statistiken können als Cache-Tabelle (z. B. `player_stats`) gehalte
 ### Epic 11 – Deployment & Betrieb
 - [ ] Mac mini vorbereiten: Debian aktualisieren, Kamera-Treiber (UVC) prüfen, `v4l2-utils`, feste Gerätenamen per udev-Regel
 - [ ] Docker-Image multi-arch (amd64/arm64) mit Kamera-Durchreichung
-- [ ] Alternativ native Installation (Installskript) mit Autostart als systemd-Dienst
-- [ ] Plattformtests: Debian x86 (Referenz), Raspberry Pi OS, macOS, Windows (nativ)
+- [x] Alternativ native Installation (Installskript) mit Autostart als systemd-Dienst (`packaging/install.sh --service`, systemd-User-Dienst; Anleitungen in `docs/install/`)
+- [x] Releases auf GitHub: fertige Pakete für Linux x86_64/ARM64, macOS (Apple Silicon) und Windows (Setup + portable ZIP) per GitHub Actions bei jedem Tag `vX.Y.Z`, jeweils mit Smoke-Test (`docs/releasing.md`)
+- [x] Desktop-Verknüpfungen, die Server und Browser starten (`dartscore launch`): Linux-Menü/Desktop, `dartscore.app` auf macOS, Startmenü/Desktop auf Windows
+- [ ] Plattformtests: Debian x86 (Referenz), Raspberry Pi OS, macOS, Windows (nativ) – Release-Builds starten per Smoke-Test in CI auf allen Plattformen; Test mit echten Kameras auf macOS/Windows steht aus
 - [x] Umschalten zwischen Autodarts und dartscore auf dem Referenzrechner (systemd-Unit mit `Conflicts=autodarts.service`, `deploy/dartscore.service`)
 - [ ] Zugriff im Heimnetz (feste IP / mDNS, z. B. `darts.local`)
 - [ ] Update-Prozess (git pull + Migration)

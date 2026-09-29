@@ -33,8 +33,10 @@ def create_db_engine(url: str) -> Engine:
 
 def alembic_config(url: str) -> Config:
     config = Config()
-    config.set_main_option("script_location", str(MIGRATIONS_DIR))
-    config.set_main_option("sqlalchemy.url", url)
+    # alembic's configparser treats % as interpolation; str(engine.url) percent-encodes
+    # characters such as the ":" and "\\" of Windows paths
+    config.set_main_option("script_location", str(MIGRATIONS_DIR).replace("%", "%%"))
+    config.set_main_option("sqlalchemy.url", url.replace("%", "%%"))
     return config
 
 

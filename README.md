@@ -68,9 +68,9 @@ Ready-to-run builds for Windows, macOS (Apple Silicon) and Linux (x86_64, ARM64)
 
 | System | Guide |
 | --- | --- |
-| Windows 10/11 | [docs/install/windows.md](docs/install/windows.md) – setup `.exe` with Start menu and desktop shortcut |
-| macOS 14+ | [docs/install/macos.md](docs/install/macos.md) – `dartscore.app` via the install script |
-| Linux (Debian, Ubuntu, Raspberry Pi OS) | [docs/install/linux.md](docs/install/linux.md) – app menu and desktop shortcut, optional autostart service |
+| Windows 10/11 | [docs/install/windows.md](docs/install/windows.md) ([Deutsch](docs/install/de/windows.md)) – setup `.exe` with Start menu and desktop shortcut |
+| macOS 14+ | [docs/install/macos.md](docs/install/macos.md) ([Deutsch](docs/install/de/macos.md)) – `dartscore.app` via the install script |
+| Linux (Debian, Ubuntu, Raspberry Pi OS) | [docs/install/linux.md](docs/install/linux.md) ([Deutsch](docs/install/de/linux.md)) – app menu and desktop shortcut, optional autostart service |
 
 On Linux and macOS, one line installs the latest release:
 

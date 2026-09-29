@@ -2,10 +2,10 @@
 
 | System | File | Guide |
 | --- | --- | --- |
-| Windows 10/11 (64-bit) | `dartscore-…-windows-x64-setup.exe` (or the portable `.zip`) | [Windows](https://github.com/abartholomaei/dartscore/blob/main/docs/install/windows.md) |
-| macOS 14+ (Apple Silicon) | `dartscore-…-macos-arm64.tar.gz` | [macOS](https://github.com/abartholomaei/dartscore/blob/main/docs/install/macos.md) |
-| Linux x86_64 (Debian 12+, Ubuntu 22.04+) | `dartscore-…-linux-x86_64.tar.gz` | [Linux](https://github.com/abartholomaei/dartscore/blob/main/docs/install/linux.md) |
-| Linux ARM64 (Raspberry Pi 5) | `dartscore-…-linux-arm64.tar.gz` | [Linux](https://github.com/abartholomaei/dartscore/blob/main/docs/install/linux.md) |
+| Windows 10/11 (64-bit) | `dartscore-…-windows-x64-setup.exe` (or the portable `.zip`) | [Windows](https://github.com/abartholomaei/dartscore/blob/main/docs/install/windows.md) · [Deutsch](https://github.com/abartholomaei/dartscore/blob/main/docs/install/de/windows.md) |
+| macOS 14+ (Apple Silicon) | `dartscore-…-macos-arm64.tar.gz` | [macOS](https://github.com/abartholomaei/dartscore/blob/main/docs/install/macos.md) · [Deutsch](https://github.com/abartholomaei/dartscore/blob/main/docs/install/de/macos.md) |
+| Linux x86_64 (Debian 12+, Ubuntu 22.04+) | `dartscore-…-linux-x86_64.tar.gz` | [Linux](https://github.com/abartholomaei/dartscore/blob/main/docs/install/linux.md) · [Deutsch](https://github.com/abartholomaei/dartscore/blob/main/docs/install/de/linux.md) |
+| Linux ARM64 (Raspberry Pi 5) | `dartscore-…-linux-arm64.tar.gz` | [Linux](https://github.com/abartholomaei/dartscore/blob/main/docs/install/linux.md) · [Deutsch](https://github.com/abartholomaei/dartscore/blob/main/docs/install/de/linux.md) |
 
 Linux and macOS in one line:
 

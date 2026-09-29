@@ -2,7 +2,7 @@
 
 For Macs with Apple Silicon (M1 or newer) and macOS 14 Sonoma or newer. Python and Node.js are not required. Intel Macs: install [from source](../../README.md#setup).
 
-Other systems: [Linux](linux.md) · [Windows](windows.md)
+Other systems: [Linux](linux.md) · [Windows](windows.md) · Deutsch: [macOS](de/macos.md)
 
 ## 1. Install
 

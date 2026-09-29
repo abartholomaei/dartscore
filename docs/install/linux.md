@@ -2,7 +2,7 @@
 
 For x86_64 PCs (Debian 12+, Ubuntu 22.04+, similar) and ARM64 boards such as the Raspberry Pi 5 (64-bit Raspberry Pi OS). No root rights needed; Python and Node.js are not required.
 
-Other systems: [macOS](macos.md) · [Windows](windows.md) · from source: [README](../../README.md#setup)
+Other systems: [macOS](macos.md) · [Windows](windows.md) · from source: [README](../../README.md#setup) · Deutsch: [Linux](de/linux.md)
 
 ## 1. Install
 

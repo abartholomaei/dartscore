@@ -2,7 +2,7 @@
 
 For Windows 10 and 11 (64-bit). No administrator rights needed; Python and Node.js are not required.
 
-Other systems: [Linux](linux.md) · [macOS](macos.md)
+Other systems: [Linux](linux.md) · [macOS](macos.md) · Deutsch: [Windows](de/windows.md)
 
 ## 1. Install
 

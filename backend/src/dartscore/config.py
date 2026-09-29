@@ -16,6 +16,8 @@ from pydantic_settings import (
     SettingsConfigDict,
 )
 
+from dartscore.paths import default_frontend_dir
+
 CONFIG_ENV_VAR = "DARTSCORE_CONFIG"
 DEFAULT_CONFIG_FILE = Path("config.toml")
 
@@ -106,7 +108,7 @@ class Settings(BaseSettings):
 
     data_dir: Path = Path("data")
     # built frontend (npm run build); served by the backend if present
-    frontend_dir: Path = Path("frontend/dist")
+    frontend_dir: Path = Field(default_factory=default_frontend_dir)
     server: ServerConfig = ServerConfig()
     logging: LoggingConfig = LoggingConfig()
     stream: StreamConfig = StreamConfig()

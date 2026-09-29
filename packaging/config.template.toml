@@ -1,0 +1,37 @@
+# dartscore configuration
+# Created on the first start of an installed dartscore. Edit it, then restart dartscore.
+# All options with explanations: config.example.toml in the repository,
+# https://github.com/abartholomaei/dartscore/blob/main/config.example.toml
+# Camera setup: https://github.com/abartholomaei/dartscore/blob/main/docs/hardware-setup.md
+
+# database, calibrations, recordings (relative to this file's folder)
+data_dir = "data"
+
+[server]
+# 0.0.0.0: phones, tablets and TVs on the home network can connect
+host = "0.0.0.0"
+port = 8000
+
+[logging]
+level = "INFO"
+
+# Three cameras, roughly 120° apart (0 = top, clockwise). Remove the # in front of the
+# lines below and fill in "device" with what `dartscore devices` prints:
+#   Linux:           the stable /dev/v4l/by-path/... path of each camera
+#   macOS, Windows:  the camera number ("0", "1", "2")
+# Without cameras, dartscore still runs as a manual scorer (enter scores by tapping).
+#
+# [[cameras]]
+# id = "cam1"
+# device = "0"
+# position_deg = 0
+#
+# [[cameras]]
+# id = "cam2"
+# device = "1"
+# position_deg = 120
+#
+# [[cameras]]
+# id = "cam3"
+# device = "2"
+# position_deg = 240

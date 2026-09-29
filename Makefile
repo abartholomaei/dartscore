@@ -1,4 +1,4 @@
-.PHONY: install dev-backend dev-frontend format lint typecheck test check hooks pages
+.PHONY: install dev-backend dev-frontend format lint typecheck test check hooks pages package
 
 install:
 	cd backend && uv sync
@@ -34,3 +34,7 @@ hooks:
 # Publish the project page (docs/site) to the gh-pages branch served by GitHub Pages
 pages:
 	git push origin `git subtree split --prefix docs/site HEAD`:refs/heads/gh-pages
+
+# Release package for this system (PyInstaller bundle + installer) into release/, see docs/releasing.md
+package:
+	uv run --project backend --group package python packaging/build.py

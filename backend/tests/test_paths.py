@@ -84,3 +84,11 @@ def test_launch_only_opens_the_browser_when_already_running(
     cli.main(["launch"])
 
     assert opened == ["http://localhost:8000"]
+
+
+def test_migrations_accept_percent_encoded_paths(tmp_path: Path) -> None:
+    # str(engine.url) percent-encodes Windows paths (C%3A%5C...); alembic must not choke
+    from dartscore.storage.db import alembic_config
+
+    url = f"sqlite:///{tmp_path}/C%3A%5Cdata/dartscore.db"
+    assert alembic_config(url).get_main_option("sqlalchemy.url") == url

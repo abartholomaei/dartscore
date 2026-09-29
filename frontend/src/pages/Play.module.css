@@ -76,6 +76,14 @@
   white-space: nowrap;
 }
 
+/* the slanted large buttons would otherwise keep their wide padding and clip the label */
+.stageToolbar > :global(.button) {
+  padding-inline: 18px;
+  font-size: 1rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .stageToolbar > .stageNext {
   grid-column: 1 / -1;
 }

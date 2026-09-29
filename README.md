@@ -12,6 +12,7 @@
 
 <p align="center">
   <a href="https://abartholomaei.github.io/dartscore/"><img alt="Project page" src="https://img.shields.io/badge/project%20page-open-22c55e?style=flat-square"></a>
+  <a href="https://github.com/abartholomaei/dartscore/releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/abartholomaei/dartscore?style=flat-square&label=download"></a>
   <img alt="Python 3.12" src="https://img.shields.io/badge/python-3.12-3776ab?style=flat-square&logo=python&logoColor=white">
   <img alt="React + TypeScript" src="https://img.shields.io/badge/react-typescript-3178c6?style=flat-square&logo=react&logoColor=white">
   <img alt="FastAPI" src="https://img.shields.io/badge/fastapi-sqlite-009688?style=flat-square&logo=fastapi&logoColor=white">
@@ -55,13 +56,32 @@
 
 <sub>Screenshots show demo data. The full feature tour is on the <a href="https://abartholomaei.github.io/dartscore/">project page</a>; requirements and roadmap are in <a href="docs/PRD.md">docs/PRD.md</a> (German), camera setup in <a href="docs/hardware-setup.md">docs/hardware-setup.md</a>.</sub>
 
+## Installation
+
+Ready-to-run builds for Windows, macOS (Apple Silicon) and Linux (x86_64, ARM64) are on the [releases page](https://github.com/abartholomaei/dartscore/releases/latest). They need neither Python nor Node.js and add a shortcut that starts the server and opens the UI in the browser.
+
+| System | Guide |
+| --- | --- |
+| Windows 10/11 | [docs/install/windows.md](docs/install/windows.md) – setup `.exe` with Start menu and desktop shortcut |
+| macOS 14+ | [docs/install/macos.md](docs/install/macos.md) – `dartscore.app` via the install script |
+| Linux (Debian, Ubuntu, Raspberry Pi OS) | [docs/install/linux.md](docs/install/linux.md) – app menu and desktop shortcut, optional autostart service |
+
+On Linux and macOS, one line installs the latest release:
+
+```bash
+curl -fsSL https://github.com/abartholomaei/dartscore/releases/latest/download/install.sh | sh
+```
+
+How releases are made: [docs/releasing.md](docs/releasing.md). To develop or to run from source, read on.
+
 ## Structure
 
 | Folder | Contents |
 | --- | --- |
 | `backend/` | Python package `dartscore`: FastAPI server, game logic (`game`), detection (`vision`), persistence (`storage`) |
 | `frontend/` | Web UI (React + TypeScript + Vite), responsive for phone, tablet, desktop and TV |
-| `docs/` | PRD, hardware notes and the project page (`docs/site`, published with `make pages`) |
+| `docs/` | PRD, hardware notes, installation guides (`docs/install`) and the project page (`docs/site`, published with `make pages`) |
+| `packaging/` | Release builds: PyInstaller spec, installers, shortcuts (`make package`) |
 | `config.example.toml` | Example configuration (server, cameras, logging) |
 
 ## Requirements

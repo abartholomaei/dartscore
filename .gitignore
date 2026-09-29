@@ -26,3 +26,7 @@ datasets/
 .idea/
 .vscode/*
 !.vscode/extensions.json
+
+# Release builds (packaging/build.py)
+/build/
+/release/

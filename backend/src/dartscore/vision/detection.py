@@ -182,14 +182,16 @@ def fuse(
     """Combines the per-camera board positions.
 
     Each camera is trusted according to its local resolution: a camera seeing the spot from
-    close by (few mm per pixel) counts more than one looking at it across the whole board.
+    close by (few mm per pixel) counts more than one looking at it across the whole board. The
+    weight is only 1 / resolution: on real throws a sharp camera is barely more often right on
+    its own than a blurry one, so stronger weighting lets one wrong sharp camera pull too far.
     Two cameras agree if they are closer than ``max_spread_mm`` plus a margin for their
     resolution. The best supported group is averaged; if no cameras agree, the sharpest one
     wins. Returns x, y, confidence and the hits with the ignored ones marked as unused.
     """
     pts = np.array([h.board_mm for h in hits], dtype=np.float64)
     sigma = np.array([max(h.mm_per_px, 0.1) for h in hits])
-    weight = 1.0 / sigma**2
+    weight = 1.0 / sigma
     distances = np.linalg.norm(pts[:, None, :] - pts[None, :, :], axis=2)
     tolerance = max_spread_mm + 3.0 * (sigma[:, None] + sigma[None, :])
     agrees = distances <= tolerance

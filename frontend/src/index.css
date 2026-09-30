@@ -1,5 +1,6 @@
 :root {
-  /* black and grey with board green as the accent; red is reserved for errors and busts */
+  /* black and grey with board green as the accent; red is reserved for errors and busts.
+     In a duel the second player gets warm amber, like the two sides of a TV broadcast. */
   --bg: #0b0b0c;
   --surface: #161618;
   --surface-raised: #202023;
@@ -12,8 +13,13 @@
   --ok: #22c55e;
   --warn: #f59e0b;
   --error: #ef4444;
+  --opponent: #f59e0b;
+  --on-opponent: #1a1204;
 
-  --radius: 12px;
+  --radius: 4px;
+  /* broadcast look: panels and buttons cut at an angle */
+  --slant: 12px;
+  --slant-shape: polygon(var(--slant) 0, 100% 0, calc(100% - var(--slant)) 100%, 0 100%);
   --gutter: 16px;
 
   --font-display: 'Barlow Condensed', 'Arial Narrow', system-ui, sans-serif;
@@ -65,8 +71,30 @@ h2,
 }
 
 h1 {
-  font-weight: 800;
+  font-style: italic;
+  font-weight: 900;
   text-transform: uppercase;
+}
+
+/* heavy italic display figures, as in TV graphics */
+.broadcast {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.slanted {
+  clip-path: var(--slant-shape);
+}
+
+/* small uppercase caption above panels and values */
+.label {
+  font-size: 0.8125rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
 }
 
 /* shared building blocks */
@@ -78,10 +106,10 @@ h1 {
 }
 
 .cardTitle {
-  font-size: 1.05rem;
-  font-weight: 700;
+  font-size: 0.9375rem;
+  font-weight: 800;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.12em;
   color: var(--text-muted);
   margin-bottom: 10px;
 }
@@ -144,6 +172,26 @@ a {
 }
 
 .button.large {
-  padding: 16px 24px;
+  padding: 16px 28px;
   font-size: 1.125rem;
+  font-weight: 700;
+  border-color: transparent;
+  border-radius: 0;
+  background: var(--surface-raised);
+  clip-path: var(--slant-shape);
+}
+
+.button.large:hover:not(:disabled) {
+  border-color: transparent;
+  background: #2a2a2e;
+}
+
+.button.primary.large {
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  background: var(--accent);
+}
+
+.button.primary.large:hover:not(:disabled) {
+  background: var(--accent-strong);
 }

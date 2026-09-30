@@ -107,6 +107,34 @@ export default function PlayerStats() {
 
       <TrainingPlan playerId={stats.player.id} />
 
+      {others.length > 0 && (
+        <section className="card">
+          <div className={styles.h2hTop}>
+            <h2 className="cardTitle">{t('stats.headToHead')}</h2>
+            <select
+              className={styles.select}
+              aria-label={t('stats.chooseOpponent')}
+              value={opponent ?? ''}
+              onChange={(e) => setOpponent(e.target.value ? Number(e.target.value) : null)}
+            >
+              <option value="">{t('stats.chooseOpponent')}</option>
+              {others.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          {h2h && opponent !== null && (
+            <HeadToHeadView
+              h2h={h2h}
+              me={{ id: stats.player.id, name: stats.player.name, color: stats.player.color, avatar: stats.player.avatar }}
+              them={others.find((p) => p.id === opponent)}
+            />
+          )}
+        </section>
+      )}
+
       {x01 && (
         <section className="card">
           <h2 className="cardTitle">X01</h2>
@@ -209,32 +237,145 @@ export default function PlayerStats() {
         </section>
       )}
 
-      {others.length > 0 && (
-        <section className="card">
-          <h2 className="cardTitle">{t('stats.headToHead')}</h2>
-          <select
-            className={styles.select}
-            value={opponent ?? ''}
-            onChange={(e) => setOpponent(e.target.value ? Number(e.target.value) : null)}
-          >
-            <option value="">{t('stats.chooseOpponent')}</option>
-            {others.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.name}
-              </option>
-            ))}
-          </select>
-          {h2h && opponent !== null && (
-            <div className={styles.h2h}>
-              <span className={styles.h2hScore}>
-                {h2h.wins[String(id)] ?? 0} : {h2h.wins[String(opponent)] ?? 0}
-              </span>
-              <span className="muted">{t('stats.gamesCount', { count: h2h.games })}</span>
-            </div>
-          )}
-        </section>
-      )}
     </>
+  )
+}
+
+type Side = { id: number; name: string; color: string; avatar: string | null }
+
+/** Two players side by side like a broadcast graphic: this player in green, the opponent in amber. */
+function HeadToHeadView({ h2h, me, them }: { h2h: HeadToHead; me: Side; them: Side | undefined }) {
+  const { t } = useTranslation()
+  if (!them) return null
+  const a = h2h.stats[String(me.id)]
+  const b = h2h.stats[String(them.id)]
+  const winsA = h2h.wins[String(me.id)] ?? 0
+  const winsB = h2h.wins[String(them.id)] ?? 0
+  if (!h2h.games || !a || !b) return <p className="muted">{t('stats.gamesCount', { count: 0 })}</p>
+
+  const tons = (s: AggregateStats) => s.tons['100'] + s.tons['140'] + s.tons['180']
+  const rows = (
+    [
+      ['play.stats.average', a.average, b.average, (v: number) => v.toFixed(1)],
+      ['play.stats.first9', a.first9_average, b.first9_average, (v: number) => v.toFixed(1)],
+      ['play.stats.checkout', a.checkout_rate, b.checkout_rate, (v: number) => pct(v)],
+      ['play.stats.highestFinish', a.highest_finish || null, b.highest_finish || null, String],
+      ['play.stats.hundredPlus', a.turns ? tons(a) : null, b.turns ? tons(b) : null, String],
+      ['stats.oneEighty', a.turns ? a.tons['180'] : null, b.turns ? b.tons['180'] : null, String],
+      // MPR only when they played Cricket against each other
+      ['play.stats.mpr', a.mpr || null, b.mpr || null, (v: number) => v.toFixed(2)],
+    ] as const
+  ).filter(([, va, vb]) => va !== null || vb !== null)
+
+  // who won each common game, oldest first
+  const wonByMe = new Map(a.trend.map((g) => [g.game_id, g.won]))
+  const wonByThem = new Map(b.trend.map((g) => [g.game_id, g.won]))
+  const duels = a.trend.map((g) => (wonByMe.get(g.game_id) ? 'me' : wonByThem.get(g.game_id) ? 'them' : 'none')).slice(-12)
+
+  const avgA = a.trend.map((g) => g.average)
+  const avgB = b.trend.map((g) => g.average)
+  const values = [...avgA, ...avgB].filter((v): v is number => v !== null)
+
+  const side = (p: Side, color: string, wins: number) => (
+    <div className={styles.h2hPlayer}>
+      <span className={styles.h2hRing} style={{ borderColor: color }}>
+        <Avatar name={p.name} color={p.color} avatar={p.avatar} size={112} />
+      </span>
+      <span className={`broadcast ${styles.h2hName}`}>{p.name}</span>
+      <span className="muted">{t('stats.winsCount', { count: wins })}</span>
+    </div>
+  )
+
+  return (
+    <div className={styles.h2hView}>
+      <div className={styles.h2hBand}>
+        <span className={styles.h2hWedgeLeft} aria-hidden="true" />
+        <span className={styles.h2hWedgeRight} aria-hidden="true" />
+        {side(me, 'var(--accent)', winsA)}
+        <div className={styles.h2hCenter}>
+          <span className="label">{t('stats.h2hWins')}</span>
+          <span className={`broadcast ${styles.h2hScore}`}>
+            <span style={{ color: 'var(--accent)' }}>{winsA}</span>
+            <span className={styles.h2hColon}>:</span>
+            <span style={{ color: 'var(--opponent)' }}>{winsB}</span>
+          </span>
+          <span className="muted">{t('stats.gamesCount', { count: h2h.games })}</span>
+        </div>
+        {side(them, 'var(--opponent)', winsB)}
+      </div>
+
+      <div className={styles.h2hBody}>
+        <div className={styles.h2hCompare}>
+          <h3 className={styles.subTitle}>{t('stats.h2hCompare')}</h3>
+          {rows.map(([key, va, vb, format]) => {
+            const total = (va ?? 0) + (vb ?? 0)
+            const share = total > 0 ? ((va ?? 0) / total) * 100 : 50
+            return (
+              <div key={key} className={styles.h2hRow}>
+                <div className={styles.h2hValues}>
+                  <span className="broadcast" style={{ color: (va ?? 0) > (vb ?? 0) ? 'var(--accent)' : undefined }}>
+                    {va === null ? '–' : format(va)}
+                  </span>
+                  <span className="label">{t(key)}</span>
+                  <span className="broadcast" style={{ color: (vb ?? 0) > (va ?? 0) ? 'var(--opponent)' : undefined }}>
+                    {vb === null ? '–' : format(vb)}
+                  </span>
+                </div>
+                <div className={styles.h2hBar} aria-hidden="true">
+                  <span style={{ width: `${share}%` }} />
+                  <span />
+                </div>
+              </div>
+            )
+          })}
+        </div>
+
+        <div className={styles.h2hSide}>
+          <h3 className={styles.subTitle}>{t('stats.h2hHistory')}</h3>
+          <ol className={styles.duels}>
+            {duels.map((who, i) => (
+              <li key={i} className={`${styles.duel} ${who === 'me' ? styles.duelMe : who === 'them' ? styles.duelThem : ''}`}>
+                <span className="broadcast">{who === 'me' ? me.name : who === 'them' ? them.name : '–'}</span>
+              </li>
+            ))}
+          </ol>
+          {values.length >= 2 && (
+            <>
+              <h3 className={styles.subTitle}>{t('stats.h2hAverage')}</h3>
+              <DuelChart a={avgA} b={avgB} label={t('stats.h2hAverage')} />
+              <div className={styles.legend}>
+                <span>
+                  <span className={styles.legendMe} /> {me.name}
+                </span>
+                <span>
+                  <span className={styles.legendThem} /> {them.name}
+                </span>
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+/** Both players' averages per common game on one scale. */
+function DuelChart({ a, b, label }: { a: (number | null)[]; b: (number | null)[]; label: string }) {
+  const values = [...a, ...b].filter((v): v is number => v !== null)
+  const w = 600
+  const h = 160
+  const min = Math.min(...values)
+  const span = Math.max(...values) - min || 1
+  const n = Math.max(a.length, b.length)
+  const line = (series: (number | null)[]) =>
+    series
+      .map((v, i) => (v === null ? null : [n > 1 ? (i / (n - 1)) * w : w / 2, h - ((v - min) / span) * (h - 16) - 8]))
+      .filter((p): p is number[] => p !== null)
+  return (
+    <svg viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="none" role="img" aria-label={label} className={styles.duelChart}>
+      <polyline points={line(b).map(([x, y]) => `${x},${y}`).join(' ')} className={styles.lineThem} />
+      <polyline points={line(a).map(([x, y]) => `${x},${y}`).join(' ')} className={styles.lineMe} />
+    </svg>
   )
 }
 

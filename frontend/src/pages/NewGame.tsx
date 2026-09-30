@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useNavigate } from 'react-router'
+import { useNavigate, useSearchParams } from 'react-router'
 import { ApiError, ARCADE_MODES, BOT_MODES, getJson, sendJson, PARTY_MODES, TRAINING_MODES, type GameMode, type GameState, type Player } from '../api'
 import { useLiveGame } from '../LiveGame'
 import { PENDING_KEY, useErrorText } from '../helpers'
@@ -13,6 +13,7 @@ type Participant = { key: string; playerId: number | null; guestName: string | n
 type InOut = 'single' | 'double' | 'master'
 
 const START_SCORES = [301, 501, 701, 901]
+const PRESET_MODES: GameMode[] = ['x01', 'cricket', ...TRAINING_MODES, ...PARTY_MODES, ...ARCADE_MODES]
 const STORAGE_KEY = 'dartscore.newGame'
 
 type Saved = {
@@ -134,7 +135,10 @@ export default function NewGame() {
   const { game: active, setGame } = useLiveGame()
   const saved = loadSaved()
 
-  const [mode, setMode] = useState<GameMode>(saved.mode ?? 'x01')
+  // the quick start on the home page preselects a mode
+  const [params] = useSearchParams()
+  const preset = params.get('mode') as GameMode | null
+  const [mode, setMode] = useState<GameMode>(preset && PRESET_MODES.includes(preset) ? preset : (saved.mode ?? 'x01'))
   const [startScore, setStartScore] = useState(saved.startScore ?? 501)
   const [inRule, setInRule] = useState<InOut>(saved.inRule ?? 'single')
   const [outRule, setOutRule] = useState<InOut>(saved.outRule ?? 'double')

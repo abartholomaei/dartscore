@@ -1,90 +1,325 @@
-.title {
-  font-size: clamp(1.75rem, 4vw, 3rem);
-  letter-spacing: -0.02em;
-}
-
-.hero {
+.top {
   display: grid;
-  gap: 12px;
-  grid-template-columns: 1fr;
+  gap: var(--gutter);
+  grid-template-columns: minmax(0, 1fr);
 }
 
-@media (min-width: 700px) {
-  .hero {
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+@media (min-width: 1000px) {
+  .top {
+    grid-template-columns: minmax(0, 1fr) minmax(340px, 420px);
   }
 }
 
-.resume {
-  grid-column: 1 / -1;
+/* --- no game running: brand and the two main actions ------------------------------- */
+
+.welcome {
   display: grid;
-  gap: 6px;
-  color: var(--text);
-  text-decoration: none;
-  border: 2px solid var(--accent);
+  align-content: center;
+  gap: 24px;
+  padding: clamp(24px, 4vw, 48px);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
 }
 
-.resumeLabel {
+.title {
+  font-size: clamp(2.5rem, 7vw, 5.5rem);
+  line-height: 0.9;
+}
+
+.titleAccent {
   color: var(--accent);
-  font-weight: 700;
-  text-transform: uppercase;
-  font-size: 0.8125rem;
-  letter-spacing: 0.05em;
 }
 
-.resumeTitle {
-  font-size: 1.5rem;
-  font-weight: 800;
-}
-
-.resumePlayers {
+.welcomeActions {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px 18px;
+  gap: 12px;
 }
 
-.dot {
-  display: inline-block;
-  width: 10px;
-  height: 10px;
+/* --- running game: the match preview ----------------------------------------------- */
+
+.match {
+  position: relative;
+  overflow: hidden;
+  display: grid;
+  gap: 20px;
+  padding: clamp(16px, 3vw, 28px) clamp(16px, 3vw, 36px);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  text-decoration: none;
+}
+
+.wedgeLeft,
+.wedgeRight {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 18%;
+  transform: skewX(-14deg);
+  opacity: 0.9;
+}
+
+.wedgeLeft {
+  left: -10%;
+}
+
+.wedgeRight {
+  right: -10%;
+}
+
+.matchHead,
+.duel,
+.group,
+.matchCta {
+  position: relative;
+}
+
+.matchHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 14px;
+}
+
+.live {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 10px;
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.liveDot {
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
-  margin-right: 6px;
+  background: var(--error);
+  animation: pulse 1.6s ease-in-out infinite;
 }
 
-.recent {
-  list-style: none;
-  margin: 0;
-  padding: 0;
+@keyframes pulse {
+  50% {
+    opacity: 0.35;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .liveDot {
+    animation: none;
+  }
+}
+
+.duel {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+}
+
+.group {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 24px 40px;
+}
+
+.matchPlayer {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  min-width: 0;
+  text-align: center;
+}
+
+.ring {
+  display: inline-flex;
+  border: 4px solid;
+  border-radius: 50%;
+  background: var(--bg);
+}
+
+.matchName {
+  font-size: clamp(2rem, 5vw, 4rem);
+  text-transform: uppercase;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.matchNameSmall {
+  font-size: clamp(1.5rem, 3vw, 2.25rem);
+  text-transform: uppercase;
+}
+
+.versus {
+  display: grid;
+  justify-items: center;
+}
+
+.legScore {
+  font-size: clamp(4rem, 10vw, 8rem);
+  line-height: 0.9;
+}
+
+.legColon {
+  color: var(--text-muted);
+  padding: 0 0.15em;
+}
+
+.vs {
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+.matchCta {
+  justify-self: center;
+  pointer-events: none;
+}
+
+/* phones: smaller portraits so both players fit side by side */
+@media (max-width: 559px) {
+  .duel .ring img,
+  .duel .ring span {
+    /* the avatar sizes itself inline */
+    width: 72px !important;
+    height: 72px !important;
+    font-size: 32px !important;
+  }
+}
+
+/* --- quick start ------------------------------------------------------------------- */
+
+.quick {
+  display: grid;
+  gap: 10px;
+  align-content: start;
+}
+
+.tile {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 16px;
+  min-height: 84px;
+  padding: 0 28px;
+  background: var(--surface-raised);
+  color: var(--text);
+  text-decoration: none;
+  clip-path: var(--slant-shape);
+}
+
+.tile:hover {
+  background: #2a2a2e;
+}
+
+.tilePrimary,
+.tilePrimary:hover {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+.tileTitle {
+  font-size: clamp(2rem, 3.5vw, 2.75rem);
+  text-transform: uppercase;
+}
+
+.tileHint {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.tilePrimary .tileHint {
+  color: var(--on-accent);
+}
+
+.tileArrow {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--accent);
+}
+
+.tilePrimary .tileArrow {
+  color: var(--on-accent);
+}
+
+.allModes {
+  padding: 6px 0;
+  font-size: 0.875rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  text-decoration: none;
+}
+
+/* --- results ----------------------------------------------------------------------- */
+
+.results {
   display: grid;
   gap: 10px;
 }
 
-.recent li {
+.resultGrid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr));
+}
+
+.result {
+  display: grid;
+  gap: 10px;
+  padding: 16px 18px;
+  background: var(--surface);
+  border-top: 4px solid var(--opponent);
+}
+
+.resultHead {
   display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 4px 16px;
-  padding-bottom: 10px;
-  border-bottom: 1px solid var(--border);
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
 }
 
-.recent li:last-child {
-  border-bottom: 0;
-  padding-bottom: 0;
+.resultBody {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
 }
 
-.recentTitle {
-  font-weight: 700;
-  min-width: 4em;
-}
-
-.recentPlayers {
+.resultNames {
+  display: grid;
   flex: 1;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px 14px;
+  min-width: 0;
+  font-size: 0.875rem;
 }
 
-.winner {
-  font-weight: 700;
+.resultWinner {
+  font-size: 1.75rem;
+  text-transform: uppercase;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.resultValue {
+  font-size: 1.75rem;
+  color: var(--opponent);
 }

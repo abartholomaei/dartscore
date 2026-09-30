@@ -12,12 +12,19 @@
 
 <p align="center">
   <a href="https://abartholomaei.github.io/dartscore/"><img alt="Project page" src="https://img.shields.io/badge/project%20page-open-22c55e?style=flat-square"></a>
+  <a href="https://github.com/abartholomaei/dartscore/releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/abartholomaei/dartscore?style=flat-square&label=download"></a>
   <img alt="Python 3.12" src="https://img.shields.io/badge/python-3.12-3776ab?style=flat-square&logo=python&logoColor=white">
   <img alt="React + TypeScript" src="https://img.shields.io/badge/react-typescript-3178c6?style=flat-square&logo=react&logoColor=white">
   <img alt="FastAPI" src="https://img.shields.io/badge/fastapi-sqlite-009688?style=flat-square&logo=fastapi&logoColor=white">
   <img alt="ONNX Runtime" src="https://img.shields.io/badge/inference-onnx%20runtime%20(cpu)-555?style=flat-square">
   <img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-555?style=flat-square">
   <img alt="UI languages" src="https://img.shields.io/badge/ui-EN%20%7C%20DE-555?style=flat-square">
+</p>
+
+<p align="center">
+  <a href="https://github.com/abartholomaei/dartscore/releases/latest"><img alt="Download for Windows, macOS and Linux" src="https://img.shields.io/badge/%E2%AC%87%EF%B8%8F%20Download-Windows%20%C2%B7%20macOS%20%C2%B7%20Linux-22c55e?style=for-the-badge"></a>
+  &nbsp;
+  <a href="https://abartholomaei.github.io/dartscore/"><img alt="Project page" src="https://img.shields.io/badge/Project%20page-open-18181b?style=for-the-badge"></a>
 </p>
 
 <p align="center">
@@ -55,13 +62,32 @@
 
 <sub>Screenshots show demo data. The full feature tour is on the <a href="https://abartholomaei.github.io/dartscore/">project page</a>; requirements and roadmap are in <a href="docs/PRD.md">docs/PRD.md</a> (German), camera setup in <a href="docs/hardware-setup.md">docs/hardware-setup.md</a>.</sub>
 
+## Installation
+
+Ready-to-run builds for Windows, macOS (Apple Silicon) and Linux (x86_64, ARM64) are on the [releases page](https://github.com/abartholomaei/dartscore/releases/latest). They need neither Python nor Node.js and add a shortcut that starts the server and opens the UI in the browser.
+
+| System | Guide |
+| --- | --- |
+| Windows 10/11 | [docs/install/windows.md](docs/install/windows.md) ([Deutsch](docs/install/de/windows.md)) – setup `.exe` with Start menu and desktop shortcut |
+| macOS 14+ | [docs/install/macos.md](docs/install/macos.md) ([Deutsch](docs/install/de/macos.md)) – `dartscore.app` via the install script |
+| Linux (Debian, Ubuntu, Raspberry Pi OS) | [docs/install/linux.md](docs/install/linux.md) ([Deutsch](docs/install/de/linux.md)) – app menu and desktop shortcut, optional autostart service |
+
+On Linux and macOS, one line installs the latest release:
+
+```bash
+curl -fsSL https://github.com/abartholomaei/dartscore/releases/latest/download/install.sh | sh
+```
+
+How releases are made: [docs/releasing.md](docs/releasing.md). To develop or to run from source, read on.
+
 ## Structure
 
 | Folder | Contents |
 | --- | --- |
 | `backend/` | Python package `dartscore`: FastAPI server, game logic (`game`), detection (`vision`), persistence (`storage`) |
 | `frontend/` | Web UI (React + TypeScript + Vite), responsive for phone, tablet, desktop and TV |
-| `docs/` | PRD, hardware notes and the project page (`docs/site`, published with `make pages`) |
+| `docs/` | PRD, hardware notes, installation guides (`docs/install`) and the project page (`docs/site`, published with `make pages`) |
+| `packaging/` | Release builds: PyInstaller spec, installers, shortcuts (`make package`) |
 | `config.example.toml` | Example configuration (server, cameras, logging) |
 
 ## Requirements

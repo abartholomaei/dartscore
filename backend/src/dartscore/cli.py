@@ -1,8 +1,14 @@
 """Command-line entry point: start the server, list, test and calibrate cameras."""
 
 import argparse
+import json
+import os
+import shutil
 import sys
+import threading
 import time
+import urllib.request
+import webbrowser
 from pathlib import Path
 
 import cv2
@@ -11,8 +17,10 @@ import uvicorn
 
 from dartscore import __version__
 from dartscore.api import create_app
-from dartscore.config import CameraConfig, Settings, load_settings
+from dartscore.api.app import lan_addresses
+from dartscore.config import DEFAULT_CONFIG_FILE, CameraConfig, Settings, load_settings
 from dartscore.log import configure_logging
+from dartscore.paths import app_home, bundle_dir, is_frozen
 from dartscore.vision.camera import CameraManager, CameraWorker
 from dartscore.vision.devices import list_devices
 from dartscore.vision.intrinsics import (
@@ -42,6 +50,53 @@ def cmd_serve(settings: Settings, _args: argparse.Namespace) -> None:
         # open MJPEG streams would otherwise block shutdown indefinitely
         timeout_graceful_shutdown=3,
     )
+
+
+def _local_url(settings: Settings) -> str:
+    return f"http://localhost:{settings.server.port}"
+
+
+def _dartscore_answers(url: str, timeout: float = 1.0) -> bool:
+    try:
+        with urllib.request.urlopen(f"{url}/api/health", timeout=timeout) as response:
+            return bool(json.load(response).get("status") == "ok")
+    except (OSError, ValueError):
+        return False
+
+
+def _open_when_ready(url: str, deadline_s: float = 60.0) -> None:
+    end = time.monotonic() + deadline_s
+    while time.monotonic() < end:
+        if _dartscore_answers(url):
+            webbrowser.open(url)
+            return
+        time.sleep(0.5)
+
+
+def cmd_launch(settings: Settings, args: argparse.Namespace) -> None:
+    """Desktop shortcut: start the server and open the UI; if it already runs, just open it."""
+    url = _local_url(settings)
+    if _dartscore_answers(url):
+        print(f"dartscore is already running, opening {url}")
+        webbrowser.open(url)
+        return
+    port = settings.server.port
+    others = "\n".join(f"    http://{a}:{port}" for a in lan_addresses())
+    print(f"dartscore {__version__}\n")
+    print(f"  This computer:   {url}")
+    if others:
+        print(f"  Phones/tablets:\n{others}")
+    print(f"  Settings & data: {Path.cwd()}\n")
+    print("Close this window or press Ctrl+C to stop dartscore.\n", flush=True)
+    if not getattr(args, "no_browser", False):
+        threading.Thread(target=_open_when_ready, args=(url,), daemon=True).start()
+    try:
+        cmd_serve(settings, args)
+    except SystemExit as exc:
+        # e.g. port in use: keep the window open so the message can be read
+        if exc.code not in (0, None) and sys.stdin is not None and sys.stdin.isatty():
+            input("\ndartscore could not start. Press Enter to close.")
+        raise
 
 
 def cmd_devices(_settings: Settings, _args: argparse.Namespace) -> None:
@@ -273,7 +328,11 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
     sub = parser.add_subparsers(dest="command")
 
-    sub.add_parser("serve", help="start the server (default)")
+    sub.add_parser("serve", help="start the server (default when run from source)")
+    launch = sub.add_parser(
+        "launch", help="start the server and open the UI (default of the release builds)"
+    )
+    launch.add_argument("--no-browser", action="store_true", help="don't open the browser")
     sub.add_parser("devices", help="show connected cameras and formats")
 
     bench = sub.add_parser("bench", help="read all cameras at once and measure fps")
@@ -305,8 +364,8 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 COMMANDS = {
-    None: cmd_serve,
     "serve": cmd_serve,
+    "launch": cmd_launch,
     "devices": cmd_devices,
     "bench": cmd_bench,
     "calibrate-lens": cmd_calibrate_lens,
@@ -316,9 +375,27 @@ COMMANDS = {
 }
 
 
+def enter_home() -> None:
+    """Release builds run in a per-user folder (see dartscore.paths); on the first start it
+    gets a config.toml from the bundled template."""
+    home = app_home()
+    if home is None:
+        return
+    home.mkdir(parents=True, exist_ok=True)
+    os.chdir(home)
+    template = bundle_dir() / "config.template.toml"
+    if is_frozen() and not DEFAULT_CONFIG_FILE.exists() and template.is_file():
+        shutil.copyfile(template, DEFAULT_CONFIG_FILE)
+
+
 def main(argv: list[str] | None = None) -> None:
     args = build_parser().parse_args(argv)
+    if args.config is not None:
+        args.config = args.config.resolve()
+    enter_home()
     settings = load_settings(args.config)
     configure_logging(settings.logging)
     settings.data_dir.mkdir(parents=True, exist_ok=True)
-    COMMANDS[args.command](settings, args)
+    # a release build started by double-click (no arguments) behaves like the shortcut
+    command = args.command or ("launch" if is_frozen() else "serve")
+    COMMANDS[command](settings, args)

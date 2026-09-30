@@ -32,9 +32,13 @@
 .tile {
   display: grid;
   gap: 2px;
-  padding: 12px;
-  border-radius: 10px;
+  padding: 12px 14px;
   background: var(--bg);
+  border-bottom: 3px solid var(--border);
+}
+
+.big {
+  border-bottom-color: var(--accent);
 }
 
 .big {
@@ -44,7 +48,8 @@
 .tileValue {
   font-family: var(--font-display);
   font-size: 1.75rem;
-  font-weight: 800;
+  font-style: italic;
+  font-weight: 900;
   font-variant-numeric: tabular-nums;
 }
 
@@ -87,17 +92,236 @@
   color: var(--text);
 }
 
-.h2h {
+.h2hTop {
   display: flex;
-  align-items: baseline;
-  gap: 16px;
-  margin-top: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 16px;
+}
+
+.h2hTop .cardTitle {
+  margin: 0;
+}
+
+.h2hView {
+  display: grid;
+  gap: var(--gutter);
+  margin-top: 16px;
+}
+
+/* the band: both players facing each other, the win tally in the middle */
+.h2hBand {
+  position: relative;
+  overflow: hidden;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+  padding: 20px clamp(12px, 3vw, 40px);
+  background: var(--bg);
+}
+
+.h2hWedgeLeft,
+.h2hWedgeRight {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 16%;
+  transform: skewX(-14deg);
+}
+
+.h2hWedgeLeft {
+  left: -9%;
+  background: var(--accent);
+}
+
+.h2hWedgeRight {
+  right: -9%;
+  background: var(--opponent);
+}
+
+.h2hPlayer,
+.h2hCenter {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  min-width: 0;
+  text-align: center;
+}
+
+.h2hRing {
+  display: inline-flex;
+  border: 4px solid;
+  border-radius: 50%;
+  background: var(--surface);
+}
+
+.h2hName {
+  font-size: clamp(1.75rem, 4vw, 3.25rem);
+  text-transform: uppercase;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .h2hScore {
-  font-size: 2.5rem;
-  font-weight: 800;
+  font-size: clamp(3.5rem, 9vw, 7rem);
+  line-height: 0.95;
   font-variant-numeric: tabular-nums;
+}
+
+.h2hColon {
+  color: var(--text-muted);
+  padding: 0 0.15em;
+}
+
+.h2hBody {
+  display: grid;
+  gap: var(--gutter);
+  grid-template-columns: minmax(0, 1fr);
+}
+
+@media (min-width: 1000px) {
+  .h2hBody {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 0.8fr);
+  }
+}
+
+.h2hCompare,
+.h2hSide {
+  display: grid;
+  gap: 12px;
+  align-content: start;
+}
+
+.h2hRow {
+  display: grid;
+  gap: 4px;
+}
+
+.h2hValues {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.h2hValues .broadcast {
+  font-size: 2.25rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.h2hBar {
+  display: flex;
+  gap: 3px;
+  height: 7px;
+}
+
+.h2hBar span:first-child {
+  background: var(--accent);
+}
+
+.h2hBar span:last-child {
+  flex: 1;
+  background: var(--opponent);
+}
+
+/* one slanted chip per duel in the winner's colour */
+.duels {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(72px, 1fr));
+  gap: 4px;
+}
+
+.duel {
+  display: grid;
+  place-items: center;
+  min-height: 44px;
+  padding: 0 14px;
+  background: var(--surface-raised);
+  color: var(--text-muted);
+  clip-path: var(--slant-shape);
+}
+
+.duel .broadcast {
+  font-size: 1.125rem;
+  text-transform: uppercase;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.duelMe {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+.duelThem {
+  background: var(--opponent);
+  color: var(--on-opponent);
+}
+
+.duelChart {
+  width: 100%;
+  height: 160px;
+  display: block;
+}
+
+.duelChart polyline {
+  fill: none;
+  stroke-width: 2.5;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.lineMe {
+  stroke: var(--accent);
+}
+
+.lineThem {
+  stroke: var(--opponent);
+}
+
+.legend {
+  display: flex;
+  gap: 16px;
+  font-size: 0.875rem;
+  color: var(--text-muted);
+}
+
+.legend > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.legendMe,
+.legendThem {
+  width: 14px;
+  height: 3px;
+  background: var(--accent);
+}
+
+.legendThem {
+  background: var(--opponent);
+}
+
+/* phones: smaller portraits so both fit */
+@media (max-width: 559px) {
+  .h2hRing img,
+  .h2hRing span {
+    /* the avatar sizes itself inline */
+    width: 64px !important;
+    height: 64px !important;
+    font-size: 28px !important;
+  }
 }
 
 .heatmap {

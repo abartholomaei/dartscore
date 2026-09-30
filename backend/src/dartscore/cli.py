@@ -231,7 +231,9 @@ def cmd_replay(settings: Settings, args: argparse.Namespace) -> None:
     from dartscore.vision.model import load_model
 
     model = load_model(Path(args.model)) if args.model else None
-    results = replay_all(recordings, database, settings.detection, model=model)
+    results = replay_all(
+        recordings, database, settings.detection, model=model, testset=args.testset
+    )
     judged = [r for r in results if r.truth is not None]
     for r in results:
         cams = " ".join(
@@ -251,6 +253,18 @@ def cmd_replay(settings: Settings, args: argparse.Namespace) -> None:
             f"\nrecorded: {recorded_ok}/{len(judged)} correct, "
             f"replay: {replay_ok}/{len(judged)} correct"
         )
+    if args.testset and judged:
+        from dartscore.vision.testset import SCENARIOS_BY_ID, read_truth
+
+        per_category: dict[str, list[int]] = {}
+        for r in judged:
+            truth = read_truth(recordings / r.folder) or {}
+            scenario = SCENARIOS_BY_ID.get(truth.get("scenario") or "")
+            counts = per_category.setdefault(scenario.category if scenario else "other", [0, 0])
+            counts[0] += r.replayed == r.truth
+            counts[1] += 1
+        for category, (ok, n) in sorted(per_category.items()):
+            print(f"  {category:14} {ok}/{n}")
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -280,6 +294,9 @@ def build_parser() -> argparse.ArgumentParser:
     replay.add_argument("--recordings", help="recordings folder (default: data dir)")
     replay.add_argument("--db", help="database with the true results (default: data dir)")
     replay.add_argument("--model", help="ONNX tip model to use (default: classic detection only)")
+    replay.add_argument(
+        "--testset", action="store_true", help="only the labeled hand-placed darts (test set)"
+    )
 
     backup = sub.add_parser("backup", help="create, list or restore database backups")
     backup.add_argument("action", choices=["create", "list", "restore"])

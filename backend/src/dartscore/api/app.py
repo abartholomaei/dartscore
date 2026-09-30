@@ -22,6 +22,7 @@ from dartscore.api import (
     lens,
     players,
     stats,
+    testset,
     tournaments,
     training_plans,
     ws,
@@ -214,6 +215,7 @@ def create_app(settings: Settings, camera_manager: CameraManager | None = None) 
         diagnostics,
         tournaments,
         training_plans,
+        testset,
         ws,
     ):
         app.include_router(module.router)

@@ -12,6 +12,8 @@ type Live = {
   setDetection: (status: DetectionStatus) => void
   /** the most recently detected dart (also outside of games, e.g. for testing) */
   lastDart: DetectedDart | null
+  /** counts the detected takeouts (darts pulled), so a page can react to each one */
+  takeouts: number
 }
 
 const LiveGameContext = createContext<Live>({
@@ -21,6 +23,7 @@ const LiveGameContext = createContext<Live>({
   detection: null,
   setDetection: () => undefined,
   lastDart: null,
+  takeouts: 0,
 })
 
 const RECONNECT_MS = 2000
@@ -31,6 +34,7 @@ export function LiveGameProvider({ children }: { children: React.ReactNode }) {
   const [connected, setConnected] = useState(false)
   const [detection, setDetection] = useState<DetectionStatus | null>(null)
   const [lastDart, setLastDart] = useState<DetectedDart | null>(null)
+  const [takeouts, setTakeouts] = useState(0)
 
   useEffect(() => {
     let socket: WebSocket | null = null
@@ -49,6 +53,8 @@ export function LiveGameProvider({ children }: { children: React.ReactNode }) {
           setDetection(message.data as DetectionStatus)
         } else if (message.type === 'dart') {
           setLastDart(message.data as DetectedDart)
+        } else if (message.type === 'takeout') {
+          setTakeouts((n) => n + 1)
         }
       }
       socket.onclose = () => {
@@ -66,7 +72,7 @@ export function LiveGameProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   return (
-    <LiveGameContext.Provider value={{ game, connected, setGame, detection, setDetection, lastDart }}>
+    <LiveGameContext.Provider value={{ game, connected, setGame, detection, setDetection, lastDart, takeouts }}>
       {children}
     </LiveGameContext.Provider>
   )

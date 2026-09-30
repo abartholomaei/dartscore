@@ -20,6 +20,7 @@ from dartscore.vision import board
 from dartscore.vision.calibration import BoardCalibration
 from dartscore.vision.detection import CameraHit, CameraView, _roi_mask, find_dart_tip, locate
 from dartscore.vision.model import TipModel
+from dartscore.vision.testset import read_truth
 
 
 @dataclass(frozen=True)
@@ -77,7 +78,11 @@ def replay_recording(
     return board.score_at(x, y).label, tuple(marked)
 
 
-def _truth(db: sqlite3.Connection | None, meta: dict[str, object]) -> str | None:
+def _truth(db: sqlite3.Connection | None, meta: dict[str, object], folder: Path) -> str | None:
+    # a hand-placed dart of the test set, labeled by the player
+    labeled = read_truth(folder)
+    if labeled is not None:
+        return str(labeled["label"])
     if db is None or meta.get("game_id") is None or meta.get("event_seq") is None:
         return None
     row = db.execute(
@@ -97,7 +102,9 @@ def replay_all(
     config: DetectionConfig,
     homographies: dict[str, NDArray[np.float64]] | None = None,
     model: TipModel | None = None,
+    testset: bool = False,
 ) -> list[ReplayResult]:
+    """``testset`` limits the replay to the labeled hand-placed darts (see vision.testset)."""
     db = (
         sqlite3.connect(f"file:{database}?mode=ro", uri=True)
         if database and database.exists()
@@ -109,11 +116,13 @@ def replay_all(
             meta = json.loads(meta_path.read_text())
             if "calibrations" not in meta:
                 continue
+            if testset and read_truth(meta_path.parent) is None:
+                continue
             replayed, hits = replay_recording(meta_path.parent, config, homographies, model)
             results.append(
                 ReplayResult(
                     folder=f"{meta_path.parent.parent.name}/{meta_path.parent.name}",
-                    truth=_truth(db, meta),
+                    truth=_truth(db, meta, meta_path.parent),
                     recorded=str(meta["detection"]["label"]),
                     replayed=replayed,
                     hits=hits,

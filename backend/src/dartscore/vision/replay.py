@@ -18,15 +18,9 @@ from dartscore.config import DetectionConfig
 from dartscore.game.dart import Dart
 from dartscore.vision import board
 from dartscore.vision.calibration import BoardCalibration
-from dartscore.vision.detection import (
-    CameraHit,
-    _roi_mask,
-    find_dart_tip,
-    fuse,
-    local_resolution,
-    refine_with_model,
-)
+from dartscore.vision.detection import CameraHit, CameraView, _roi_mask, find_dart_tip, locate
 from dartscore.vision.model import TipModel
+from dartscore.vision.testset import read_truth
 
 
 @dataclass(frozen=True)
@@ -45,11 +39,11 @@ def replay_recording(
     model: TipModel | None = None,
 ) -> tuple[str | None, tuple[CameraHit, ...]]:
     """``homographies`` replaces the recorded calibrations (to compare calibrations),
-    ``model`` refines the tips like in live detection."""
+    ``model`` is asked for uncertain darts like in live detection."""
     meta = json.loads((folder / "meta.json").read_text())
     # darts that were in the board before this throw
     known = [tuple(p) for p in (meta.get("board_darts") or [])[:-1]]
-    hits: list[CameraHit] = []
+    views: list[CameraView] = []
     for cid, cal_info in meta.get("calibrations", {}).items():
         before = cv2.imread(str(folder / f"{cid}_before.jpg"))
         after = cv2.imread(str(folder / f"{cid}_after.jpg"))
@@ -76,28 +70,19 @@ def replay_recording(
             config.pixel_threshold,
             min_px,
         )
-        if model is not None:
-            found = refine_with_model(model, calibration, after, found, known)
-        if found is None:
-            continue
-        (tx, ty), area = found
-        bx, by = calibration.image_to_board(np.array([[tx, ty]]))[0]
-        hits.append(
-            CameraHit(
-                cid,
-                (round(tx, 1), round(ty, 1)),
-                (round(float(bx), 1), round(float(by), 1)),
-                area,
-                mm_per_px=round(local_resolution(calibration, tx, ty), 2),
-            )
-        )
-    if not hits:
+        views.append(CameraView(cid, calibration, after, found))
+    located = locate(views, config, len(meta.get("calibrations", {})), model, known)
+    if located is None:
         return None, ()
-    x, y, _, marked = fuse(hits, config.max_spread_mm, len(meta.get("calibrations", {})))
+    x, y, _, marked = located
     return board.score_at(x, y).label, tuple(marked)
 
 
-def _truth(db: sqlite3.Connection | None, meta: dict[str, object]) -> str | None:
+def _truth(db: sqlite3.Connection | None, meta: dict[str, object], folder: Path) -> str | None:
+    # a hand-placed dart of the test set, labeled by the player
+    labeled = read_truth(folder)
+    if labeled is not None:
+        return str(labeled["label"])
     if db is None or meta.get("game_id") is None or meta.get("event_seq") is None:
         return None
     row = db.execute(
@@ -117,7 +102,9 @@ def replay_all(
     config: DetectionConfig,
     homographies: dict[str, NDArray[np.float64]] | None = None,
     model: TipModel | None = None,
+    testset: bool = False,
 ) -> list[ReplayResult]:
+    """``testset`` limits the replay to the labeled hand-placed darts (see vision.testset)."""
     db = (
         sqlite3.connect(f"file:{database}?mode=ro", uri=True)
         if database and database.exists()
@@ -129,11 +116,13 @@ def replay_all(
             meta = json.loads(meta_path.read_text())
             if "calibrations" not in meta:
                 continue
+            if testset and read_truth(meta_path.parent) is None:
+                continue
             replayed, hits = replay_recording(meta_path.parent, config, homographies, model)
             results.append(
                 ReplayResult(
                     folder=f"{meta_path.parent.parent.name}/{meta_path.parent.name}",
-                    truth=_truth(db, meta),
+                    truth=_truth(db, meta, meta_path.parent),
                     recorded=str(meta["detection"]["label"]),
                     replayed=replayed,
                     hits=hits,

@@ -220,6 +220,10 @@ class DetectionService:
             "accepted": accepted,
             "time": datetime.now().isoformat(timespec="milliseconds"),
         }
+        # the recording's folder (<day>/<time>), so a client can label the dart (test set)
+        folder = self._recording_folder() if self.config.record else None
+        if folder is not None:
+            info["recording"] = folder.relative_to(self._recordings_dir).as_posix()
         self._last_dart = info
         self.recent_darts.appendleft(
             {
@@ -232,8 +236,8 @@ class DetectionService:
             "dart_detected", label=dart.label, x=dart.x_mm, y=dart.y_mm, confidence=dart.confidence
         )
         self._hub.publish("dart", info)
-        if self.config.record:
-            self._record(detector, info, game_state)
+        if folder is not None:
+            self._record(folder, detector, info, game_state)
 
     def _on_takeout(self) -> None:
         log.info("takeout_detected")
@@ -258,11 +262,17 @@ class DetectionService:
                 if self._detector is not None:
                     self._detector.new_turn()
 
-    def _record(
-        self, detector: DartDetector, info: dict[str, Any], game_state: dict[str, Any] | None
-    ) -> None:
+    def _recording_folder(self) -> Path:
         stamp = datetime.now()
-        folder = self._recordings_dir / stamp.strftime("%Y-%m-%d") / stamp.strftime("%H%M%S_%f")
+        return self._recordings_dir / stamp.strftime("%Y-%m-%d") / stamp.strftime("%H%M%S_%f")
+
+    def _record(
+        self,
+        folder: Path,
+        detector: DartDetector,
+        info: dict[str, Any],
+        game_state: dict[str, Any] | None,
+    ) -> None:
         try:
             folder.mkdir(parents=True, exist_ok=True)
             # the detector already took the new frame as reference, so "before" is the frame

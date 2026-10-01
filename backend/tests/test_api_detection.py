@@ -160,3 +160,31 @@ def test_diagnostics_reports_process_and_cameras(client: TestClient) -> None:
     assert {c["id"] for c in data["cameras"]} == {"cam1", "cam2", "cam3"}
     assert "step_ms" in data["detection"]
     assert data["recent_darts"] == []
+
+
+def test_hand_placed_dart_is_labeled_for_the_test_set(client: TestClient, tmp_path: Path) -> None:
+    from dartscore.config import DetectionConfig
+    from dartscore.vision.replay import replay_all
+
+    scenarios = client.get("/api/testset/scenarios").json()
+    assert {"triple_inner", "double_outer", "wire", "cluster"} <= {s["category"] for s in scenarios}
+
+    time.sleep(0.5)  # references settle
+    client.post("/api/simulator", json={"action": "dart", "x_mm": 0, "y_mm": 103})
+    dart = wait_for(lambda: client.get("/api/detection").json()["last_dart"])
+    recording = dart["recording"]
+    wait_for(lambda: (tmp_path / "data" / "recordings" / recording / "meta.json").is_file())
+
+    # the player says it is really in the single: that label wins over the detection
+    body = {"recording": recording, "label": "S20", "scenario": "triple_inner-20-inside"}
+    assert client.post("/api/testset/labels", json=body).json()["label"] == "S20"
+    assert client.get("/api/testset/summary").json() == {
+        "total": 1,
+        "per_category": {"triple_inner": 1},
+    }
+    results = replay_all(tmp_path / "data" / "recordings", None, DetectionConfig(), testset=True)
+    assert [(r.truth, r.recorded) for r in results] == [("S20", "T20")]
+
+    assert client.post("/api/testset/labels", json={**body, "label": "T21"}).status_code == 422
+    outside = {**body, "recording": "../../etc"}
+    assert client.post("/api/testset/labels", json=outside).status_code == 404

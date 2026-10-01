@@ -1,0 +1,70 @@
+.title {
+  font-size: clamp(1.5rem, 3vw, 2.25rem);
+}
+
+.card {
+  display: grid;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.big {
+  font-family: var(--font-display);
+  font-size: clamp(1.25rem, 2.5vw, 1.75rem);
+  font-weight: 700;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+/* big targets: the page is used standing at the board */
+.actions button,
+.actions select {
+  min-width: 80px;
+  padding: 12px 20px;
+  font-size: 1.1rem;
+}
+
+.actions .primary {
+  background: var(--accent);
+  color: var(--on-accent);
+  border-color: var(--accent);
+  font-weight: 600;
+}
+
+.summary {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.layout {
+  display: grid;
+  gap: 20px;
+  grid-template-columns: minmax(220px, 420px) 1fr;
+  align-items: start;
+}
+
+.board {
+  width: 100%;
+  /* room for the aim dart sticking out at the top */
+  padding-top: 24px;
+}
+
+.steps {
+  display: grid;
+  gap: 12px;
+}
+
+@media (max-width: 720px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+
+  .board {
+    max-width: 360px;
+    margin: 0 auto;
+  }
+}

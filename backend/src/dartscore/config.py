@@ -88,6 +88,9 @@ class DetectionConfig(BaseModel):
     record: bool = True
     # trained dart tip model (ONNX); default: <data_dir>/models/darts.onnx if it exists
     model_path: Path | None = None
+    # the model is only asked when the classic detection is less confident than this
+    # (0 = never, 1 = always)
+    model_below_confidence: float = Field(default=0.5, ge=0, le=1)
     # follow a bumped camera automatically: re-align its calibration (checked once a minute
     # while nothing moves at the board) when it moved by more than realign_threshold_px
     auto_realign: bool = True

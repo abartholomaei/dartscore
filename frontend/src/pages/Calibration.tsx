@@ -22,11 +22,16 @@ import LensCalibration from '../components/LensCalibration'
 import styles from './Calibration.module.css'
 
 type Snapshot = { url: string; width: number; height: number }
-type Drag = { id: string; pointerId: number }
+type Drag = { id: string; pointerId: number; startClient: Point; startPoint: Point }
 type Loupe = { left: number; top: number; boxWidth: number; boxHeight: number }
 
-const LOUPE_ZOOM = 3
-const LOUPE_SIZE = 140
+const LOUPE_ZOOM = 6
+const LOUPE_SIZE = 160
+// a dragged marker moves this much of the pointer movement: an image pixel is several screen
+// pixels wide, so moving 1:1 makes the marker jump from pixel to pixel
+const DRAG_PRECISION = 0.25
+// arrow keys move the active point by this many image pixels (with shift: 1 px)
+const KEY_STEP = 0.25
 // how close (screen px) a tap must be to grab an existing marker
 const HIT_RADIUS = 28
 
@@ -113,6 +118,8 @@ function CameraCalibration({ camera, catalog }: { camera: CameraStatus; catalog:
   const [busy, setBusy] = useState(false)
   const [testHits, setTestHits] = useState<{ point: Point; result: ScoreResult }[]>([])
   const [drag, setDrag] = useState<Drag | null>(null)
+  // the point the arrow keys move: the one placed or grabbed last, or picked in the list
+  const [nudgeId, setNudgeId] = useState<string | null>(null)
   const [loupe, setLoupe] = useState<Loupe | null>(null)
   const boxRef = useRef<HTMLDivElement>(null)
   const { lastDart } = useLiveGame()
@@ -181,9 +188,15 @@ function CameraCalibration({ camera, catalog }: { camera: CameraStatus; catalog:
     }
   }
 
-  const updateLoupe = (clientX: number, clientY: number, rect: DOMRect) => {
-    setLoupe({ left: clientX - rect.left, top: clientY - rect.top, boxWidth: rect.width, boxHeight: rect.height })
+  // the loupe shows the marker, which lags behind the pointer while dragging finely
+  const updateLoupe = (point: Point, rect: DOMRect) => {
+    if (!snapshot) return
+    const scale = rect.width / snapshot.width
+    setLoupe({ left: point[0] * scale, top: point[1] * scale, boxWidth: rect.width, boxHeight: rect.height })
   }
+
+  const clampPoint = ([x, y]: Point): Point =>
+    snapshot ? [Math.max(0, Math.min(snapshot.width, x)), Math.max(0, Math.min(snapshot.height, y))] : [x, y]
 
   const onPointerDown = async (e: React.PointerEvent<HTMLDivElement>) => {
     const hit = toImage(e.clientX, e.clientY)
@@ -213,24 +226,56 @@ function CameraCalibration({ camera, catalog }: { camera: CameraStatus; catalog:
         target = id
       }
     }
+    // a new point lands where tapped; a grabbed one keeps its position until it is dragged
+    let start = hit.point
     if (target === null) {
       if (!activeId) return
       target = activeId
       setPoints((p) => ({ ...p, [target as string]: hit.point }))
+    } else {
+      start = points[target]
     }
     setActiveId(target)
-    setDrag({ id: target, pointerId: e.pointerId })
+    setNudgeId(target)
+    setDrag({ id: target, pointerId: e.pointerId, startClient: [e.clientX, e.clientY], startPoint: start })
     e.currentTarget.setPointerCapture(e.pointerId)
-    updateLoupe(e.clientX, e.clientY, hit.rect)
+    updateLoupe(start, hit.rect)
   }
 
   const onPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (!drag || e.pointerId !== drag.pointerId) return
-    const hit = toImage(e.clientX, e.clientY)
-    if (!hit) return
-    setPoints((p) => ({ ...p, [drag.id]: hit.point }))
-    updateLoupe(e.clientX, e.clientY, hit.rect)
+    if (!drag || e.pointerId !== drag.pointerId || !snapshot || !boxRef.current) return
+    const rect = boxRef.current.getBoundingClientRect()
+    const perScreenPx = (snapshot.width / rect.width) * DRAG_PRECISION
+    const point = clampPoint([
+      drag.startPoint[0] + (e.clientX - drag.startClient[0]) * perScreenPx,
+      drag.startPoint[1] + (e.clientY - drag.startClient[1]) * perScreenPx,
+    ])
+    setPoints((p) => ({ ...p, [drag.id]: point }))
+    updateLoupe(point, rect)
   }
+
+  // arrow keys nudge the point placed or grabbed last
+  useEffect(() => {
+    if (mode !== 'edit' || !nudgeId || !(nudgeId in points)) return
+    const onKey = (e: KeyboardEvent) => {
+      const step = e.shiftKey ? 1 : KEY_STEP
+      const delta: Record<string, Point> = {
+        ArrowLeft: [-step, 0],
+        ArrowRight: [step, 0],
+        ArrowUp: [0, -step],
+        ArrowDown: [0, step],
+      }
+      const d = delta[e.key]
+      if (!d || (e.target instanceof HTMLElement && e.target.closest('input, textarea, select'))) return
+      e.preventDefault()
+      setPoints((p) => {
+        const [x, y] = p[nudgeId]
+        return { ...p, [nudgeId]: clampPoint([x + d[0], y + d[1]]) }
+      })
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  })
 
   const onPointerUp = () => {
     if (!drag) return
@@ -250,6 +295,7 @@ function CameraCalibration({ camera, catalog }: { camera: CameraStatus; catalog:
     setTestHits([])
     setMessage(null)
     setActiveId(id ?? nextOpenPoint(points) ?? catalog.points[0].id)
+    setNudgeId(id ?? null)
   }
 
   const removePoint = (id: string) => {
@@ -371,7 +417,7 @@ function CameraCalibration({ camera, catalog }: { camera: CameraStatus; catalog:
               height={snapshot.height}
             >
               {Object.entries(points).map(([id, [x, y]]) => (
-                <g key={id} className={id === activeId ? styles.markerActive : styles.marker}>
+                <g key={id} className={id === (nudgeId ?? activeId) ? styles.markerActive : styles.marker}>
                   <circle cx={x} cy={y} r={markerR} />
                   <line x1={x - markerR * 1.6} y1={y} x2={x + markerR * 1.6} y2={y} />
                   <line x1={x} y1={y - markerR * 1.6} x2={x} y2={y + markerR * 1.6} />

@@ -450,7 +450,21 @@ export type DetectedDart = {
   hits: DetectionHit[]
   accepted: boolean
   time: string
+  /** folder of the recording (<day>/<time>), when recording is on */
+  recording?: string
 }
+
+export type TestScenario = {
+  id: string
+  category: string
+  side: string
+  target: string
+  candidates: string[]
+  /** where to put the tip, board mm (y up) */
+  spot_mm: [number, number]
+}
+
+export type TestSetSummary = { total: number; per_category: Record<string, number> }
 
 export type DetectionStatus = {
   enabled: boolean

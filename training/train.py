@@ -13,7 +13,9 @@ from pathlib import Path
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser = argparse.ArgumentParser(
+        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+    )
     parser.add_argument("--data", required=True, help="data.yaml from `dartscore export-dataset`")
     parser.add_argument("--model", default="yolo26n.pt", help="base model (pretrained weights)")
     parser.add_argument("--epochs", type=int, default=150)

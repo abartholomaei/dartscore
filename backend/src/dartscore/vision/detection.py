@@ -182,14 +182,16 @@ def fuse(
     """Combines the per-camera board positions.
 
     Each camera is trusted according to its local resolution: a camera seeing the spot from
-    close by (few mm per pixel) counts more than one looking at it across the whole board.
+    close by (few mm per pixel) counts more than one looking at it across the whole board. The
+    weight is only 1 / resolution: on real throws a sharp camera is barely more often right on
+    its own than a blurry one, so stronger weighting lets one wrong sharp camera pull too far.
     Two cameras agree if they are closer than ``max_spread_mm`` plus a margin for their
     resolution. The best supported group is averaged; if no cameras agree, the sharpest one
     wins. Returns x, y, confidence and the hits with the ignored ones marked as unused.
     """
     pts = np.array([h.board_mm for h in hits], dtype=np.float64)
     sigma = np.array([max(h.mm_per_px, 0.1) for h in hits])
-    weight = 1.0 / sigma**2
+    weight = 1.0 / sigma
     distances = np.linalg.norm(pts[:, None, :] - pts[None, :, :], axis=2)
     tolerance = max_spread_mm + 3.0 * (sigma[:, None] + sigma[None, :])
     agrees = distances <= tolerance
@@ -248,6 +250,65 @@ def refine_with_model(
     if len(new) == 1:
         return (new[0][0].x, new[0][0].y), area
     return None
+
+
+@dataclass(frozen=True)
+class CameraView:
+    """One camera's view of a throw: the image after it and the classic tip (and its area)."""
+
+    camera_id: str
+    calibration: BoardCalibration
+    image: Image
+    classic: tuple[tuple[float, float], int] | None
+
+
+def camera_hit(
+    camera_id: str, calibration: BoardCalibration, found: tuple[tuple[float, float], int] | None
+) -> CameraHit | None:
+    if found is None:
+        return None
+    (tx, ty), area = found
+    bx, by = calibration.image_to_board(np.array([[tx, ty]]))[0]
+    return CameraHit(
+        camera_id,
+        (round(tx, 1), round(ty, 1)),
+        (round(float(bx), 1), round(float(by), 1)),
+        area,
+        mm_per_px=round(local_resolution(calibration, tx, ty), 2),
+    )
+
+
+def locate(
+    views: list[CameraView],
+    config: DetectionConfig,
+    camera_count: int,
+    model: TipModel | None = None,
+    known_darts: list[tuple[float, float]] | None = None,
+) -> tuple[float, float, float, list[CameraHit]] | None:
+    """Fuses the classic tips of all cameras. The model is only asked when that result is
+    uncertain (confidence below ``model_below_confidence``); its tips win when they fuse to a
+    more confident result."""
+
+    def fused(hits: list[CameraHit | None]) -> tuple[float, float, float, list[CameraHit]] | None:
+        found = [h for h in hits if h is not None]
+        return fuse(found, config.max_spread_mm, camera_count) if found else None
+
+    classic = fused([camera_hit(v.camera_id, v.calibration, v.classic) for v in views])
+    if model is None or (classic is not None and classic[2] >= config.model_below_confidence):
+        return classic
+    refined = fused(
+        [
+            camera_hit(
+                v.camera_id,
+                v.calibration,
+                refine_with_model(model, v.calibration, v.image, v.classic, known_darts or []),
+            )
+            for v in views
+        ]
+    )
+    if refined is None or (classic is not None and refined[2] <= classic[2]):
+        return classic
+    return refined
 
 
 class DartDetector:
@@ -514,7 +575,7 @@ class DartDetector:
 
     def _locate(self, camera_ids: list[str]) -> DartDetection | None:
         cfg = self.config
-        hits: list[CameraHit] = []
+        views: list[CameraView] = []
         for cid in camera_ids:
             cam = self._cameras[cid]
             color = self._color(cam)
@@ -525,26 +586,11 @@ class DartDetector:
             found = find_dart_tip(
                 cam.ref_full, current, cam.mask_full, cfg.pixel_threshold, max(20, min_px)
             )
-            if self.model is not None:
-                found = refine_with_model(
-                    self.model, cam.calibration, current, found, self.board_darts or []
-                )
-            if found is None:
-                continue
-            (tx, ty), area = found
-            bx, by = cam.calibration.image_to_board(np.array([[tx, ty]]))[0]
-            hits.append(
-                CameraHit(
-                    cid,
-                    (round(tx, 1), round(ty, 1)),
-                    (round(float(bx), 1), round(float(by), 1)),
-                    area,
-                    mm_per_px=round(local_resolution(cam.calibration, tx, ty), 2),
-                )
-            )
-        if not hits:
+            views.append(CameraView(cid, cam.calibration, current, found))
+        located = locate(views, cfg, len(self._cameras), self.model, self.board_darts or [])
+        if located is None:
             return None
-        x, y, confidence, marked = fuse(hits, cfg.max_spread_mm, len(self._cameras))
+        x, y, confidence, marked = located
         score = board.score_at(x, y)
         return DartDetection(
             x_mm=round(x, 1),

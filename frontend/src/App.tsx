@@ -3,6 +3,7 @@ import Layout from './components/Layout'
 import { LiveGameProvider } from './LiveGame'
 import Calibration from './pages/Calibration'
 import Diagnostics from './pages/Diagnostics'
+import TestSet from './pages/TestSet'
 import Cameras from './pages/Cameras'
 import Home from './pages/Home'
 import NewGame from './pages/NewGame'
@@ -30,6 +31,7 @@ export default function App() {
             <Route path="cameras" element={<Cameras />} />
             <Route path="calibration" element={<Calibration />} />
             <Route path="diagnostics" element={<Diagnostics />} />
+            <Route path="testset" element={<TestSet />} />
             {import.meta.env.DEV && <Route path="dev/puppets" element={<PuppetLab />} />}
           </Route>
         </Routes>

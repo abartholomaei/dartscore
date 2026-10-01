@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { getJson, sendJson, type DetectedDart, type TestScenario, type TestSetSummary } from '../api'
+import DartBoard from '../components/DartBoard'
 import { useLiveGame } from '../LiveGame'
 import styles from './TestSet.module.css'
 
@@ -108,6 +109,16 @@ export default function TestSet() {
   }
 
   const otherLabel = scenario ? scenario.candidates.find((c) => c !== scenario.target) ?? '' : ''
+  // the sentence names the edge meant: a single field borders the triple on both sides
+  const placeText = scenario
+    ? scenario.target === 'MISS'
+      ? t('testset.placeMiss', { other: otherLabel })
+      : t(`testset.placeText.${scenario.category}`, {
+          target: scenario.target,
+          other: otherLabel,
+          defaultValue: t('testset.placeIn', { target: scenario.target }),
+        })
+    : ''
   // angled and clustered darts need more than the target field
   const extra = scenario
     ? t(`testset.extra.${scenario.category}`, {
@@ -129,63 +140,82 @@ export default function TestSet() {
             {t(`testset.category.${scenario.category}`, { defaultValue: scenario.category })}
           </p>
 
-          {phase === 'pull' ? (
-            <>
-              <p className={styles.big}>{t('testset.pull')}</p>
-              <div className={styles.actions}>
-                <button onClick={() => setBoard({ takeouts, darts: 0 })}>{t('testset.pulled')}</button>
-              </div>
-            </>
-          ) : phase === 'place' ? (
-            <>
-              <p className={styles.big}>
-                {scenario.category === 'cluster'
-                  ? t('testset.placeIn', { target: scenario.target })
-                  : t('testset.place', { target: scenario.target, other: otherLabel })}
-              </p>
-              {extra && <p>{extra}</p>}
-              <p className="muted">{t('testset.waiting')}</p>
-              <div className={styles.actions}>
-                <button onClick={() => advance(false)}>{t('testset.skip')}</button>
-              </div>
-            </>
-          ) : (
-            pending && (
-              <>
-                <p className={styles.big}>{t('testset.detected', { label: pending.label })}</p>
-                <p>{t('testset.whichField')}</p>
-                <div className={styles.actions}>
-                  {scenario.candidates.map((c) => (
-                    <button
-                      key={c}
-                      className={c === pending.label ? styles.primary : undefined}
-                      disabled={busy}
-                      onClick={() => void confirm(c)}
-                    >
-                      {c}
-                    </button>
-                  ))}
-                </div>
-                <div className={styles.actions}>
-                  <select value={other} onChange={(e) => setOther(e.target.value)} aria-label={t('testset.otherField')}>
-                    <option value="">{t('testset.otherField')}</option>
-                    {ALL_FIELDS.map((f) => (
-                      <option key={f} value={f}>
-                        {f}
-                      </option>
-                    ))}
-                  </select>
-                  <button disabled={!other || busy} onClick={() => void confirm(other)}>
-                    {t('testset.save')}
-                  </button>
-                  <button disabled={busy} onClick={() => advance(true)}>
-                    {t('testset.discard')}
-                  </button>
-                </div>
-              </>
-            )
-          )}
-          {error && <p className="error">{error}</p>}
+          <div className={styles.layout}>
+            <div className={styles.board}>
+              {phase === 'confirm' && pending ? (
+                <DartBoard
+                  targets={scenario.target === 'MISS' ? [] : [scenario.target]}
+                  emphasizeFirst={false}
+                  darts={[pending.label]}
+                  positions={[[pending.x_mm, pending.y_mm]]}
+                  onSelect={(label) => void confirm(label)}
+                  disabled={busy}
+                />
+              ) : (
+                <DartBoard
+                  targets={phase === 'place' && scenario.target !== 'MISS' ? [scenario.target] : []}
+                  aim={phase === 'place' ? scenario.spot_mm : null}
+                />
+              )}
+            </div>
+            <div className={styles.steps}>
+              {phase === 'pull' ? (
+                <>
+                  <p className={styles.big}>{t('testset.pull')}</p>
+                  <div className={styles.actions}>
+                    <button onClick={() => setBoard({ takeouts, darts: 0 })}>{t('testset.pulled')}</button>
+                  </div>
+                </>
+              ) : phase === 'place' ? (
+                <>
+                  <p className={styles.big}>{placeText}</p>
+                  {extra && <p>{extra}</p>}
+                  <p className="muted">{t('testset.markerHint')}</p>
+                  <p className="muted">{t('testset.waiting')}</p>
+                  <div className={styles.actions}>
+                    <button onClick={() => advance(false)}>{t('testset.skip')}</button>
+                  </div>
+                </>
+              ) : (
+                pending && (
+                  <>
+                    <p className={styles.big}>{t('testset.detected', { label: pending.label })}</p>
+                    <p>{t('testset.whichField')}</p>
+                    <p className="muted">{t('testset.tapBoard')}</p>
+                    <div className={styles.actions}>
+                      {scenario.candidates.map((c) => (
+                        <button
+                          key={c}
+                          className={c === pending.label ? styles.primary : undefined}
+                          disabled={busy}
+                          onClick={() => void confirm(c)}
+                        >
+                          {c}
+                        </button>
+                      ))}
+                    </div>
+                    <div className={styles.actions}>
+                      <select value={other} onChange={(e) => setOther(e.target.value)} aria-label={t('testset.otherField')}>
+                        <option value="">{t('testset.otherField')}</option>
+                        {ALL_FIELDS.map((f) => (
+                          <option key={f} value={f}>
+                            {f}
+                          </option>
+                        ))}
+                      </select>
+                      <button disabled={!other || busy} onClick={() => void confirm(other)}>
+                        {t('testset.save')}
+                      </button>
+                      <button disabled={busy} onClick={() => advance(true)}>
+                        {t('testset.discard')}
+                      </button>
+                    </div>
+                  </>
+                )
+              )}
+              {error && <p className="error">{error}</p>}
+            </div>
+          </div>
         </section>
       )}
 

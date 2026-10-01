@@ -460,6 +460,8 @@ export type TestScenario = {
   side: string
   target: string
   candidates: string[]
+  /** where to put the tip, board mm (y up) */
+  spot_mm: [number, number]
 }
 
 export type TestSetSummary = { total: number; per_category: Record<string, number> }

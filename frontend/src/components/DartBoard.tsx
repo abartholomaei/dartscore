@@ -18,10 +18,15 @@ type Props = {
   dimmed?: string[]
   /** highlighted dart (e.g. selected for correction) */
   selected?: number | null
+  /** a spot to aim at (mm), drawn as a dart pointing at it, e.g. where to place a dart by hand */
+  aim?: [number, number] | null
   /** tap on the board -> dart label; omit for a display-only board */
   onSelect?: (label: string) => void
   disabled?: boolean
 }
+
+// the aim dart leans like one stuck in the board, so it does not cover its own spot
+const AIM_LEAN_DEG = 35
 
 const RINGS: [number, number, 'single' | 'double' | 'triple'][] = [
   [R.doubleInner, R.doubleOuter, 'double'],
@@ -84,6 +89,7 @@ export default function DartBoard({
   dimmed = [],
   emphasizeFirst = true,
   selected = null,
+  aim = null,
   onSelect,
   disabled,
 }: Props) {
@@ -176,6 +182,15 @@ export default function DartBoard({
           </g>
         )
       })}
+      {aim && (
+        // a red dart leaning to the right, its tip exactly on the spot
+        <g className={styles.aim} transform={`translate(${aim[0]} ${-aim[1]}) rotate(${AIM_LEAN_DEG}) scale(1.4)`}>
+          <line x1={0} y1={0} x2={0} y2={-15} className={styles.aimPoint} />
+          <rect x={-3.6} y={-40} width={7.2} height={26} rx={3} />
+          <rect x={-1.7} y={-56} width={3.4} height={17} />
+          <path d="M 0 -52 L -11 -66 L 0 -84 L 11 -66 Z" className={styles.aimFlight} />
+        </g>
+      )}
     </svg>
   )
 }

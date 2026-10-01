@@ -2,6 +2,8 @@
   width: 100%;
   height: auto;
   display: block;
+  /* the aim dart may stick out over the board's edge */
+  overflow: visible;
   touch-action: manipulation;
   user-select: none;
 }
@@ -123,4 +125,24 @@ circle.dim {
   .targetFirst {
     animation: none;
   }
+}
+
+/* where to put a dart: a red dart with a dark outline, so it reads on light and dark fields */
+.aim {
+  pointer-events: none;
+  fill: #e11d2e;
+  stroke: #111;
+  stroke-width: 1.4;
+  stroke-linejoin: round;
+  filter: drop-shadow(0 1.5px 1.5px rgb(0 0 0 / 0.6));
+}
+
+.aim .aimPoint {
+  stroke: #e11d2e;
+  stroke-width: 2.4;
+  stroke-linecap: round;
+}
+
+.aim .aimFlight {
+  fill: #ff3b4e;
 }
